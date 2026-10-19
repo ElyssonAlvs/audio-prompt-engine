@@ -1,0 +1,41 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Local databases and storage
+*.db
+*.sqlite
+*.sqlite3
+data/
+uploads/
+tmp/
+temp_audio/
+
+# Environment files and credentials
+.env
+.env.local
+*.pem
+*.key
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
