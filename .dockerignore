@@ -1,0 +1,43 @@
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+tests/
+
+# Git & Documentation
+.git/
+.gitignore
+DOCUMENTOS-TASK/
+
+# Environment files & Secrets
+.env
+.env.*
+!.env.example
+
+# Local databases, data, and uploads
+data/
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+tmp/
+temp_audio/
+
+# Docker build artifacts
+Dockerfile
+docker-compose.yml
+.dockerignore

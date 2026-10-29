@@ -213,3 +213,18 @@ class TestSecuritySanitizers:
         clean = sanitize_text_input(delimiter_attack)
         assert "</user_speech>" not in clean
         assert "&lt;/user_speech&gt;" in clean
+
+
+class TestRepositoryInitialization:
+    """Unit tests for repository filesystem handling."""
+
+    def test_repository_creates_nested_directories(self, tmp_path):
+        from src.repositories.transcription_repository import TranscriptionRepository
+        nested_db = tmp_path / "nested_dir" / "deeper_dir" / "engine.db"
+        assert not nested_db.parent.exists()
+
+        repo = TranscriptionRepository(db_path=str(nested_db))
+        assert nested_db.parent.exists()
+        assert nested_db.exists()
+        assert repo.count_by_tenant("any-tenant") == 0
+

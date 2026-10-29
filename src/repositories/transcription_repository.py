@@ -1,5 +1,6 @@
 """Multi-tenant parameterized SQLite repository for transcription and prompt storage."""
 
+import os
 import sqlite3
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
@@ -77,6 +78,9 @@ class TranscriptionRepository:
 
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = db_path or get_settings().DATABASE_PATH
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
         self._init_db()
 
     def _init_db(self) -> None:

@@ -90,7 +90,7 @@ flowchart TD
     end
 ```
 
-1. **Banco sem Tranca:** Todo registro e consulta isolam o `tenant_id` via *Prepared Statements* (`?`). Todas as conexões SQLite são encerradas determinística e explicitamente em blocos `finally: conn.close()`, eliminando travamentos de descritores no Windows.
+1. **Banco sem Tranca:** Todo registro e consulta isolam o `tenant_id` via *Prepared Statements* (`?`). Todas as conexões SQLite são encerradas determinística e explicitamente em blocos `finally: conn.close()`, eliminando travamentos de descritores no host e em containers.
 2. **Permissão no Servidor (RBAC):** Autenticação via header `X-API-Key` mapeada para credenciais imutáveis. O papel `viewer` tem acesso de leitura permitido, mas recebe `403 Forbidden` imediato em tentativas de ingestão pesada (`POST /transcriptions`).
 3. **Prevenção de IDOR & Validação de UUID:** Tentativas de consultar identificadores inexistentes ou de outro inquilino retornam uniformemente `404 Not Found`. Identificadores no path fora do padrão UUID v4 são interceptados e respondem com `404` sem consultar o banco de dados.
 4. **Chaves e Defaults Seguros:** Credenciais e configurações desacopladas no arquivo `.env`. Uploads são alocados com nomes anônimos gerados por UUID e removidos fisicamente do disco em blocos `finally: os.unlink()`.
@@ -102,58 +102,53 @@ flowchart TD
 
 ---
 
-## 📚 Endpoints da API REST
+## 🐳 Execução com Docker Compose (Método Recomendado)
 
-Todas as requisições autenticadas exigem o cabeçalho HTTP `X-API-Key`.
+A aplicação conta com suporte nativo a containers utilizando imagem base otimizada do **`uv` (Astral)** sobre Debian Bookworm Slim, garantindo builds ultrarrápidos e hermeticidade completa com dependências de áudio (`ffmpeg`, `CTranslate2`).
 
-| Método | Rota | Autenticação & Role | Código Sucesso | Descrição |
-|---|---|---|---|---|
-| `POST` | `/api/v1/transcriptions` | `operator` ou `admin` | `201 Created` | Upload de áudio (`multipart/form-data`) para transcrição NLP limpa ou geração de prompt estruturado. |
-| `GET` | `/api/v1/transcriptions` | Qualquer chave válida | `200 OK` | Lista o histórico paginado de transcrições pertencentes ao tenant autenticado. |
-| `GET` | `/api/v1/transcriptions/{job_id}` | Dono do job (`tenant_id`) | `200 OK` | Retorna metadados completos, texto normalizado e prompt sintetizado. |
-| `GET` | `/api/v1/transcriptions/{job_id}/txt` | Dono do job (`tenant_id`) | `200 OK` | Download direto do texto normalizado puro (`text/plain; charset=utf-8`). |
-| `GET` | `/api/v1/techniques` | Aberto / Autenticado | `200 OK` | Catálogo das 6 técnicas de engenharia de prompt com orientações de uso. |
-| `GET` | `/health` (e `/api/v1/health`) | Aberto | `200 OK` | Verificação de integridade operacional e modelo Whisper em execução. |
+```mermaid
+flowchart LR
+    HostEnv[".env (Host)"] -.-> Container["Container: audio-prompt-engine<br/>(Usuário appuser:10001)"]
+    HostPort["Host Port 8000"] <===> ContainerPort["Porta 8000"]
+    DataDir[("./data (Host)")] <===>|Persistência SQLite| ContainerDB["/app/data"]
+    CacheVol[("Volume: hf_cache")] <===>|Pesos Whisper (145 MB)| ContainerCache["/home/appuser/.cache/huggingface"]
+```
 
----
+### 1. Iniciar o Container
+Certifique-se de ter o arquivo `.env` configurado a partir de `.env.example`:
+```powershell
+copy .env.example .env
+docker compose up --build
+```
 
-## 🧪 Collection de API (Insomnia v4)
+A API estará pronta e operando em `http://localhost:8000`. A documentação interativa OpenAPI/Swagger estará acessível em `http://localhost:8000/docs`.
 
-O projeto inclui uma collection completa e pronta para uso em desenvolvimento e homologação:
+### 2. Volumes e Persistência
+- **`./data:/app/data` (Bind Mount):** Persiste o banco de dados SQLite (`audio_prompt_engine.db`) diretamente no host. Todas as transcrições e índices permanecem preservados mesmo se o container for destruído ou atualizado.
+- **`hf_cache` (Named Volume `audio_prompt_engine_hf_cache`):** Armazena os pesos baixados do modelo Whisper (`HF_HOME=/home/appuser/.cache/huggingface`). O download de ~145 MB ocorre apenas na primeira inicialização; reinícios posteriores reutilizam o cache instantaneamente sem consumir banda de rede.
 
-- **Arquivo:** [`audio-prompt-engine.insomnia.json`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/audio-prompt-engine.insomnia.json) (formato Insomnia v4 na raiz do projeto).
-- **Variáveis de Ambiente Pré-configuradas:**
-  - `{{ base_url }}`: `http://127.0.0.1:8000`
-  - `{{ operator_key }}`: `dev-operator-alpha` (papel de operador do Tenant Alpha)
-  - `{{ viewer_key }}`: `dev-viewer-alpha` (papel de leitura do Tenant Alpha)
-  - `{{ attacker_key }}`: `dev-operator-beta` (papel de operador do Tenant Beta, para testes Anti-IDOR)
-  - `{{ admin_key }}`: `dev-admin` (papel administrativo)
+### 3. Segurança do Container (Non-Root User)
+- **Princípio do Menor Privilégio:** O container é executado estritamente sob o usuário não-root **`appuser` (UID 10001, GID 10001)**, eliminando riscos de escalação de privilégios e *Container Escape*.
+- **Zero Segredos na Imagem:** O arquivo `.env` não é copiado para as camadas da imagem Docker (bloqueado via `.dockerignore`) e é injetado dinamicamente em tempo de execução pelo Docker Compose.
+- **Healthcheck Autônomo:** O container implementa monitoramento nativo em Python (`urllib.request`) testando `GET /health` sem depender de utilitários externos como `curl`.
 
-### Estrutura das Pastas da Collection:
-1. **`1. Sistema`**: Verificação de integridade (`GET /health`).
-2. **`2. Catálogo`**: Consulta às 6 técnicas de prompt (`GET /api/v1/techniques`).
-3. **`3. Transcrições (Operador)`**:
-   - `Upload TXT (Feliz)`: Envio de áudio legítimo para geração de texto limpo.
-   - `Upload Prompt (CoT)`: Envio de áudio para estruturação com raciocínio passo a passo.
-   - `Listar Transcrições`: Histórico de jobs do inquilino autenticado.
-   - `Consultar Job por ID`: Metadados e textos do job via UUID.
-   - `Baixar TXT Puro`: Download de arquivo `.txt`.
-4. **`4. Testes de Segurança (Pentágono de Defesa)`**:
-   - `Tentativa sem Token (401)`: Rejeição de requisição anônima.
-   - `Tentativa com Role Viewer (403)`: Bloqueio de usuário de leitura tentando processar áudio.
-   - `Tentativa IDOR Cross-Tenant (404)`: Bloqueio de acesso a jobs de outro tenant.
-   - `Upload Arquivo Falso (400)`: Rejeição de arquivo executável renomeado para áudio.
-   - `Modo Prompt sem Técnica (422)`: Rejeição contratual de requisição incompleta.
+### 4. Parar o Container
+```powershell
+docker compose down
+```
 
 ---
 
-## 🚀 Instalação e Execução Local
+## 🚀 Execução Local Alternativa (Host / uv nativo)
+
+Caso prefira rodar diretamente no Python do host sem Docker:
 
 ### Pré-requisitos
 - **Python 3.10 a 3.14** (Python 3.12 recomendado)
 - **uv** (gerenciador ultrarrápido recomendado) ou **pip**
+- Binário do **ffmpeg** instalado e acessível no `PATH` do sistema
 
-### Passo a Passo com `uv`
+### Passo a Passo
 
 1. **Clonar ou acessar o repositório:**
    ```powershell
@@ -181,7 +176,50 @@ O projeto inclui uma collection completa e pronta para uso em desenvolvimento e 
    uvicorn src.main:app --host 127.0.0.1 --port 8000 --reload
    ```
 
-A documentação interativa Swagger/OpenAPI estará acessível em `http://127.0.0.1:8000/docs`.
+---
+
+## 📚 Endpoints da API REST
+
+Todas as requisições autenticadas exigem o cabeçalho HTTP `X-API-Key`.
+
+| Método | Rota | Autenticação & Role | Código Sucesso | Descrição |
+|---|---|---|---|---|
+| `POST` | `/api/v1/transcriptions` | `operator` ou `admin` | `201 Created` | Upload de áudio (`multipart/form-data`) para transcrição NLP limpa ou geração de prompt estruturado. |
+| `GET` | `/api/v1/transcriptions` | Qualquer chave válida | `200 OK` | Lista o histórico paginado de transcrições pertencentes ao tenant autenticado. |
+| `GET` | `/api/v1/transcriptions/{job_id}` | Dono do job (`tenant_id`) | `200 OK` | Retorna metadados completos, texto normalizado e prompt sintetizado. |
+| `GET` | `/api/v1/transcriptions/{job_id}/txt` | Dono do job (`tenant_id`) | `200 OK` | Download direto do texto normalizado puro (`text/plain; charset=utf-8`). |
+| `GET` | `/api/v1/techniques` | Aberto / Autenticado | `200 OK` | Catálogo das 6 técnicas de engenharia de prompt com orientações de uso. |
+| `GET` | `/health` (e `/api/v1/health`) | Aberto | `200 OK` | Verificação de integridade operacional e modelo Whisper em execução. |
+
+---
+
+## 🧪 Collection de API (Insomnia v4)
+
+O projeto inclui uma collection completa e pronta para uso em desenvolvimento e homologação:
+
+- **Arquivo:** [`audio-prompt-engine.insomnia.json`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/audio-prompt-engine.insomnia.json) (formato Insomnia v4 na raiz do projeto).
+- **Variáveis de Ambiente Pré-configuradas:**
+  - `{{ base_url }}`: `http://127.0.0.1:8000` (ou `http://localhost:8000` no Docker)
+  - `{{ operator_key }}`: `dev-operator-alpha` (papel de operador do Tenant Alpha)
+  - `{{ viewer_key }}`: `dev-viewer-alpha` (papel de leitura do Tenant Alpha)
+  - `{{ attacker_key }}`: `dev-operator-beta` (papel de operador do Tenant Beta, para testes Anti-IDOR)
+  - `{{ admin_key }}`: `dev-admin` (papel administrativo)
+
+### Estrutura das Pastas da Collection:
+1. **`1. Sistema`**: Verificação de integridade (`GET /health`).
+2. **`2. Catálogo`**: Consulta às 6 técnicas de prompt (`GET /api/v1/techniques`).
+3. **`3. Transcrições (Operador)`**:
+   - `Upload TXT (Feliz)`: Envio de áudio legítimo para geração de texto limpo.
+   - `Upload Prompt (CoT)`: Envio de áudio para estruturação com raciocínio passo a passo.
+   - `Listar Transcrições`: Histórico de jobs do inquilino autenticado.
+   - `Consultar Job por ID`: Metadados e textos do job via UUID.
+   - `Baixar TXT Puro`: Download de arquivo `.txt`.
+4. **`4. Testes de Segurança (Pentágono de Defesa)`**:
+   - `Tentativa sem Token (401)`: Rejeição de requisição anônima.
+   - `Tentativa com Role Viewer (403)`: Bloqueio de usuário de leitura tentando processar áudio.
+   - `Tentativa IDOR Cross-Tenant (404)`: Bloqueio de acesso a jobs de outro tenant.
+   - `Upload Arquivo Falso (400)`: Rejeição de arquivo executável renomeado para áudio.
+   - `Modo Prompt sem Técnica (422)`: Rejeição contratual de requisição incompleta.
 
 ---
 
@@ -189,19 +227,20 @@ A documentação interativa Swagger/OpenAPI estará acessível em `http://127.0.
 
 O projeto possui **100% de aprovação** em todas as baterias de homologação técnica:
 
-- **Suíte de Testes Automatizados (Fase 3):**
-  - **46 testes aprovados em 0.55s** (`pytest -v`).
-  - 21 testes unitários (limpeza NLP, remoção de hesitações e as 6 técnicas de prompt).
+- **Suíte de Testes Automatizados:**
+  - **47 testes aprovados em 1.29s** (`pytest -v`).
+  - 22 testes unitários (limpeza NLP, remoção de hesitações, as 6 técnicas de prompt e criação resiliente de diretórios de persistência).
   - 6 testes de integração E2E de ponta a ponta.
   - 19 testes rigorosos de segurança defensiva do Pentágono de Defesa.
-- **Live Chaos Testing em Localhost (Fase 4):**
-  - **23/23 testes de estresse e caos aprovados** com o servidor ativo em `http://127.0.0.1:8000`.
-  - Cenários validados: rajadas concorrentes de upload, saturação de payload (>25MB), corrupção de cabeçalhos binários, tentativas de Acoustic Prompt Injection e resistência a vazamentos de conexões SQLite.
+- **Live Chaos Testing em Container Docker (Fase 4):**
+  - **23/23 testes de estresse e caos aprovados** executados contra o container ativo em `http://localhost:8000`.
+  - Cenários validados: rajadas concorrentes de upload, saturação de payload (>25MB), corrupção de cabeçalhos binários, tentativas de Acoustic Prompt Injection e persistência física comprovada do banco SQLite em `./data/audio_prompt_engine.db` após encerramento do container.
 
 ---
 
 ## 📄 Decisões Arquiteturais
 
-A documentação de design e decisões do projeto está registrada e aprovada:
-- **ADR 001 Definitiva:** [`DOCUMENTOS-TASK/ADR/2026-10-19_ADR-001-arquitetura-transcricao-e-prompt-engine.md`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/DOCUMENTOS-TASK/ADR/2026-10-19_ADR-001-arquitetura-transcricao-e-prompt-engine.md)
-- **Parecer de QA & Segurança:** [`DOCUMENTOS-TASK/2026-10-19_parecer-qa-audio-prompt-engine.md`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/DOCUMENTOS-TASK/2026-10-19_parecer-qa-audio-prompt-engine.md)
+A documentação técnica formal do projeto segue o padrão rigoroso Design System Spec:
+- **ADR 001 Definitiva (Transcrição & Prompts):** [`DOCUMENTOS-TASK/ADR/2026-10-19_ADR-001-arquitetura-transcricao-e-prompt-engine.md`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/DOCUMENTOS-TASK/ADR/2026-10-19_ADR-001-arquitetura-transcricao-e-prompt-engine.md)
+- **ADR 002 Definitiva (Containerização com Docker e UV):** [`DOCUMENTOS-TASK/ADR/2026-10-29_ADR-002-containerizacao-com-docker-e-uv.md`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/DOCUMENTOS-TASK/ADR/2026-10-29_ADR-002-containerizacao-com-docker-e-uv.md)
+- **Parecer de QA & Segurança do Container:** [`DOCUMENTOS-TASK/2026-10-29_parecer-qa-dockerizacao.md`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/DOCUMENTOS-TASK/2026-10-29_parecer-qa-dockerizacao.md)
