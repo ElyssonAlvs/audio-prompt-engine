@@ -7,64 +7,53 @@
   <meta name="description" content="Serviço de transcrição de áudio local com Whisper CPU INT8 e síntese de prompts estruturados para LLMs.">
   <style>
     /* ==========================================================================
-       CSS VARIABLES & THEME SETUP (LIGHT / DARK)
+       CSS VARIABLES & THEME SETUP (HIGH-CONTRAST MINIMALIST)
        ========================================================================== */
     :root {
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Helvetica, Arial, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-      --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
-      --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --radius-xl: 12px;
     }
 
     [data-theme="dark"] {
-      --bg-page: #090d16;
-      --bg-surface: #0f172a;
-      --bg-surface-elevated: #1e293b;
-      --bg-surface-sunken: #060911;
-      --border-color: #1e293b;
+      --bg-page: #09090b;
+      --bg-surface: #121215;
+      --bg-surface-elevated: #18181b;
+      --bg-surface-sunken: #0c0c0e;
+      --border-color: #27272a;
       --border-focus: #10b981;
-      --border-subtle: #172554;
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
+      --border-subtle: #1f1f23;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
       --accent-emerald: #10b981;
-      --accent-emerald-subtle: rgba(16, 185, 129, 0.12);
-      --accent-indigo: #6366f1;
-      --accent-indigo-subtle: rgba(99, 102, 241, 0.15);
-      --accent-amber: #f59e0b;
-      --accent-amber-subtle: rgba(245, 158, 11, 0.12);
-      --accent-blue: #38bdf8;
-      --code-bg: #030712;
-      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+      --accent-emerald-subtle: rgba(16, 185, 129, 0.1);
+      --code-bg: #0c0c0e;
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
     }
 
     [data-theme="light"] {
-      --bg-page: #f8fafc;
+      --bg-page: #ffffff;
       --bg-surface: #ffffff;
-      --bg-surface-elevated: #f1f5f9;
-      --bg-surface-sunken: #e2e8f0;
-      --border-color: #e2e8f0;
+      --bg-surface-elevated: #f4f4f5;
+      --bg-surface-sunken: #f8fafc;
+      --border-color: #e4e4e7;
       --border-focus: #059669;
-      --border-subtle: #cbd5e1;
-      --text-primary: #0f172a;
-      --text-secondary: #475569;
-      --text-muted: #64748b;
+      --border-subtle: #f1f5f9;
+      --text-primary: #09090b;
+      --text-secondary: #52525b;
+      --text-muted: #71717a;
       --accent-emerald: #059669;
-      --accent-emerald-subtle: rgba(5, 150, 105, 0.1);
-      --accent-indigo: #4f46e5;
-      --accent-indigo-subtle: rgba(79, 70, 229, 0.1);
-      --accent-amber: #d97706;
-      --accent-amber-subtle: rgba(217, 119, 6, 0.1);
-      --accent-blue: #0284c7;
-      --code-bg: #f1f5f9;
-      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+      --accent-emerald-subtle: rgba(5, 150, 105, 0.08);
+      --code-bg: #f4f4f5;
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
     }
 
     /* ==========================================================================
-       BASE STYLES & RESET
+       THE FLOOR: RESET, OVERFLOW-X CLIP & ACCESSIBILITY
        ========================================================================== */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -72,25 +61,32 @@
       padding: 0;
     }
 
+    html {
+      overflow-x: clip;
+      scroll-behavior: smooth;
+    }
+
     body {
+      overflow-x: clip;
       font-family: var(--font-sans);
       background-color: var(--bg-page);
       color: var(--text-primary);
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
-      transition: background-color 0.3s ease, color 0.3s ease;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background-color 150ms ease, color 150ms ease;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
     a {
-      color: var(--accent-emerald);
+      color: inherit;
       text-decoration: none;
-      transition: var(--transition);
+      transition: color 150ms ease, border-color 150ms ease;
     }
     a:hover {
-      text-decoration: underline;
+      color: var(--accent-emerald);
     }
 
     button {
@@ -98,7 +94,22 @@
       cursor: pointer;
       border: none;
       outline: none;
-      transition: var(--transition);
+      background: transparent;
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent-emerald);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
 
     /* ==========================================================================
@@ -106,7 +117,7 @@
        ========================================================================== */
     .container {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1120px;
       margin: 0 auto;
       padding: 0 1.25rem;
     }
@@ -120,14 +131,14 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(8px);
+      transition: background-color 150ms ease, border-color 150ms ease;
     }
 
     .header-content {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 64px;
+      height: 60px;
       gap: 1rem;
     }
 
@@ -140,61 +151,62 @@
     .brand-logo {
       width: 32px;
       height: 32px;
-      background: linear-gradient(135deg, var(--accent-emerald), var(--accent-indigo));
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 1.1rem;
-      font-weight: 800;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+      flex-shrink: 0;
     }
 
     .brand-title {
-      font-size: 1.05rem;
+      font-size: 0.95rem;
       font-weight: 700;
       color: var(--text-primary);
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
     }
 
     .brand-badge {
       font-family: var(--font-mono);
-      font-size: 0.7rem;
+      font-size: 0.6875rem;
       padding: 0.15rem 0.5rem;
       border-radius: var(--radius-sm);
       background-color: var(--accent-emerald-subtle);
       color: var(--accent-emerald);
-      border: 1px solid var(--accent-emerald);
-      font-weight: 600;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-weight: 500;
+      letter-spacing: 0.02em;
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.5rem;
     }
 
     .pill-btn {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      padding: 0.45rem 0.85rem;
+      gap: 0.45rem;
+      padding: 0.375rem 0.75rem;
       border-radius: var(--radius-md);
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.8125rem;
+      font-weight: 500;
       background-color: var(--bg-surface-elevated);
       color: var(--text-primary);
       border: 1px solid var(--border-color);
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .pill-btn:hover {
-      border-color: var(--accent-emerald);
+      border-color: var(--text-secondary);
       background-color: var(--bg-surface);
     }
 
     .icon-btn {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -202,49 +214,60 @@
       background-color: var(--bg-surface-elevated);
       color: var(--text-primary);
       border: 1px solid var(--border-color);
-      font-size: 1rem;
+      font-size: 0.95rem;
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .icon-btn:hover {
-      border-color: var(--accent-emerald);
+      border-color: var(--text-secondary);
     }
 
     /* ==========================================================================
        HERO BANNER
        ========================================================================== */
     .hero-section {
-      padding: 3rem 0 2rem;
+      padding: 3.5rem 0 2.25rem;
       text-align: center;
     }
 
     .hero-tagline {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
       font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-size: 0.6875rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--accent-emerald);
       background-color: var(--accent-emerald-subtle);
+      border: 1px solid rgba(16, 185, 129, 0.2);
       padding: 0.25rem 0.75rem;
       border-radius: 9999px;
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
       font-weight: 600;
     }
 
     .hero-title {
       font-size: 2.25rem;
       font-weight: 800;
-      line-height: 1.2;
-      letter-spacing: -0.03em;
+      line-height: 1.15;
+      letter-spacing: -0.035em;
       color: var(--text-primary);
-      max-width: 800px;
-      margin: 0 auto 1rem;
+      max-width: 820px;
+      margin: 0 auto 1.25rem;
+    }
+
+    @media (min-width: 640px) {
+      .hero-title {
+        font-size: 2.75rem;
+      }
     }
 
     .hero-desc {
       font-size: 1rem;
       color: var(--text-secondary);
       max-width: 680px;
-      margin: 0 auto 2rem;
+      margin: 0 auto 2.25rem;
+      line-height: 1.6;
     }
 
     .flow-pipeline-bar {
@@ -252,42 +275,47 @@
       flex-wrap: wrap;
       align-items: center;
       justify-content: center;
-      gap: 0.5rem;
+      gap: 0.6rem;
       background-color: var(--bg-surface);
       border: 1px solid var(--border-color);
-      padding: 0.75rem 1rem;
+      padding: 0.75rem 1.25rem;
       border-radius: var(--radius-xl);
-      max-width: 850px;
-      margin: 0 auto 2.5rem;
+      max-width: 860px;
+      margin: 0 auto 2rem;
       box-shadow: var(--shadow);
     }
 
     .flow-step {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
-      font-size: 0.8rem;
-      font-weight: 600;
+      gap: 0.45rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 500;
       color: var(--text-primary);
+    }
+
+    .flow-step .step-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--text-muted);
+    }
+    .flow-step .step-dot.active,
+    .flow-step:last-child .step-dot {
+      background-color: var(--accent-emerald);
     }
 
     .flow-arrow {
       color: var(--text-muted);
-      font-size: 0.85rem;
-    }
-
-    .flow-step .step-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: var(--accent-emerald);
+      font-size: 0.8rem;
     }
 
     /* ==========================================================================
        SECTION HEADINGS
        ========================================================================== */
     .section-header {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       display: flex;
       align-items: baseline;
       justify-content: space-between;
@@ -296,9 +324,9 @@
     }
 
     .section-title {
-      font-size: 1.4rem;
+      font-size: 1.25rem;
       font-weight: 700;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
       color: var(--text-primary);
       display: flex;
       align-items: center;
@@ -306,7 +334,7 @@
     }
 
     .section-subtitle {
-      font-size: 0.85rem;
+      font-size: 0.8125rem;
       color: var(--text-muted);
     }
 
@@ -318,7 +346,7 @@
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 1.5rem;
-      margin-bottom: 2.5rem;
+      margin-bottom: 3rem;
       box-shadow: var(--shadow);
     }
 
@@ -340,7 +368,7 @@
       gap: 1.25rem;
     }
 
-    /* Presets bar */
+    /* Presets row */
     .presets-row {
       display: flex;
       align-items: center;
@@ -350,8 +378,9 @@
     }
 
     .presets-label {
-      font-size: 0.75rem;
-      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-muted);
@@ -370,19 +399,21 @@
       background-color: var(--bg-surface-elevated);
       color: var(--text-secondary);
       border: 1px solid var(--border-color);
-      font-weight: 600;
+      font-weight: 500;
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .preset-btn:hover {
-      border-color: var(--accent-emerald);
+      border-color: var(--text-secondary);
       color: var(--text-primary);
     }
     .preset-btn.active {
       border-color: var(--accent-emerald);
       background-color: var(--accent-emerald-subtle);
       color: var(--accent-emerald);
+      font-weight: 600;
     }
 
-    /* Simulated Audio Player */
+    /* Simulated Audio Player Box */
     .audio-player-box {
       background-color: var(--bg-surface-sunken);
       border: 1px solid var(--border-color);
@@ -390,24 +421,25 @@
       padding: 0.75rem 1rem;
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.85rem;
     }
 
     .play-btn {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background-color: var(--accent-emerald);
-      color: white;
+      color: #09090b;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
+      font-size: 0.875rem;
+      font-weight: 700;
       flex-shrink: 0;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+      transition: opacity 150ms ease;
     }
     .play-btn:hover {
-      transform: scale(1.05);
+      opacity: 0.9;
     }
 
     .audio-meta {
@@ -419,7 +451,7 @@
       display: flex;
       justify-content: space-between;
       font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       margin-bottom: 0.4rem;
     }
 
@@ -433,17 +465,17 @@
 
     .audio-format-badge {
       color: var(--accent-emerald);
-      font-weight: 600;
+      font-weight: 500;
     }
 
     canvas#waveform-canvas {
       width: 100%;
       height: 28px;
       display: block;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
     }
 
-    /* Input Raw Speech Area */
+    /* Raw Speech Input */
     .field-label-row {
       display: flex;
       justify-content: space-between;
@@ -458,7 +490,7 @@
     }
 
     .field-hint {
-      color: var(--accent-amber);
+      color: var(--text-muted);
       font-family: var(--font-mono);
       font-size: 0.72rem;
     }
@@ -469,20 +501,20 @@
       border: 1px solid var(--border-color);
       color: var(--text-primary);
       font-family: var(--font-mono);
-      font-size: 0.8rem;
+      font-size: 0.8125rem;
       padding: 0.75rem;
       border-radius: var(--radius-md);
       resize: vertical;
       line-height: 1.6;
-      transition: var(--transition);
-      min-height: 80px;
+      transition: border-color 150ms ease;
+      min-height: 84px;
     }
     textarea.raw-speech-box:focus {
       outline: none;
-      border-color: var(--accent-emerald);
+      border-color: var(--border-focus);
     }
 
-    /* Controls: Output Mode & NLP Filter */
+    /* Controls Grid: Mode & NLP */
     .controls-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -490,8 +522,9 @@
     }
 
     .control-block-label {
-      font-size: 0.72rem;
-      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-muted);
@@ -511,15 +544,17 @@
       flex: 1;
       padding: 0.4rem 0.5rem;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 500;
       border-radius: calc(var(--radius-md) - 2px);
       background: transparent;
       color: var(--text-secondary);
+      transition: background-color 150ms ease, color 150ms ease;
     }
     .toggle-group button.active {
-      background-color: var(--bg-surface);
+      background-color: var(--bg-surface-elevated);
       color: var(--text-primary);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      font-weight: 600;
+      border: 1px solid var(--border-color);
     }
 
     .nlp-checkbox-card {
@@ -532,19 +567,29 @@
       padding: 0.5rem 0.75rem;
       cursor: pointer;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 500;
       color: var(--text-secondary);
       height: 36px;
+      transition: border-color 150ms ease, color 150ms ease;
     }
     .nlp-checkbox-card:hover {
-      border-color: var(--accent-emerald);
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
     }
 
-    /* Prompt Technique Pills */
+    .nlp-checkbox-card input[type="checkbox"] {
+      accent-color: var(--accent-emerald);
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Prompt Technique Buttons */
     .techniques-panel {
       display: flex;
       flex-direction: column;
       gap: 0.4rem;
+      transition: opacity 150ms ease;
     }
 
     .technique-buttons {
@@ -553,33 +598,36 @@
       gap: 0.4rem;
     }
 
-    @media (min-width: 600px) {
+    @media (min-width: 640px) {
       .technique-buttons {
         grid-template-columns: repeat(6, 1fr);
       }
     }
 
     .tech-btn {
-      padding: 0.45rem 0.3rem;
-      font-size: 0.72rem;
+      padding: 0.45rem 0.35rem;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
       border-radius: var(--radius-md);
       background-color: var(--bg-surface-sunken);
       color: var(--text-secondary);
       border: 1px solid var(--border-color);
-      font-weight: 600;
+      font-weight: 500;
       text-align: center;
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .tech-btn:hover {
-      border-color: var(--accent-emerald);
+      border-color: var(--text-secondary);
       color: var(--text-primary);
     }
     .tech-btn.active {
       border-color: var(--accent-emerald);
       background-color: var(--accent-emerald-subtle);
       color: var(--accent-emerald);
+      font-weight: 600;
     }
 
-    /* Output Preview Area */
+    /* Output Box Wrapper */
     .output-box-wrapper {
       background-color: var(--bg-surface-sunken);
       border: 1px solid var(--border-color);
@@ -587,7 +635,7 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      min-height: 380px;
+      min-height: 400px;
     }
 
     .output-header {
@@ -612,10 +660,10 @@
     .output-tag {
       padding: 0.15rem 0.5rem;
       border-radius: var(--radius-sm);
-      background-color: var(--accent-indigo-subtle);
-      color: var(--accent-indigo);
+      background-color: var(--accent-emerald-subtle);
+      color: var(--accent-emerald);
       font-weight: 600;
-      border: 1px solid var(--accent-indigo);
+      border: 1px solid rgba(16, 185, 129, 0.25);
     }
 
     .output-stats {
@@ -624,21 +672,23 @@
 
     .output-actions {
       display: flex;
-      gap: 0.35rem;
+      gap: 0.4rem;
     }
 
     .action-btn {
       padding: 0.25rem 0.6rem;
       font-size: 0.72rem;
-      font-weight: 600;
+      font-weight: 500;
+      font-family: var(--font-mono);
       border-radius: var(--radius-sm);
       background-color: var(--bg-surface-elevated);
       color: var(--text-secondary);
       border: 1px solid var(--border-color);
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .action-btn:hover {
       color: var(--text-primary);
-      border-color: var(--accent-emerald);
+      border-color: var(--text-secondary);
     }
 
     .clean-diff-bar {
@@ -655,7 +705,7 @@
 
     .clean-diff-title {
       color: var(--accent-emerald);
-      font-weight: 700;
+      font-weight: 600;
       flex-shrink: 0;
     }
 
@@ -669,7 +719,7 @@
       flex: 1;
       padding: 1rem;
       font-family: var(--font-mono);
-      font-size: 0.78rem;
+      font-size: 0.8125rem;
       line-height: 1.6;
       color: var(--text-primary);
       overflow-y: auto;
@@ -708,12 +758,11 @@
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      transition: var(--transition);
+      transition: border-color 150ms ease, background-color 150ms ease;
       box-shadow: var(--shadow);
     }
     .card:hover {
-      border-color: var(--accent-emerald);
-      transform: translateY(-2px);
+      border-color: var(--text-secondary);
     }
 
     .card-top {
@@ -723,13 +772,13 @@
     }
 
     .card-icon {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
     }
 
     .card-badge {
       font-family: var(--font-mono);
-      font-size: 0.65rem;
-      font-weight: 600;
+      font-size: 0.6875rem;
+      font-weight: 500;
       padding: 0.15rem 0.5rem;
       border-radius: var(--radius-sm);
       background-color: var(--bg-surface-elevated);
@@ -741,11 +790,11 @@
       font-size: 1.05rem;
       font-weight: 700;
       color: var(--text-primary);
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
     }
 
     .card-desc {
-      font-size: 0.82rem;
+      font-size: 0.825rem;
       color: var(--text-secondary);
       line-height: 1.5;
       flex: 1;
@@ -764,18 +813,21 @@
 
     .card-action-btn {
       width: 100%;
-      padding: 0.4rem;
+      padding: 0.45rem 0.75rem;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 500;
+      font-family: var(--font-mono);
       border-radius: var(--radius-sm);
-      background-color: var(--accent-emerald-subtle);
-      color: var(--accent-emerald);
-      border: 1px solid var(--accent-emerald);
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
       text-align: center;
+      transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
     }
     .card-action-btn:hover {
-      background-color: var(--accent-emerald);
-      color: white;
+      border-color: var(--accent-emerald);
+      color: var(--accent-emerald);
+      background-color: var(--accent-emerald-subtle);
     }
 
     /* ==========================================================================
@@ -815,14 +867,14 @@
     .arch-block-title {
       font-size: 0.95rem;
       font-weight: 700;
-      color: var(--accent-blue);
+      color: var(--text-primary);
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
 
     .arch-block-desc {
-      font-size: 0.8rem;
+      font-size: 0.825rem;
       color: var(--text-secondary);
       line-height: 1.6;
     }
@@ -858,13 +910,14 @@
 
     .pentagon-number {
       font-family: var(--font-mono);
-      font-size: 0.7rem;
-      font-weight: 800;
+      font-size: 0.6875rem;
+      font-weight: 700;
       color: var(--accent-emerald);
+      letter-spacing: 0.04em;
     }
 
     .pentagon-title {
-      font-size: 0.85rem;
+      font-size: 0.875rem;
       font-weight: 700;
       color: var(--text-primary);
     }
@@ -872,14 +925,14 @@
     .pentagon-desc {
       font-size: 0.75rem;
       color: var(--text-muted);
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
     /* ==========================================================================
        DOCKER QUICK-START CARD
        ========================================================================== */
     .docker-banner {
-      background: linear-gradient(135deg, var(--bg-surface), var(--bg-surface-elevated));
+      background-color: var(--bg-surface);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 1.5rem;
@@ -913,7 +966,7 @@
     }
 
     .docker-desc {
-      font-size: 0.8rem;
+      font-size: 0.8125rem;
       color: var(--text-secondary);
       line-height: 1.5;
     }
@@ -922,47 +975,34 @@
       background-color: var(--code-bg);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
-      padding: 0.75rem 1rem;
+      padding: 0.65rem 1rem;
       font-family: var(--font-mono);
       font-size: 0.78rem;
-      color: var(--accent-emerald);
+      color: var(--text-primary);
       display: flex;
       align-items: center;
       gap: 1rem;
       justify-content: space-between;
     }
 
-    /* ==========================================================================
-       FOOTER
-       ========================================================================== */
-    footer.site-footer {
-      margin-top: auto;
-      border-top: 1px solid var(--border-color);
-      background-color: var(--bg-surface);
-      padding: 2rem 0;
-      font-size: 0.8rem;
-      color: var(--text-muted);
+    .docker-code-box code {
+      color: var(--accent-emerald);
     }
 
-    .footer-content {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+    .docker-copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
       align-items: center;
-      text-align: center;
+      justify-content: center;
+      padding: 0.2rem 0.4rem;
+      border-radius: var(--radius-sm);
+      transition: color 150ms ease;
     }
-
-    @media (min-width: 768px) {
-      .footer-content {
-        flex-direction: row;
-        justify-content: space-between;
-        text-align: left;
-      }
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 1.25rem;
+    .docker-copy-btn:hover {
+      color: var(--text-primary);
     }
 
     /* ==========================================================================
@@ -970,7 +1010,7 @@
        ========================================================================== */
     .adr-section {
       margin-top: 3.5rem;
-      margin-bottom: 2.5rem;
+      margin-bottom: 3rem;
     }
 
     .section-header-row {
@@ -993,7 +1033,7 @@
       display: grid;
       grid-template-columns: 1fr;
       gap: 1rem;
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.5rem;
     }
 
     @media (min-width: 768px) {
@@ -1009,7 +1049,7 @@
       border-radius: var(--radius-lg);
       padding: 1.25rem;
       cursor: pointer;
-      transition: var(--transition);
+      transition: border-color 150ms ease, background-color 150ms ease;
       display: flex;
       flex-direction: column;
       gap: 0.65rem;
@@ -1018,16 +1058,13 @@
     }
 
     .timeline-step:hover {
-      border-color: var(--border-focus);
+      border-color: var(--text-secondary);
       background-color: var(--bg-surface-elevated);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
     }
 
     .timeline-step.active {
       border-color: var(--accent-emerald);
       background-color: var(--bg-surface-elevated);
-      box-shadow: 0 0 0 2px var(--accent-emerald-subtle), var(--shadow);
     }
 
     .tl-header-row {
@@ -1038,27 +1075,21 @@
     }
 
     .tl-node-badge {
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 0.2rem 0.6rem;
-      border-radius: 9999px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      padding: 0.2rem 0.5rem;
+      border-radius: var(--radius-sm);
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      letter-spacing: 0.02em;
     }
 
-    .step-1 .tl-node-badge {
+    .timeline-step.active .tl-node-badge {
       background-color: var(--accent-emerald-subtle);
       color: var(--accent-emerald);
-    }
-
-    .step-2 .tl-node-badge {
-      background-color: rgba(2, 132, 199, 0.15);
-      color: var(--accent-blue);
-    }
-
-    .step-3 .tl-node-badge {
-      background-color: var(--accent-indigo-subtle);
-      color: var(--accent-indigo);
+      border-color: rgba(16, 185, 129, 0.25);
     }
 
     .tl-title {
@@ -1080,11 +1111,12 @@
     }
 
     .tl-select-hint {
-      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
       color: var(--accent-emerald);
-      font-weight: 700;
+      font-weight: 600;
       opacity: 0;
-      transition: var(--transition);
+      transition: opacity 150ms ease;
     }
 
     .timeline-step.active .tl-select-hint {
@@ -1098,7 +1130,6 @@
       border-radius: var(--radius-xl);
       padding: 1.75rem;
       box-shadow: var(--shadow);
-      transition: var(--transition);
     }
 
     .adr-viewer-header {
@@ -1112,28 +1143,30 @@
       align-items: center;
       gap: 0.4rem;
       font-family: var(--font-mono);
-      font-size: 0.8rem;
-      font-weight: 700;
+      font-size: 0.75rem;
+      font-weight: 600;
       color: var(--accent-emerald);
       background-color: var(--accent-emerald-subtle);
-      padding: 0.25rem 0.65rem;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 0.2rem 0.55rem;
       border-radius: var(--radius-sm);
       margin-bottom: 0.5rem;
     }
 
     .adr-viewer-title {
-      font-size: 1.25rem;
+      font-size: 1.35rem;
       font-weight: 800;
       color: var(--text-primary);
       line-height: 1.3;
       margin-bottom: 0.35rem;
+      letter-spacing: -0.025em;
     }
 
     .adr-viewer-scope {
-      font-size: 0.85rem;
+      font-size: 0.875rem;
       color: var(--text-secondary);
       max-width: 780px;
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
     /* 4 Pillars Grid */
@@ -1157,11 +1190,11 @@
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      transition: var(--transition);
+      transition: border-color 150ms ease;
     }
 
     .adr-pillar-card:hover {
-      border-color: var(--border-focus);
+      border-color: var(--text-secondary);
     }
 
     .pillar-header {
@@ -1171,34 +1204,23 @@
     }
 
     .pillar-icon-box {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1rem;
+      font-size: 0.875rem;
       flex-shrink: 0;
-    }
-
-    .pillar-context .pillar-icon-box {
-      background-color: var(--accent-amber-subtle);
-      color: var(--accent-amber);
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
     }
 
     .pillar-decision .pillar-icon-box {
       background-color: var(--accent-emerald-subtle);
       color: var(--accent-emerald);
-    }
-
-    .pillar-rejected .pillar-icon-box {
-      background-color: rgba(239, 68, 68, 0.12);
-      color: #ef4444;
-    }
-
-    .pillar-security .pillar-icon-box {
-      background-color: var(--accent-indigo-subtle);
-      color: var(--accent-indigo);
+      border-color: rgba(16, 185, 129, 0.25);
     }
 
     .pillar-title {
@@ -1208,7 +1230,7 @@
     }
 
     .pillar-body {
-      font-size: 0.82rem;
+      font-size: 0.825rem;
       color: var(--text-secondary);
       line-height: 1.6;
     }
@@ -1236,6 +1258,38 @@
       color: var(--text-primary);
     }
 
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    footer.site-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      padding: 2rem 0;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    .footer-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+      text-align: center;
+    }
+
+    @media (min-width: 768px) {
+      .footer-content {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.25rem;
+    }
   </style>
 </head>
 <body>
@@ -1247,7 +1301,13 @@
     <div class="container header-content">
       
       <div class="brand">
-        <div class="brand-logo">🎙️</div>
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="22"></line>
+          </svg>
+        </div>
         <div>
           <div class="brand-title">Audio Prompt Engine</div>
         </div>
@@ -1257,12 +1317,12 @@
       <nav class="nav-actions">
         <!-- Documentation link (ADRs Timeline) -->
         <a href="#section-adrs" id="link-docs" class="pill-btn">
-          🏛️ <span data-i18n="nav_docs">Decisões Arquiteturais (ADRs)</span>
+          <span data-i18n="nav_docs">Decisões Arquiteturais (ADRs)</span>
         </a>
 
         <!-- Language Switcher -->
         <button onclick="toggleLanguage()" class="pill-btn" id="lang-btn" title="Alternar idioma / Switch language">
-          🌐 <span id="current-lang-label">EN</span>
+          <span id="current-lang-label">EN</span>
         </button>
 
         <!-- Theme Toggle -->
@@ -1293,24 +1353,24 @@
           <span class="step-dot"></span>
           <span data-i18n="flow_step1">1. Áudio (WAV/MP3)</span>
         </div>
-        <span class="flow-arrow">➔</span>
+        <span class="flow-arrow" aria-hidden="true">→</span>
         <div class="flow-step">
           <span class="step-dot"></span>
           <span data-i18n="flow_step2">2. Whisper CPU (INT8)</span>
         </div>
-        <span class="flow-arrow">➔</span>
+        <span class="flow-arrow" aria-hidden="true">→</span>
         <div class="flow-step">
           <span class="step-dot"></span>
           <span data-i18n="flow_step3">3. Normalização NLP</span>
         </div>
-        <span class="flow-arrow">➔</span>
+        <span class="flow-arrow" aria-hidden="true">→</span>
         <div class="flow-step">
           <span class="step-dot"></span>
           <span data-i18n="flow_step4">4. 6 Técnicas de Prompt</span>
         </div>
-        <span class="flow-arrow">➔</span>
+        <span class="flow-arrow" aria-hidden="true">→</span>
         <div class="flow-step">
-          <span class="step-dot" style="background-color: var(--accent-indigo);"></span>
+          <span class="step-dot active"></span>
           <span data-i18n="flow_step5">5. Modelo LLM</span>
         </div>
       </div>
@@ -1321,7 +1381,6 @@
          ========================================================================== -->
     <div class="section-header">
       <h2 class="section-title">
-        <span>⚡</span>
         <span data-i18n="studio_title">Studio Interativo de Prompting</span>
       </h2>
       <span class="section-subtitle" data-i18n="studio_subtitle">Simule áudios falados, teste filtros NLP e gere prompts estruturados em tempo real.</span>
@@ -1338,20 +1397,20 @@
             <span class="presets-label" data-i18n="presets_label">Exemplos de Fala:</span>
             <div class="preset-buttons">
               <button onclick="loadPreset(1)" class="preset-btn active" id="preset-btn-1">
-                🚨 <span data-i18n="preset_1_name">Bug JWT (CoT)</span>
+                <span data-i18n="preset_1_name">Bug JWT (CoT)</span>
               </button>
               <button onclick="loadPreset(2)" class="preset-btn" id="preset-btn-2">
-                ⚡ <span data-i18n="preset_2_name">Webhook PIX (CO-STAR)</span>
+                <span data-i18n="preset_2_name">Webhook PIX (CO-STAR)</span>
               </button>
               <button onclick="loadPreset(3)" class="preset-btn" id="preset-btn-3">
-                🏛️ <span data-i18n="preset_3_name">Arquitetura (Role)</span>
+                <span data-i18n="preset_3_name">Arquitetura (Role)</span>
               </button>
             </div>
           </div>
 
           <!-- Simulated Audio Player Strip -->
           <div class="audio-player-box">
-            <button onclick="toggleAudioPlayback()" class="play-btn" id="audio-play-btn" title="Simular reprodução de áudio">
+            <button onclick="toggleAudioPlayback()" class="play-btn" id="audio-play-btn" title="Simular reprodução de áudio" aria-label="Reproduzir áudio">
               <span id="play-icon">▶</span>
             </button>
             <div class="audio-meta">
@@ -1366,7 +1425,7 @@
           <!-- Input Raw Speech Box -->
           <div>
             <div class="field-label-row">
-              <label class="field-label" data-i18n="raw_input_label">Transcrição Acústica Bruta (Whisper):</label>
+              <label class="field-label" for="raw-transcript" data-i18n="raw_input_label">Transcrição Acústica Bruta (Whisper):</label>
               <span class="field-hint" data-i18n="raw_input_hint">Fala espontânea com disfluências</span>
             </div>
             <textarea id="raw-transcript" class="raw-speech-box" rows="3" oninput="executePipeline()"></textarea>
@@ -1377,8 +1436,8 @@
             <div>
               <span class="control-block-label" data-i18n="mode_label">Modo de Saída:</span>
               <div class="toggle-group">
-                <button onclick="setOutputMode('prompt')" id="mode-prompt-btn" class="active">⚡ Prompt</button>
-                <button onclick="setOutputMode('txt')" id="mode-txt-btn">📄 .txt Puro</button>
+                <button onclick="setOutputMode('prompt')" id="mode-prompt-btn" class="active">Prompt</button>
+                <button onclick="setOutputMode('txt')" id="mode-txt-btn">.txt Puro</button>
               </div>
             </div>
 
@@ -1396,22 +1455,22 @@
             <span class="control-block-label" data-i18n="technique_label">Técnica de Prompt Engineering:</span>
             <div class="technique-buttons">
               <button onclick="setTechnique('chain_of_thought')" id="btn-tech-chain_of_thought" class="tech-btn active">
-                🧠 CoT
+                CoT
               </button>
               <button onclick="setTechnique('co_star')" id="btn-tech-co_star" class="tech-btn">
-                ⭐ CO-STAR
+                CO-STAR
               </button>
               <button onclick="setTechnique('role_prompting')" id="btn-tech-role_prompting" class="tech-btn">
-                🎭 Role
+                Role
               </button>
               <button onclick="setTechnique('zero_shot')" id="btn-tech-zero_shot" class="tech-btn">
-                🎯 Zero-Shot
+                Zero-Shot
               </button>
               <button onclick="setTechnique('few_shot')" id="btn-tech-few_shot" class="tech-btn">
-                📚 Few-Shot
+                Few-Shot
               </button>
               <button onclick="setTechnique('react')" id="btn-tech-react" class="tech-btn">
-                🔄 ReAct
+                ReAct
               </button>
             </div>
           </div>
@@ -1429,10 +1488,10 @@
               </div>
               <div class="output-actions">
                 <button onclick="copyToClipboard()" class="action-btn" id="copy-btn">
-                  📋 <span data-i18n="btn_copy">Copiar</span>
+                  <span data-i18n="btn_copy">Copiar</span>
                 </button>
                 <button onclick="downloadOutput()" class="action-btn" id="download-btn">
-                  💾 <span data-i18n="btn_download">Baixar</span>
+                  <span data-i18n="btn_download">Baixar</span>
                 </button>
               </div>
             </div>
@@ -1441,14 +1500,14 @@
             <div style="display:flex; justify-content:space-between; align-items:center; padding:0.4rem 0.85rem; background-color:var(--bg-surface); border-bottom:1px solid var(--border-color); flex-wrap:wrap; gap:0.4rem;">
               <div class="toggle-group" style="padding:2px; height:28px;">
                 <button onclick="setOutputView('prompt')" id="btn-view-prompt" class="active" style="padding:0.15rem 0.65rem; font-size:0.72rem;">
-                  ⚡ <span data-i18n="tab_prompt">Prompt Gerado</span>
+                  <span data-i18n="tab_prompt">Prompt Gerado</span>
                 </button>
                 <button onclick="setOutputView('llm')" id="btn-view-llm" style="padding:0.15rem 0.65rem; font-size:0.72rem;">
-                  🤖 <span data-i18n="tab_llm">Execução LLM</span>
+                  <span data-i18n="tab_llm">Execução LLM</span>
                 </button>
               </div>
-              <span id="view-mode-hint" style="font-family:var(--font-mono); font-size:0.68rem; color:var(--text-muted);">
-                Whisper CPU ➔ Prompt Engine ➔ LLM Execution
+              <span id="view-mode-hint" style="font-family:var(--font-mono); font-size:0.6875rem; color:var(--text-muted);">
+                Whisper CPU → Prompt Engine → LLM Execution
               </span>
             </div>
 
@@ -1472,7 +1531,6 @@
          ========================================================================== -->
     <div class="section-header">
       <h2 class="section-title">
-        <span>🛠️</span>
         <span data-i18n="cards_section_title">As 6 Técnicas de Prompt Suportadas</span>
       </h2>
       <span class="section-subtitle" data-i18n="cards_section_subtitle">Padrões cognitivos estruturados para extrair o máximo de precisão de qualquer LLM.</span>
@@ -1494,7 +1552,7 @@
           <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_zero_shot_when">Perguntas objetivas, refatorações pontuais e consultas rápidas sem ambiguidade.</span>
         </div>
         <button onclick="applyTechniqueAndScroll('zero_shot')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio ➔
+          Testar no Studio →
         </button>
       </div>
 
@@ -1506,13 +1564,13 @@
         </div>
         <h3 class="card-title">Few-Shot</h3>
         <p class="card-desc" data-i18n="card_few_shot_desc">
-          Condicionamento em contexto através de pares de Entrada ➔ Saída demonstrando a tipagem, estrutura sintática ou formato desejado.
+          Condicionamento em contexto através de pares de Entrada → Saída demonstrando a tipagem, estrutura sintática ou formato desejado.
         </p>
         <div class="card-when">
           <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_few_shot_when">Extração de entidades, formatação em JSON/YAML rigoroso e padronização corporativa.</span>
         </div>
         <button onclick="applyTechniqueAndScroll('few_shot')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio ➔
+          Testar no Studio →
         </button>
       </div>
 
@@ -1530,7 +1588,7 @@
           <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_cot_when">Resolução de bugs complexos, cálculos de negócio, lógica de arquitetura e trade-offs.</span>
         </div>
         <button onclick="applyTechniqueAndScroll('chain_of_thought')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio ➔
+          Testar no Studio →
         </button>
       </div>
 
@@ -1548,7 +1606,7 @@
           <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_role_when">Code reviews de alto nível, consultorias de engenharia e auditorias de segurança.</span>
         </div>
         <button onclick="applyTechniqueAndScroll('role_prompting')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio ➔
+          Testar no Studio →
         </button>
       </div>
 
@@ -1566,7 +1624,7 @@
           <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_costar_when">Prompts para esteiras produtivas, especificações funcionais e relatórios técnicos formais.</span>
         </div>
         <button onclick="applyTechniqueAndScroll('co_star')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio ➔
+          Testar no Studio →
         </button>
       </div>
 
@@ -1578,13 +1636,13 @@
         </div>
         <h3 class="card-title">ReAct Pattern</h3>
         <p class="card-desc" data-i18n="card_react_desc">
-          Ciclo autônomo e estruturado de raciocínio e ação: Thought (pensamento) ➔ Action (ação/ferramenta) ➔ Observation (observação) ➔ Resposta Final.
+          Ciclo autônomo e estruturado de raciocínio e ação: Thought (pensamento) → Action (ação/ferramenta) → Observation (observação) → Resposta Final.
         </p>
         <div class="card-when">
           <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_react_when">Agentes autônomos, integrações com ferramentas (*tool calling*) e orquestração multi-etapas.</span>
         </div>
         <button onclick="applyTechniqueAndScroll('react')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio ➔
+          Testar no Studio →
         </button>
       </div>
 
@@ -1595,7 +1653,6 @@
          ========================================================================== -->
     <div class="section-header">
       <h2 class="section-title">
-        <span>🧠</span>
         <span data-i18n="arch_section_title">Arquitetura: ASR Acústico vs. SLM Contextual</span>
       </h2>
       <span class="section-subtitle" data-i18n="arch_section_subtitle">Como o Whisper une extração fonética a modelos de linguagem autoregressivos em CPU.</span>
@@ -1606,7 +1663,6 @@
         
         <div class="arch-block">
           <div class="arch-block-title">
-            <span>📡</span>
             <span data-i18n="arch_encoder_title">1. Audio Encoder (Representação Acústica)</span>
           </div>
           <p class="arch-block-desc" data-i18n="arch_encoder_desc">
@@ -1616,7 +1672,6 @@
 
         <div class="arch-block">
           <div class="arch-block-title">
-            <span>📖</span>
             <span data-i18n="arch_decoder_title">2. Text Decoder (O SLM Autoregressivo)</span>
           </div>
           <p class="arch-block-desc" data-i18n="arch_decoder_desc">
@@ -1629,7 +1684,7 @@
       <!-- Pentagon of Defense Row -->
       <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
         <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;" data-i18n="pentagon_title">
-          🛡️ Pentágono de Defesa (Auditoria & Resiliência)
+          Pentágono de Defesa (Auditoria & Resiliência)
         </h3>
         <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n="pentagon_subtitle">
           5 barreiras de segurança implementadas e validadas por 47 testes automatizados e 23 testes de caos ao vivo:
@@ -1677,7 +1732,6 @@
       <div class="section-header-row">
         <div>
           <h2 class="section-title">
-            <span>🏛️</span>
             <span data-i18n="adr_section_title">Decisões Arquiteturais & Linha do Tempo (ADRs)</span>
           </h2>
           <span class="section-subtitle" data-i18n="adr_section_subtitle">
@@ -1724,7 +1778,6 @@
         <div class="adr-viewer-header">
           <div>
             <div class="adr-id-tag">
-              <span>🏛️</span>
               <span id="adr-card-id">ADR-001</span>
               <span>•</span>
               <span id="adr-card-phase">Fase 1</span>
@@ -1738,7 +1791,7 @@
           <!-- Pillar 1: Context -->
           <div class="adr-pillar-card pillar-context">
             <div class="pillar-header">
-              <div class="pillar-icon-box">🎯</div>
+              <div class="pillar-icon-box">1</div>
               <div class="pillar-title" data-i18n="adr_pillar_context_title">1. Contexto & Forças Motivadoras</div>
             </div>
             <div class="pillar-body" id="adr-card-context"></div>
@@ -1747,7 +1800,7 @@
           <!-- Pillar 2: Decision -->
           <div class="adr-pillar-card pillar-decision">
             <div class="pillar-header">
-              <div class="pillar-icon-box">⚡</div>
+              <div class="pillar-icon-box">2</div>
               <div class="pillar-title" data-i18n="adr_pillar_decision_title">2. Decisão Técnica Adotada</div>
             </div>
             <div class="pillar-body" id="adr-card-decision"></div>
@@ -1756,7 +1809,7 @@
           <!-- Pillar 3: Rejected -->
           <div class="adr-pillar-card pillar-rejected">
             <div class="pillar-header">
-              <div class="pillar-icon-box">⚖️</div>
+              <div class="pillar-icon-box">3</div>
               <div class="pillar-title" data-i18n="adr_pillar_rejected_title">3. Alternativas Rejeitadas & Por Quê</div>
             </div>
             <div class="pillar-body" id="adr-card-rejected"></div>
@@ -1765,7 +1818,7 @@
           <!-- Pillar 4: Security / Pentagon -->
           <div class="adr-pillar-card pillar-security">
             <div class="pillar-header">
-              <div class="pillar-icon-box">🛡️</div>
+              <div class="pillar-icon-box">4</div>
               <div class="pillar-title" data-i18n="adr_pillar_security_title">4. Impacto no Pentágono de Defesa</div>
             </div>
             <div class="pillar-body" id="adr-card-security"></div>
@@ -1780,7 +1833,6 @@
     <div class="docker-banner">
       <div class="docker-info">
         <h3 class="docker-title">
-          <span>🐳</span>
           <span data-i18n="docker_title">Containerização Pronta com Docker & UV</span>
         </h3>
         <p class="docker-desc" data-i18n="docker_desc">
@@ -1788,8 +1840,13 @@
         </p>
       </div>
       <div class="docker-code-box">
-        <span>$ docker compose up --build</span>
-        <button onclick="navigator.clipboard.writeText('docker compose up --build'); alert('Comando copiado!');" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;">📋</button>
+        <code>$ docker compose up --build</code>
+        <button id="docker-copy-btn" class="docker-copy-btn" onclick="copyDockerCommand()" title="Copiar comando" aria-label="Copiar comando">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -1820,7 +1877,7 @@
        -------------------------------------------------------------------------- */
     const I18N = {
       'pt-BR': {
-                nav_docs: 'Decisões Arquiteturais (ADRs)',
+        nav_docs: 'Decisões Arquiteturais (ADRs)',
         adr_section_title: 'Decisões Arquiteturais & Linha do Tempo (ADRs)',
         adr_section_subtitle: 'Registro técnico de decisões arquiteturais: contexto, decisões adotadas, alternativas rejeitadas e Pentágono de Defesa.',
         adr_active_hint: 'Selecionado',
@@ -1862,7 +1919,7 @@
         cards_section_subtitle: 'Padrões cognitivos estruturados para extrair o máximo de precisão de qualquer LLM.',
         card_zero_shot_desc: 'Instrução imperativa e minimalista com seções explícitas de Contexto, Tarefa e Formato esperado sem condicionamento por exemplos.',
         card_zero_shot_when: 'Perguntas objetivas, refatorações pontuais e consultas rápidas sem ambiguidade.',
-        card_few_shot_desc: 'Condicionamento em contexto através de pares de Entrada ➔ Saída demonstrando a tipagem, estrutura sintática ou formato desejado.',
+        card_few_shot_desc: 'Condicionamento em contexto através de pares de Entrada → Saída demonstrando a tipagem, estrutura sintática ou formato desejado.',
         card_few_shot_when: 'Extração de entidades, formatação em JSON/YAML rigoroso e padronização corporativa.',
         card_cot_desc: 'Instrui o modelo a decompor explicitamente o raciocínio em etapas analíticas antes de entregar a conclusão ou implementação.',
         card_cot_when: 'Resolução de bugs complexos, cálculos de negócio, lógica de arquitetura e trade-offs.',
@@ -1870,9 +1927,9 @@
         card_role_when: 'Code reviews de alto nível, consultorias de engenharia e auditorias de segurança.',
         card_costar_desc: 'Estruturação corporativa em 6 pilares inegociáveis: Context, Objective, Style, Tone, Audience e Response.',
         card_costar_when: 'Prompts para esteiras produtivas, especificações funcionais e relatórios técnicos formais.',
-        card_react_desc: 'Ciclo autônomo e estruturado de raciocínio e ação: Thought (pensamento) ➔ Action (ação/ferramenta) ➔ Observation (observação) ➔ Resposta Final.',
-        card_react_when: 'Agentes autônomos, integrações com ferramentas (*tool calling*) e orquestração multi-etapas.',
-        btn_test_studio: 'Testar no Studio ➔',
+        card_react_desc: 'Ciclo autônomo e estruturado de raciocínio e ação: Thought (pensamento) → Action (ação/ferramenta) → Observation (observação) → Resposta Final.',
+        card_react_when: 'Agentes autônomos, integrações com ferramentas (tool calling) e orquestração multi-etapas.',
+        btn_test_studio: 'Testar no Studio →',
         lbl_when: 'Quando usar:',
         arch_section_title: 'Arquitetura: ASR Acústico vs. SLM Contextual',
         arch_section_subtitle: 'Como o Whisper une extração fonética a modelos de linguagem autoregressivos em CPU.',
@@ -1880,7 +1937,7 @@
         arch_encoder_desc: 'Processa blocos de 30s de áudio convertidos em espectrogramas Log-Mel de 80 canais. Sua função é extrair vetores densos contínuos representando fonemas, pausas, prosódia e entonação.',
         arch_decoder_title: '2. Text Decoder (O SLM Autoregressivo)',
         arch_decoder_desc: 'Opera como um Small Language Model autoregressivo. Não apenas "escuta", mas prevê o próximo token baseado no contexto semântico anterior, resolvendo homófonos (ex: "sessão" vs. "seção") e inserindo pontuação automática.',
-        pentagon_title: '🛡️ Pentágono de Defesa (Auditoria & Resiliência)',
+        pentagon_title: 'Pentágono de Defesa (Auditoria & Resiliência)',
         pentagon_subtitle: '5 barreiras de segurança implementadas e validadas por 47 testes automatizados e 23 testes de caos ao vivo:',
         p1_title: 'Banco sem Tranca',
         p1_desc: 'Queries SQLite exigem tenant_id. Conexões físicas fechadas com finally: conn.close().',
@@ -1898,7 +1955,7 @@
         footer_link_adr: 'Decisões Arquiteturais (ADRs)'
       },
       'en': {
-                nav_docs: 'Architectural Decisions (ADRs)',
+        nav_docs: 'Architectural Decisions (ADRs)',
         adr_section_title: 'Architectural Decisions & Project Timeline (ADRs)',
         adr_section_subtitle: 'Technical record of architectural decisions: context, technical choices, rejected alternatives, and Defense Pentagon.',
         adr_active_hint: 'Selected',
@@ -1940,7 +1997,7 @@
         cards_section_subtitle: 'Structured cognitive patterns engineered to extract maximum precision from any LLM.',
         card_zero_shot_desc: 'Direct imperative instructions with separated Context, Task, and Output format without few-shot examples.',
         card_zero_shot_when: 'Unambiguous queries, straightforward refactorings, and quick procedural actions.',
-        card_few_shot_desc: 'In-context learning conditioned with explicit Input ➔ Expected Output pairs to guarantee exact schema conformity.',
+        card_few_shot_desc: 'In-context learning conditioned with explicit Input → Expected Output pairs to guarantee exact schema conformity.',
         card_few_shot_when: 'Entity extraction, strict JSON/YAML schemas, and corporate standardization.',
         card_cot_desc: 'Enforces step-by-step cognitive decomposition of problem requirements prior to generating implementation code.',
         card_cot_when: 'Complex debugging, business rules, mathematical reasoning, and architectural trade-offs.',
@@ -1948,9 +2005,9 @@
         card_role_when: 'High-level code reviews, systems engineering consulting, and security audits.',
         card_costar_desc: 'Enterprise framework structured across 6 pillars: Context, Objective, Style, Tone, Audience, and Response.',
         card_costar_when: 'Production pipeline prompts, functional specifications, and executive technical briefs.',
-        card_react_desc: 'Structured autonomous reasoning loop: Thought ➔ Action ➔ Observation ➔ Final Answer.',
+        card_react_desc: 'Structured autonomous reasoning loop: Thought → Action → Observation → Final Answer.',
         card_react_when: 'Autonomous agents, external tool calling integrations, and multi-step automation.',
-        btn_test_studio: 'Test in Studio ➔',
+        btn_test_studio: 'Test in Studio →',
         lbl_when: 'When to use:',
         arch_section_title: 'Architecture: Acoustic ASR vs. Contextual SLM',
         arch_section_subtitle: 'How Whisper fuses acoustic feature extraction with autoregressive language modeling on CPU.',
@@ -1958,7 +2015,7 @@
         arch_encoder_desc: 'Transforms 30-second audio windows into 80-channel Log-Mel spectrograms, emitting dense continuous vectors of phonemes, prosody, and pauses.',
         arch_decoder_title: '2. Text Decoder (Autoregressive Contextual SLM)',
         arch_decoder_desc: 'Acts as an autoregressive Small Language Model. Rather than naive transcription, it evaluates contextual token probabilities, resolving homophones and injecting punctuation natively.',
-        pentagon_title: '🛡️ Pentagon of Defense (Security & Reliability)',
+        pentagon_title: 'Pentagon of Defense (Security & Reliability)',
         pentagon_subtitle: '5 defensive barriers proven by 47 automated tests and 23 live chaos tests:',
         p1_title: 'Database Isolation',
         p1_desc: 'SQLite queries require tenant_id. Physical connections strictly closed in finally: conn.close().',
@@ -1977,7 +2034,6 @@
       }
     };
 
-    
     /* --------------------------------------------------------------------------
        ARCHITECTURAL DECISIONS DATA REPOSITORY (ADR-001, ADR-002, ADR-003)
        -------------------------------------------------------------------------- */
@@ -1995,7 +2051,7 @@
         },
         2: {
           id: 'ADR-002',
-          phase: 'Fase 2 • DevOps & Packaging',
+          phase: 'Fase 2 • DevOps',
           title: 'Containerização Hermética com Astral UV & Execução Não-Root',
           scope: 'Empacotamento Docker multi-stage, orquestração Docker Compose, persistência SQLite e conformidade com CIS Benchmark.',
           context: `Bibliotecas de processamento de áudio dependem de binários C++ e utilitários de sistema (<code>ffmpeg</code>). Executar diretamente no host gerava atritos operacionais:<br><br>Ausência de dependências de sistema, lentidão do instalador <code>pip</code> padrão em pacotes de machine learning e riscos de segurança ao executar containers sob privilégios de superusuário (<code>root</code>).`,
@@ -2027,7 +2083,7 @@
         },
         2: {
           id: 'ADR-002',
-          phase: 'Phase 2 • DevOps & Packaging',
+          phase: 'Phase 2 • DevOps',
           title: 'Hermetic Containerization with Astral UV & Non-Root Execution',
           scope: 'Multi-stage Docker packaging, Docker Compose orchestration, SQLite data persistence, Whisper weight caching, and CIS benchmark compliance.',
           context: `Audio processing libraries require C++ runtimes and system utilities (<code>ffmpeg</code>). Running directly on host machines introduced operational friction:<br><br>Missing OS dependencies, slow <code>pip</code> build times for machine learning packages, and security risks from running containers as <code>root</code> (UID 0).`,
@@ -2122,6 +2178,9 @@
       localStorage.setItem('theme_preference', theme);
       const btn = document.getElementById('theme-btn');
       btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+      if (!isPlayingAudio) {
+        renderWaveform(false);
+      }
     }
 
     function toggleTheme() {
@@ -2435,7 +2494,7 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
       if (currentOutputView === 'llm') {
         const responseData = SIMULATED_LLM_RESPONSES[activePresetId] || SIMULATED_LLM_RESPONSES[1];
         badge.textContent = currentLang === 'pt-BR' ? 'Execução LLM: Ativa' : 'LLM Execution: Active';
-        badge.style.borderColor = 'var(--accent-emerald)';
+        badge.style.borderColor = 'rgba(16, 185, 129, 0.25)';
         badge.style.color = 'var(--accent-emerald)';
         badge.style.backgroundColor = 'var(--accent-emerald-subtle)';
         stats.textContent = currentLang === 'pt-BR' ? '• Motor: Ollama/Grok' : '• Engine: Ollama/Grok';
@@ -2445,16 +2504,16 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
 
       if (currentOutputMode === 'txt') {
         badge.textContent = currentLang === 'pt-BR' ? 'Modo: .txt Limpo' : 'Mode: Clean .txt';
-        badge.style.borderColor = 'var(--accent-emerald)';
-        badge.style.color = 'var(--accent-emerald)';
-        badge.style.backgroundColor = 'var(--accent-emerald-subtle)';
+        badge.style.borderColor = 'var(--border-color)';
+        badge.style.color = 'var(--text-primary)';
+        badge.style.backgroundColor = 'var(--bg-surface-elevated)';
         stats.textContent = currentLang === 'pt-BR' ? '• Formato: text/plain' : '• Format: text/plain';
         outputArea.textContent = cleanText;
       } else {
         badge.textContent = `Prompt: ${currentTechnique}`;
-        badge.style.borderColor = 'var(--accent-indigo)';
-        badge.style.color = 'var(--accent-indigo)';
-        badge.style.backgroundColor = 'var(--accent-indigo-subtle)';
+        badge.style.borderColor = 'rgba(16, 185, 129, 0.25)';
+        badge.style.color = 'var(--accent-emerald)';
+        badge.style.backgroundColor = 'var(--accent-emerald-subtle)';
         stats.textContent = currentLang === 'pt-BR' ? '• Latência: ~280ms (INT8)' : '• Latency: ~280ms (INT8)';
         outputArea.textContent = buildPromptTemplate(currentTechnique, cleanText, currentLang);
       }
@@ -2496,7 +2555,7 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
       navigator.clipboard.writeText(content).then(() => {
         const btn = document.getElementById('copy-btn');
         const originalText = btn.innerHTML;
-        btn.innerHTML = `<span style="color:var(--accent-emerald); font-weight:700;">✓ Copiado!</span>`;
+        btn.innerHTML = `<span style="color:var(--accent-emerald); font-weight:600;">✓ ${currentLang === 'pt-BR' ? 'Copiado!' : 'Copied!'}</span>`;
         setTimeout(() => { btn.innerHTML = originalText; }, 1800);
       });
     }
@@ -2513,6 +2572,16 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
       URL.revokeObjectURL(url);
     }
 
+    function copyDockerCommand() {
+      navigator.clipboard.writeText('docker compose up --build').then(() => {
+        const btn = document.getElementById('docker-copy-btn');
+        if (!btn) return;
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<span style="color:var(--accent-emerald); font-size:0.75rem; font-weight:700;">✓</span>';
+        setTimeout(() => { btn.innerHTML = orig; }, 1500);
+      });
+    }
+
     /* --------------------------------------------------------------------------
        AUDIO WAVEFORM SIMULATION (CANVAS)
        -------------------------------------------------------------------------- */
@@ -2523,6 +2592,8 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
       waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
       const bars = 36;
       const barWidth = waveCanvas.width / bars - 2;
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const staticBarColor = isDark ? '#3f3f46' : '#cbd5e1';
 
       for (let i = 0; i < bars; i++) {
         let height = isAnimated
@@ -2533,7 +2604,7 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
         const x = i * (barWidth + 2);
         const y = (waveCanvas.height - height) / 2;
 
-        waveCtx.fillStyle = isAnimated ? '#10b981' : '#64748b';
+        waveCtx.fillStyle = isAnimated ? '#10b981' : staticBarColor;
         waveCtx.beginPath();
         if (waveCtx.roundRect) {
           waveCtx.roundRect(x, y, barWidth, height, 2);
