@@ -22,6 +22,8 @@ from src.config import Settings, get_settings
 from src.domain.enums import OutputMode, PromptTechnique
 from src.domain.schemas import (
     HealthResponse,
+    LLMExecutionRequest,
+    LLMExecutionResponse,
     TechniquesCatalogResponse,
     TranscriptionListResponse,
     TranscriptionResponse,
@@ -50,6 +52,10 @@ from src.services.prompt_service import (
 from src.services.whisper_service import (
     WhisperTranscriptionService,
     get_whisper_service,
+)
+from src.services.llm_service import (
+    LLMExecutionService,
+    get_llm_service,
 )
 
 router = APIRouter(prefix="/api/v1", tags=["transcriptions"])
@@ -298,6 +304,52 @@ async def get_transcription_txt(
         media_type="text/plain; charset=utf-8",
         headers=headers,
     )
+
+
+@router.post(
+    "/transcriptions/{job_id}/execute",
+    response_model=LLMExecutionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Execute a compiled prompt against an LLM provider (Ollama or Grok)",
+)
+async def execute_prompt_llm(
+    job_id: str,
+    request: LLMExecutionRequest,
+    auth: AuthContext = Depends(require_operator),
+    repository: TranscriptionRepository = Depends(get_transcription_repository),
+    llm_service: LLMExecutionService = Depends(get_llm_service),
+) -> LLMExecutionResponse:
+    """Execute a compiled prompt from a transcription job against an LLM provider.
+
+    Requires role 'operator' or 'admin'.
+    """
+    try:
+        uuid.UUID(job_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transcription not found",
+        )
+
+    record = repository.get_by_id(job_id=job_id, tenant_id=auth.tenant_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transcription not found",
+        )
+
+    if record.output_mode != OutputMode.PROMPT or not record.prompt_result:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Job does not contain a compiled prompt to execute. Only jobs created with output_mode='prompt' can be executed.",
+        )
+
+    return llm_service.execute(
+        job_id=job_id,
+        prompt=record.prompt_result,
+        request=request,
+    )
+
 
 
 @router.get(

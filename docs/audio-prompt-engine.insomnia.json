@@ -15,35 +15,6 @@
       "scope": "collection"
     },
     {
-      "_id": "env_base_audio_engine",
-      "_type": "environment",
-      "parentId": "wrk_audio_prompt_engine",
-      "modified": 1729375200000,
-      "created": 1729375200000,
-      "name": "Localhost Environment",
-      "data": {
-        "base_url": "http://127.0.0.1:8000",
-        "operator_key": "dev-operator-alpha",
-        "viewer_key": "dev-viewer-alpha",
-        "attacker_key": "dev-operator-beta",
-        "admin_key": "dev-admin",
-        "job_id": "00000000-0000-0000-0000-000000000000"
-      },
-      "dataPropertyOrder": {
-        "&": [
-          "base_url",
-          "operator_key",
-          "viewer_key",
-          "attacker_key",
-          "admin_key",
-          "job_id"
-        ]
-      },
-      "color": "#6366f1",
-      "isPrivate": false,
-      "metaSortKey": 1729375200000
-    },
-    {
       "_id": "fld_sistema",
       "_type": "request_group",
       "parentId": "wrk_audio_prompt_engine",
@@ -54,42 +25,6 @@
       "environment": {},
       "environmentPropertyOrder": null,
       "metaSortKey": 100
-    },
-    {
-      "_id": "fld_catalogo",
-      "_type": "request_group",
-      "parentId": "wrk_audio_prompt_engine",
-      "modified": 1729375200000,
-      "created": 1729375200000,
-      "name": "2. Catálogo",
-      "description": "Catálogo educacional das 6 técnicas consagradas de engenharia de prompt.",
-      "environment": {},
-      "environmentPropertyOrder": null,
-      "metaSortKey": 200
-    },
-    {
-      "_id": "fld_transcricoes",
-      "_type": "request_group",
-      "parentId": "wrk_audio_prompt_engine",
-      "modified": 1729375200000,
-      "created": 1729375200000,
-      "name": "3. Transcrições (Operador)",
-      "description": "Operações completas de processamento, geração de prompt e download.",
-      "environment": {},
-      "environmentPropertyOrder": null,
-      "metaSortKey": 300
-    },
-    {
-      "_id": "fld_seguranca",
-      "_type": "request_group",
-      "parentId": "wrk_audio_prompt_engine",
-      "modified": 1729375200000,
-      "created": 1729375200000,
-      "name": "4. Testes de Segurança",
-      "description": "Bateria de testes negativos do Pentágono de Defesa (401, 403, 404, 400, 422).",
-      "environment": {},
-      "environmentPropertyOrder": null,
-      "metaSortKey": 400
     },
     {
       "_id": "req_health",
@@ -115,6 +50,18 @@
       "settingFollowRedirects": "global"
     },
     {
+      "_id": "fld_catalogo",
+      "_type": "request_group",
+      "parentId": "wrk_audio_prompt_engine",
+      "modified": 1729375200000,
+      "created": 1729375200000,
+      "name": "2. Catálogo",
+      "description": "Catálogo educacional das 6 técnicas consagradas de engenharia de prompt.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 200
+    },
+    {
       "_id": "req_techniques",
       "_type": "request",
       "parentId": "fld_catalogo",
@@ -136,6 +83,18 @@
       "settingEncodeUrl": true,
       "settingRebuildPath": true,
       "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_transcricoes",
+      "_type": "request_group",
+      "parentId": "wrk_audio_prompt_engine",
+      "modified": 1729375200000,
+      "created": 1729375200000,
+      "name": "3. Transcrições (Operador)",
+      "description": "Operações completas de processamento, geração de prompt e download.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 300
     },
     {
       "_id": "req_upload_txt",
@@ -351,6 +310,90 @@
       "settingFollowRedirects": "global"
     },
     {
+      "_id": "req_execute_ollama",
+      "_type": "request",
+      "parentId": "fld_transcricoes",
+      "modified": 1730324540000,
+      "created": 1730324540000,
+      "url": "{{ _.base_url }}/api/v1/transcriptions/{{ _.job_id }}/execute",
+      "name": "Executar Prompt no Ollama",
+      "description": "Executa o prompt compilado de um job de transcrição no servidor local Ollama (Llama 3).",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"provider\": \"ollama\",\n  \"model\": \"llama3\",\n  \"temperature\": 0.7\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-API-Key",
+          "value": "{{ _.operator_key }}",
+          "description": "Chave de operador (dev-operator-alpha)"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 306,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_execute_grok",
+      "_type": "request",
+      "parentId": "fld_transcricoes",
+      "modified": 1730324540000,
+      "created": 1730324540000,
+      "url": "{{ _.base_url }}/api/v1/transcriptions/{{ _.job_id }}/execute",
+      "name": "Executar Prompt no Grok",
+      "description": "Executa o prompt compilado de um job de transcrição via xAI Grok Cloud API.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"provider\": \"grok\",\n  \"model\": \"grok-beta\",\n  \"temperature\": 0.7\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-API-Key",
+          "value": "{{ _.operator_key }}",
+          "description": "Chave de operador (dev-operator-alpha)"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 307,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_seguranca",
+      "_type": "request_group",
+      "parentId": "wrk_audio_prompt_engine",
+      "modified": 1729375200000,
+      "created": 1729375200000,
+      "name": "4. Testes de Segurança",
+      "description": "Bateria de testes negativos do Pentágono de Defesa (401, 403, 404, 400, 422).",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 400
+    },
+    {
       "_id": "req_sec_no_token",
       "_type": "request",
       "parentId": "fld_seguranca",
@@ -526,6 +569,70 @@
       "settingEncodeUrl": true,
       "settingRebuildPath": true,
       "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_sec_grok_no_key",
+      "_type": "request",
+      "parentId": "fld_seguranca",
+      "modified": 1730324540000,
+      "created": 1730324540000,
+      "url": "{{ _.base_url }}/api/v1/transcriptions/{{ _.job_id }}/execute",
+      "name": "Executar Prompt sem Chave Grok (422)",
+      "description": "Tentativa de execução no provider Grok sem que a variável XAI_API_KEY esteja configurada no servidor. Deve retornar 422 Unprocessable Content.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"provider\": \"grok\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-API-Key",
+          "value": "{{ _.operator_key }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 406,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "env_base_audio_engine",
+      "_type": "environment",
+      "parentId": "wrk_audio_prompt_engine",
+      "modified": 1729375200000,
+      "created": 1729375200000,
+      "name": "Localhost Environment",
+      "data": {
+        "base_url": "http://127.0.0.1:8000",
+        "operator_key": "dev-operator-alpha",
+        "viewer_key": "dev-viewer-alpha",
+        "attacker_key": "dev-operator-beta",
+        "admin_key": "dev-admin",
+        "job_id": "00000000-0000-0000-0000-000000000000"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "operator_key",
+          "viewer_key",
+          "attacker_key",
+          "admin_key",
+          "job_id"
+        ]
+      },
+      "color": "#6366f1",
+      "isPrivate": false,
+      "metaSortKey": 1729375200000
     }
   ]
 }

@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Tuple
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from src.domain.enums import UserRole, WhisperModelSize
+from src.domain.enums import LLMProvider, UserRole, WhisperModelSize
 
 
 class Settings(BaseSettings):
@@ -33,6 +33,23 @@ class Settings(BaseSettings):
 
     MAX_UPLOAD_SIZE_BYTES: int = Field(
         default=25 * 1024 * 1024, description="Maximum audio upload size in bytes (25MB)"
+    )
+
+    # LLM Execution Engine Configuration (Ollama & Grok)
+    OLLAMA_BASE_URL: str = Field(
+        default="http://host.docker.internal:11434", description="Ollama API base URL"
+    )
+    XAI_API_KEY: Optional[str] = Field(
+        default=None, description="xAI API Key for Grok inference"
+    )
+    DEFAULT_GROK_MODEL: str = Field(
+        default="grok-beta", description="Default model for Grok inference"
+    )
+    DEFAULT_OLLAMA_MODEL: str = Field(
+        default="llama3", description="Default model for Ollama inference"
+    )
+    DEFAULT_LLM_PROVIDER: LLMProvider = Field(
+        default=LLMProvider.OLLAMA, description="Default LLM provider"
     )
 
     # API Keys mapping: api_key -> {tenant_id: str, role: UserRole}

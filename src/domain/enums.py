@@ -37,3 +37,11 @@ class UserRole(str, Enum):
     VIEWER = "viewer"
     OPERATOR = "operator"
     ADMIN = "admin"
+
+
+class LLMProvider(str, Enum):
+    """Supported LLM inference providers."""
+
+    OLLAMA = "ollama"
+    GROK = "grok"
+

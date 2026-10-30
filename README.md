@@ -188,6 +188,7 @@ Todas as requisições autenticadas exigem o cabeçalho HTTP `X-API-Key`.
 | `GET` | `/api/v1/transcriptions` | Qualquer chave válida | `200 OK` | Lista o histórico paginado de transcrições pertencentes ao tenant autenticado. |
 | `GET` | `/api/v1/transcriptions/{job_id}` | Dono do job (`tenant_id`) | `200 OK` | Retorna metadados completos, texto normalizado e prompt sintetizado. |
 | `GET` | `/api/v1/transcriptions/{job_id}/txt` | Dono do job (`tenant_id`) | `200 OK` | Download direto do texto normalizado puro (`text/plain; charset=utf-8`). |
+| `POST` | `/api/v1/transcriptions/{job_id}/execute` | `operator` ou `admin` (Dono) | `200 OK` | Executa o prompt compilado contra provedor LLM (Ollama Local ou Grok xAI). |
 | `GET` | `/api/v1/techniques` | Aberto / Autenticado | `200 OK` | Catálogo das 6 técnicas de engenharia de prompt com orientações de uso. |
 | `GET` | `/health` (e `/api/v1/health`) | Aberto | `200 OK` | Verificação de integridade operacional e modelo Whisper em execução. |
 
@@ -214,12 +215,15 @@ O projeto inclui uma collection completa e pronta para uso em desenvolvimento e 
    - `Listar Transcrições`: Histórico de jobs do inquilino autenticado.
    - `Consultar Job por ID`: Metadados e textos do job via UUID.
    - `Baixar TXT Puro`: Download de arquivo `.txt`.
+   - `Executar Prompt no Ollama`: Envio do prompt gerado para execução local via Ollama (Llama 3).
+   - `Executar Prompt no Grok`: Envio do prompt para inferência em nuvem via xAI (Grok-Beta).
 4. **`4. Testes de Segurança (Pentágono de Defesa)`**:
    - `Tentativa sem Token (401)`: Rejeição de requisição anônima.
    - `Tentativa com Role Viewer (403)`: Bloqueio de usuário de leitura tentando processar áudio.
    - `Tentativa IDOR Cross-Tenant (404)`: Bloqueio de acesso a jobs de outro tenant.
    - `Upload Arquivo Falso (400)`: Rejeição de arquivo executável renomeado para áudio.
    - `Modo Prompt sem Técnica (422)`: Rejeição contratual de requisição incompleta.
+   - `Executar Prompt sem Chave Grok (422)`: Validação de erro 422 quando `XAI_API_KEY` não está configurada no servidor.
 
 ---
 
@@ -238,9 +242,9 @@ O projeto possui **100% de aprovação** em todas as baterias de homologação t
 
 ---
 
-## 📄 Decisões Arquiteturais
+## 📄 Decisões Arquiteturais (ADRs)
 
-A documentação técnica formal do projeto segue o padrão rigoroso Design System Spec:
-- **ADR 001 Definitiva (Transcrição & Prompts):** [`DOCUMENTOS-TASK/ADR/2026-10-19_ADR-001-arquitetura-transcricao-e-prompt-engine.md`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/DOCUMENTOS-TASK/ADR/2026-10-19_ADR-001-arquitetura-transcricao-e-prompt-engine.md)
-- **ADR 002 Definitiva (Containerização com Docker e UV):** [`DOCUMENTOS-TASK/ADR/2026-10-29_ADR-002-containerizacao-com-docker-e-uv.md`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/DOCUMENTOS-TASK/ADR/2026-10-29_ADR-002-containerizacao-com-docker-e-uv.md)
-- **Parecer de QA & Segurança do Container:** [`DOCUMENTOS-TASK/2026-10-29_parecer-qa-dockerizacao.md`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/DOCUMENTOS-TASK/2026-10-29_parecer-qa-dockerizacao.md)
+As decisões de engenharia e os fundamentos arquiteturais do projeto estão consolidados e disponíveis publicamente:
+
+- 🏛️ **[Consolidação de Decisões Arquiteturais (ADR Digest)](docs/ARCHITECTURAL_DECISIONS.md):** Visão pública e detalhada das decisões ADR-001 (Transcrição local, NLP determinístico, Strategy Pattern e Pentágono de Defesa) e ADR-002 (Containerização com Docker, UV, Não-Root e persistência de dados).
+- 🌐 **[Showcase Interativo (GitHub Pages)](docs/index.html):** Demonstração interativa e visual do pipeline de áudio, técnicas de prompt e matriz de segurança.

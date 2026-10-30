@@ -1,0 +1,2701 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio Prompt Engine — Showcase & Studio</title>
+  <meta name="description" content="Motor inteligente de transcrição de áudio local com Whisper CPU INT8 e engenharia de prompts estruturados para LLMs.">
+  <style>
+    /* ==========================================================================
+       CSS VARIABLES & THEME SETUP (LIGHT / DARK)
+       ========================================================================== */
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-theme="dark"] {
+      --bg-page: #090d16;
+      --bg-surface: #0f172a;
+      --bg-surface-elevated: #1e293b;
+      --bg-surface-sunken: #060911;
+      --border-color: #1e293b;
+      --border-focus: #10b981;
+      --border-subtle: #172554;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-emerald: #10b981;
+      --accent-emerald-subtle: rgba(16, 185, 129, 0.12);
+      --accent-indigo: #6366f1;
+      --accent-indigo-subtle: rgba(99, 102, 241, 0.15);
+      --accent-amber: #f59e0b;
+      --accent-amber-subtle: rgba(245, 158, 11, 0.12);
+      --accent-blue: #38bdf8;
+      --code-bg: #030712;
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+    }
+
+    [data-theme="light"] {
+      --bg-page: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #f1f5f9;
+      --bg-surface-sunken: #e2e8f0;
+      --border-color: #e2e8f0;
+      --border-focus: #059669;
+      --border-subtle: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent-emerald: #059669;
+      --accent-emerald-subtle: rgba(5, 150, 105, 0.1);
+      --accent-indigo: #4f46e5;
+      --accent-indigo-subtle: rgba(79, 70, 229, 0.1);
+      --accent-amber: #d97706;
+      --accent-amber-subtle: rgba(217, 119, 6, 0.1);
+      --accent-blue: #0284c7;
+      --code-bg: #f1f5f9;
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+    }
+
+    /* ==========================================================================
+       BASE STYLES & RESET
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a {
+      color: var(--accent-emerald);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    /* ==========================================================================
+       CONTAINER & LAYOUT
+       ========================================================================== */
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    /* ==========================================================================
+       HEADER & NAVIGATION BAR
+       ========================================================================== */
+    header.site-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent-emerald), var(--accent-indigo));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-sm);
+      background-color: var(--accent-emerald-subtle);
+      color: var(--accent-emerald);
+      border: 1px solid var(--accent-emerald);
+      font-weight: 600;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-md);
+      font-size: 0.8rem;
+      font-weight: 600;
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+    .pill-btn:hover {
+      border-color: var(--accent-emerald);
+      background-color: var(--bg-surface);
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      font-size: 1rem;
+    }
+    .icon-btn:hover {
+      border-color: var(--accent-emerald);
+    }
+
+    /* ==========================================================================
+       HERO BANNER
+       ========================================================================== */
+    .hero-section {
+      padding: 3rem 0 2rem;
+      text-align: center;
+    }
+
+    .hero-tagline {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-emerald);
+      background-color: var(--accent-emerald-subtle);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .hero-title {
+      font-size: 2.25rem;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      max-width: 800px;
+      margin: 0 auto 1rem;
+    }
+
+    .hero-desc {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 680px;
+      margin: 0 auto 2rem;
+    }
+
+    .flow-pipeline-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-xl);
+      max-width: 850px;
+      margin: 0 auto 2.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .flow-step .step-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--accent-emerald);
+    }
+
+    /* ==========================================================================
+       SECTION HEADINGS
+       ========================================================================== */
+    .section-header {
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* ==========================================================================
+       INTERACTIVE STUDIO CONTAINER
+       ========================================================================== */
+    .studio-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 900px) {
+      .studio-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .input-column, .output-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Presets bar */
+    .presets-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .presets-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .preset-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .preset-btn {
+      padding: 0.3rem 0.65rem;
+      font-size: 0.75rem;
+      border-radius: var(--radius-sm);
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      font-weight: 600;
+    }
+    .preset-btn:hover {
+      border-color: var(--accent-emerald);
+      color: var(--text-primary);
+    }
+    .preset-btn.active {
+      border-color: var(--accent-emerald);
+      background-color: var(--accent-emerald-subtle);
+      color: var(--accent-emerald);
+    }
+
+    /* Simulated Audio Player */
+    .audio-player-box {
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .play-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--accent-emerald);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+    }
+    .play-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .audio-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .audio-meta-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .audio-filename {
+      color: var(--text-primary);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .audio-format-badge {
+      color: var(--accent-emerald);
+      font-weight: 600;
+    }
+
+    canvas#waveform-canvas {
+      width: 100%;
+      height: 28px;
+      display: block;
+      border-radius: 4px;
+    }
+
+    /* Input Raw Speech Area */
+    .field-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+      font-size: 0.78rem;
+    }
+
+    .field-label {
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .field-hint {
+      color: var(--accent-amber);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+    }
+
+    textarea.raw-speech-box {
+      width: 100%;
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.75rem;
+      border-radius: var(--radius-md);
+      resize: vertical;
+      line-height: 1.6;
+      transition: var(--transition);
+      min-height: 80px;
+    }
+    textarea.raw-speech-box:focus {
+      outline: none;
+      border-color: var(--accent-emerald);
+    }
+
+    /* Controls: Output Mode & NLP Filter */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .control-block-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+
+    .toggle-group {
+      display: flex;
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 2px;
+    }
+
+    .toggle-group button {
+      flex: 1;
+      padding: 0.4rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: calc(var(--radius-md) - 2px);
+      background: transparent;
+      color: var(--text-secondary);
+    }
+    .toggle-group button.active {
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    .nlp-checkbox-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      height: 36px;
+    }
+    .nlp-checkbox-card:hover {
+      border-color: var(--accent-emerald);
+    }
+
+    /* Prompt Technique Pills */
+    .techniques-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .technique-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem;
+    }
+
+    @media (min-width: 600px) {
+      .technique-buttons {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+
+    .tech-btn {
+      padding: 0.45rem 0.3rem;
+      font-size: 0.72rem;
+      border-radius: var(--radius-md);
+      background-color: var(--bg-surface-sunken);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      font-weight: 600;
+      text-align: center;
+    }
+    .tech-btn:hover {
+      border-color: var(--accent-emerald);
+      color: var(--text-primary);
+    }
+    .tech-btn.active {
+      border-color: var(--accent-emerald);
+      background-color: var(--accent-emerald-subtle);
+      color: var(--accent-emerald);
+    }
+
+    /* Output Preview Area */
+    .output-box-wrapper {
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 380px;
+    }
+
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.85rem;
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      border-top-left-radius: var(--radius-md);
+      border-top-right-radius: var(--radius-md);
+    }
+
+    .output-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+    }
+
+    .output-tag {
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-sm);
+      background-color: var(--accent-indigo-subtle);
+      color: var(--accent-indigo);
+      font-weight: 600;
+      border: 1px solid var(--accent-indigo);
+    }
+
+    .output-stats {
+      color: var(--text-muted);
+    }
+
+    .output-actions {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .action-btn {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+    .action-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--accent-emerald);
+    }
+
+    .clean-diff-bar {
+      padding: 0.45rem 0.85rem;
+      background-color: var(--bg-surface-elevated);
+      border-bottom: 1px solid var(--border-color);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+    }
+
+    .clean-diff-title {
+      color: var(--accent-emerald);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .clean-diff-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    pre.output-code-area {
+      flex: 1;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.6;
+      color: var(--text-primary);
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      user-select: all;
+    }
+
+    /* ==========================================================================
+       CARDS GRID: 6 PROMPT TECHNIQUES
+       ========================================================================== */
+    .techniques-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    @media (min-width: 640px) {
+      .techniques-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .techniques-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: var(--transition);
+      box-shadow: var(--shadow);
+    }
+    .card:hover {
+      border-color: var(--accent-emerald);
+      transform: translateY(-2px);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-icon {
+      font-size: 1.5rem;
+    }
+
+    .card-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-sm);
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .card-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .card-when {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px dashed var(--border-color);
+      padding-top: 0.5rem;
+    }
+
+    .card-when strong {
+      color: var(--text-primary);
+    }
+
+    .card-action-btn {
+      width: 100%;
+      padding: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      background-color: var(--accent-emerald-subtle);
+      color: var(--accent-emerald);
+      border: 1px solid var(--accent-emerald);
+      text-align: center;
+    }
+    .card-action-btn:hover {
+      background-color: var(--accent-emerald);
+      color: white;
+    }
+
+    /* ==========================================================================
+       ARCHITECTURE & PENTAGON SECTIONS
+       ========================================================================== */
+    .arch-container {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 3rem;
+      box-shadow: var(--shadow);
+    }
+
+    .arch-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 800px) {
+      .arch-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .arch-block {
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .arch-block-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .arch-block-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .pentagon-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+      margin-top: 1rem;
+    }
+
+    @media (min-width: 640px) {
+      .pentagon-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .pentagon-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    .pentagon-card {
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .pentagon-number {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--accent-emerald);
+    }
+
+    .pentagon-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .pentagon-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ==========================================================================
+       DOCKER QUICK-START CARD
+       ========================================================================== */
+    .docker-banner {
+      background: linear-gradient(135deg, var(--bg-surface), var(--bg-surface-elevated));
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    @media (min-width: 768px) {
+      .docker-banner {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .docker-info {
+      max-width: 550px;
+    }
+
+    .docker-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .docker-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .docker-code-box {
+      background-color: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent-emerald);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      justify-content: space-between;
+    }
+
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    footer.site-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      padding: 2rem 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .footer-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+      text-align: center;
+    }
+
+    @media (min-width: 768px) {
+      .footer-content {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.25rem;
+    }
+
+    /* ==========================================================================
+       ADR TIMELINE & ARCHITECTURAL EXPLORER
+       ========================================================================== */
+    .adr-section {
+      margin-top: 3.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .section-header-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .section-header-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .adr-raw-link {
+      font-size: 0.8rem;
+      align-self: flex-start;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+      color: var(--text-secondary);
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--radius-md);
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+    }
+
+    .adr-raw-link:hover {
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      text-decoration: none;
+      border-color: var(--border-focus);
+    }
+
+    /* Timeline Stepper Track */
+    .adr-timeline-track {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    @media (min-width: 768px) {
+      .adr-timeline-track {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+      }
+    }
+
+    .timeline-step {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      position: relative;
+      text-align: left;
+    }
+
+    .timeline-step:hover {
+      border-color: var(--border-focus);
+      background-color: var(--bg-surface-elevated);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .timeline-step.active {
+      border-color: var(--accent-emerald);
+      background-color: var(--bg-surface-elevated);
+      box-shadow: 0 0 0 2px var(--accent-emerald-subtle), var(--shadow);
+    }
+
+    .tl-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .tl-node-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .step-1 .tl-node-badge {
+      background-color: var(--accent-emerald-subtle);
+      color: var(--accent-emerald);
+    }
+
+    .step-2 .tl-node-badge {
+      background-color: rgba(2, 132, 199, 0.15);
+      color: var(--accent-blue);
+    }
+
+    .step-3 .tl-node-badge {
+      background-color: var(--accent-indigo-subtle);
+      color: var(--accent-indigo);
+    }
+
+    .tl-status-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent-emerald);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .tl-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+
+    .tl-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: auto;
+      padding-top: 0.6rem;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .tl-date {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .tl-select-hint {
+      font-size: 0.72rem;
+      color: var(--accent-emerald);
+      font-weight: 700;
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .timeline-step.active .tl-select-hint {
+      opacity: 1;
+    }
+
+    /* Detailed ADR Card Viewer */
+    .adr-card-viewer {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+
+    .adr-viewer-header {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .adr-viewer-header {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+    }
+
+    .adr-id-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent-emerald);
+      background-color: var(--accent-emerald-subtle);
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.5rem;
+    }
+
+    .adr-viewer-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 0.35rem;
+    }
+
+    .adr-viewer-scope {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      max-width: 680px;
+      line-height: 1.45;
+    }
+
+    .adr-viewer-meta-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    @media (min-width: 768px) {
+      .adr-viewer-meta-box {
+        flex-direction: column;
+        align-items: flex-end;
+      }
+    }
+
+    .adr-meta-chip {
+      font-size: 0.78rem;
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      padding: 0.3rem 0.65rem;
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+    }
+
+    /* 4 Pillars Grid */
+    .adr-pillars-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 900px) {
+      .adr-pillars-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .adr-pillar-card {
+      background-color: var(--bg-page);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: var(--transition);
+    }
+
+    .adr-pillar-card:hover {
+      border-color: var(--border-focus);
+    }
+
+    .pillar-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .pillar-icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .pillar-context .pillar-icon-box {
+      background-color: var(--accent-amber-subtle);
+      color: var(--accent-amber);
+    }
+
+    .pillar-decision .pillar-icon-box {
+      background-color: var(--accent-emerald-subtle);
+      color: var(--accent-emerald);
+    }
+
+    .pillar-rejected .pillar-icon-box {
+      background-color: rgba(239, 68, 68, 0.12);
+      color: #ef4444;
+    }
+
+    .pillar-security .pillar-icon-box {
+      background-color: var(--accent-indigo-subtle);
+      color: var(--accent-indigo);
+    }
+
+    .pillar-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .pillar-body {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .pillar-body ul {
+      margin-left: 1.2rem;
+      margin-top: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .pillar-body li {
+      margin-bottom: 0.35rem;
+    }
+
+    .pillar-body code {
+      font-family: var(--font-mono);
+      background-color: var(--code-bg);
+      border: 1px solid var(--border-color);
+      padding: 0.15rem 0.35rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+    }
+
+    .pillar-body strong {
+      color: var(--text-primary);
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       STICKY HEADER WITH CONTROLS
+       ========================================================================== -->
+  <header class="site-header">
+    <div class="container header-content">
+      
+      <div class="brand">
+        <div class="brand-logo">🎙️</div>
+        <div>
+          <div class="brand-title">Audio Prompt Engine</div>
+        </div>
+        <span class="brand-badge" id="lbl-badge-model">Whisper INT8 • CPU</span>
+      </div>
+
+      <nav class="nav-actions">
+        <!-- Documentation link (ADRs Timeline) -->
+        <a href="#section-adrs" id="link-docs" class="pill-btn">
+          🏛️ <span data-i18n="nav_docs">Decisões Arquiteturais (ADRs)</span>
+        </a>
+
+        <!-- Language Switcher -->
+        <button onclick="toggleLanguage()" class="pill-btn" id="lang-btn" title="Alternar idioma / Switch language">
+          🌐 <span id="current-lang-label">EN</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button onclick="toggleTheme()" class="icon-btn" id="theme-btn" title="Alternar tema claro/escuro">
+          🌙
+        </button>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN CONTENT CONTAINER
+       ========================================================================== -->
+  <main class="container" style="flex: 1;">
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+      <span class="hero-tagline" data-i18n="hero_tagline">Reconhecimento de Fala Local & Engenharia Cognitiva</span>
+      <h1 class="hero-title" data-i18n="hero_title">Da Fala Espontânea a Prompts Prontos para LLMs</h1>
+      <p class="hero-desc" data-i18n="hero_desc">
+        Motor backend em Python (FastAPI) com inferência local Faster-Whisper INT8 em CPU, normalização determinística NLP e síntese profissional em 6 técnicas de prompt engineering.
+      </p>
+
+      <!-- Pipeline Visualization Flow -->
+      <div class="flow-pipeline-bar">
+        <div class="flow-step">
+          <span class="step-dot"></span>
+          <span data-i18n="flow_step1">1. Áudio (WAV/MP3)</span>
+        </div>
+        <span class="flow-arrow">➔</span>
+        <div class="flow-step">
+          <span class="step-dot"></span>
+          <span data-i18n="flow_step2">2. Whisper CPU (INT8)</span>
+        </div>
+        <span class="flow-arrow">➔</span>
+        <div class="flow-step">
+          <span class="step-dot"></span>
+          <span data-i18n="flow_step3">3. Normalização NLP</span>
+        </div>
+        <span class="flow-arrow">➔</span>
+        <div class="flow-step">
+          <span class="step-dot"></span>
+          <span data-i18n="flow_step4">4. 6 Técnicas de Prompt</span>
+        </div>
+        <span class="flow-arrow">➔</span>
+        <div class="flow-step">
+          <span class="step-dot" style="background-color: var(--accent-indigo);"></span>
+          <span data-i18n="flow_step5">5. Modelo LLM</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         INTERACTIVE SIMULATION STUDIO
+         ========================================================================== -->
+    <div class="section-header">
+      <h2 class="section-title">
+        <span>⚡</span>
+        <span data-i18n="studio_title">Studio Interativo de Prompting</span>
+      </h2>
+      <span class="section-subtitle" data-i18n="studio_subtitle">Simule áudios falados, teste filtros NLP e gere prompts estruturados em tempo real.</span>
+    </div>
+
+    <div class="studio-card">
+      <div class="studio-grid">
+        
+        <!-- LEFT COLUMN: INPUT CONTROLS -->
+        <div class="input-column">
+          
+          <!-- Audio Presets Selector -->
+          <div class="presets-row">
+            <span class="presets-label" data-i18n="presets_label">Exemplos de Fala:</span>
+            <div class="preset-buttons">
+              <button onclick="loadPreset(1)" class="preset-btn active" id="preset-btn-1">
+                🚨 <span data-i18n="preset_1_name">Bug JWT (CoT)</span>
+              </button>
+              <button onclick="loadPreset(2)" class="preset-btn" id="preset-btn-2">
+                ⚡ <span data-i18n="preset_2_name">Webhook PIX (CO-STAR)</span>
+              </button>
+              <button onclick="loadPreset(3)" class="preset-btn" id="preset-btn-3">
+                🏛️ <span data-i18n="preset_3_name">Arquitetura (Role)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Simulated Audio Player Strip -->
+          <div class="audio-player-box">
+            <button onclick="toggleAudioPlayback()" class="play-btn" id="audio-play-btn" title="Simular reprodução de áudio">
+              <span id="play-icon">▶</span>
+            </button>
+            <div class="audio-meta">
+              <div class="audio-meta-header">
+                <span id="audio-filename" class="audio-filename">audio_sample_bug_jwt.wav</span>
+                <span class="audio-format-badge">RIFF/WAVE 16kHz</span>
+              </div>
+              <canvas id="waveform-canvas" width="400" height="28"></canvas>
+            </div>
+          </div>
+
+          <!-- Input Raw Speech Box -->
+          <div>
+            <div class="field-label-row">
+              <label class="field-label" data-i18n="raw_input_label">Transcrição Acústica Bruta (Whisper):</label>
+              <span class="field-hint" data-i18n="raw_input_hint">Fala espontânea com disfluências</span>
+            </div>
+            <textarea id="raw-transcript" class="raw-speech-box" rows="3" oninput="executePipeline()"></textarea>
+          </div>
+
+          <!-- Output Mode & NLP Toggle Grid -->
+          <div class="controls-grid">
+            <div>
+              <span class="control-block-label" data-i18n="mode_label">Modo de Saída:</span>
+              <div class="toggle-group">
+                <button onclick="setOutputMode('prompt')" id="mode-prompt-btn" class="active">⚡ Prompt</button>
+                <button onclick="setOutputMode('txt')" id="mode-txt-btn">📄 .txt Puro</button>
+              </div>
+            </div>
+
+            <div>
+              <span class="control-block-label" data-i18n="nlp_label">Higienização NLP:</span>
+              <label class="nlp-checkbox-card">
+                <span data-i18n="nlp_checkbox_text">Filtrar muletas vocais</span>
+                <input type="checkbox" id="nlp-toggle" checked onchange="executePipeline()">
+              </label>
+            </div>
+          </div>
+
+          <!-- Prompt Technique Selector -->
+          <div class="techniques-panel" id="tech-selector-container">
+            <span class="control-block-label" data-i18n="technique_label">Técnica de Prompt Engineering:</span>
+            <div class="technique-buttons">
+              <button onclick="setTechnique('chain_of_thought')" id="btn-tech-chain_of_thought" class="tech-btn active">
+                🧠 CoT
+              </button>
+              <button onclick="setTechnique('co_star')" id="btn-tech-co_star" class="tech-btn">
+                ⭐ CO-STAR
+              </button>
+              <button onclick="setTechnique('role_prompting')" id="btn-tech-role_prompting" class="tech-btn">
+                🎭 Role
+              </button>
+              <button onclick="setTechnique('zero_shot')" id="btn-tech-zero_shot" class="tech-btn">
+                🎯 Zero-Shot
+              </button>
+              <button onclick="setTechnique('few_shot')" id="btn-tech-few_shot" class="tech-btn">
+                📚 Few-Shot
+              </button>
+              <button onclick="setTechnique('react')" id="btn-tech-react" class="tech-btn">
+                🔄 ReAct
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: PROMPT / TXT OUTPUT -->
+        <div class="output-column">
+          <div class="output-box-wrapper">
+            
+            <div class="output-header">
+              <div class="output-meta">
+                <span class="output-tag" id="output-badge">Prompt: chain_of_thought</span>
+                <span class="output-stats" id="output-stats">• Latência: ~280ms (INT8)</span>
+              </div>
+              <div class="output-actions">
+                <button onclick="copyToClipboard()" class="action-btn" id="copy-btn">
+                  📋 <span data-i18n="btn_copy">Copiar</span>
+                </button>
+                <button onclick="downloadOutput()" class="action-btn" id="download-btn">
+                  💾 <span data-i18n="btn_download">Baixar</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- View Mode Switcher: Prompt vs LLM Output -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.4rem 0.85rem; background-color:var(--bg-surface); border-bottom:1px solid var(--border-color); flex-wrap:wrap; gap:0.4rem;">
+              <div class="toggle-group" style="padding:2px; height:28px;">
+                <button onclick="setOutputView('prompt')" id="btn-view-prompt" class="active" style="padding:0.15rem 0.65rem; font-size:0.72rem;">
+                  ⚡ <span data-i18n="tab_prompt">Prompt Gerado</span>
+                </button>
+                <button onclick="setOutputView('llm')" id="btn-view-llm" style="padding:0.15rem 0.65rem; font-size:0.72rem;">
+                  🤖 <span data-i18n="tab_llm">Execução LLM</span>
+                </button>
+              </div>
+              <span id="view-mode-hint" style="font-family:var(--font-mono); font-size:0.68rem; color:var(--text-muted);">
+                Whisper CPU ➔ Prompt Engine ➔ LLM Execution
+              </span>
+            </div>
+
+            <!-- NLP Diff Info Bar -->
+            <div class="clean-diff-bar">
+              <span class="clean-diff-title">NLP Clean:</span>
+              <span class="clean-diff-text" id="nlp-diff-preview">Texto normalizado sem disfluências</span>
+            </div>
+
+            <!-- Output Content Area -->
+            <pre class="output-code-area" id="output-content-area"></pre>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         6 PROMPT ENGINEERING TECHNIQUES CARDS
+         ========================================================================== -->
+    <div class="section-header">
+      <h2 class="section-title">
+        <span>🛠️</span>
+        <span data-i18n="cards_section_title">As 6 Técnicas de Prompt Suportadas</span>
+      </h2>
+      <span class="section-subtitle" data-i18n="cards_section_subtitle">Padrões cognitivos estruturados para extrair o máximo de precisão de qualquer LLM.</span>
+    </div>
+
+    <div class="techniques-grid">
+      
+      <!-- Card 1: Zero-Shot -->
+      <div class="card">
+        <div class="card-top">
+          <span class="card-icon">🎯</span>
+          <span class="card-badge">Direct Instruction</span>
+        </div>
+        <h3 class="card-title">Zero-Shot</h3>
+        <p class="card-desc" data-i18n="card_zero_shot_desc">
+          Instrução imperativa e minimalista com seções explícitas de Contexto, Tarefa e Formato esperado sem condicionamento por exemplos.
+        </p>
+        <div class="card-when">
+          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_zero_shot_when">Perguntas objetivas, refatorações pontuais e consultas rápidas sem ambiguidade.</span>
+        </div>
+        <button onclick="applyTechniqueAndScroll('zero_shot')" class="card-action-btn" data-i18n="btn_test_studio">
+          Testar no Studio ➔
+        </button>
+      </div>
+
+      <!-- Card 2: Few-Shot -->
+      <div class="card">
+        <div class="card-top">
+          <span class="card-icon">📚</span>
+          <span class="card-badge">Pattern Conditioning</span>
+        </div>
+        <h3 class="card-title">Few-Shot</h3>
+        <p class="card-desc" data-i18n="card_few_shot_desc">
+          Condicionamento em contexto através de pares de Entrada ➔ Saída demonstrando a tipagem, estrutura sintática ou formato desejado.
+        </p>
+        <div class="card-when">
+          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_few_shot_when">Extração de entidades, formatação em JSON/YAML rigoroso e padronização corporativa.</span>
+        </div>
+        <button onclick="applyTechniqueAndScroll('few_shot')" class="card-action-btn" data-i18n="btn_test_studio">
+          Testar no Studio ➔
+        </button>
+      </div>
+
+      <!-- Card 3: Chain-of-Thought (CoT) -->
+      <div class="card">
+        <div class="card-top">
+          <span class="card-icon">🧠</span>
+          <span class="card-badge">Step-by-Step</span>
+        </div>
+        <h3 class="card-title">Chain-of-Thought (CoT)</h3>
+        <p class="card-desc" data-i18n="card_cot_desc">
+          Instrui o modelo a decompor explicitamente o raciocínio em etapas analíticas antes de entregar a conclusão ou implementação.
+        </p>
+        <div class="card-when">
+          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_cot_when">Resolução de bugs complexos, cálculos de negócio, lógica de arquitetura e trade-offs.</span>
+        </div>
+        <button onclick="applyTechniqueAndScroll('chain_of_thought')" class="card-action-btn" data-i18n="btn_test_studio">
+          Testar no Studio ➔
+        </button>
+      </div>
+
+      <!-- Card 4: Role Prompting -->
+      <div class="card">
+        <div class="card-top">
+          <span class="card-icon">🎭</span>
+          <span class="card-badge">Expert Persona</span>
+        </div>
+        <h3 class="card-title">Role Prompting</h3>
+        <p class="card-desc" data-i18n="card_role_desc">
+          Atribuição de uma persona sênior especializada com diretrizes claras de postura, tom analítico, profundidade técnica e restrições.
+        </p>
+        <div class="card-when">
+          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_role_when">Code reviews de alto nível, consultorias de engenharia e auditorias de segurança.</span>
+        </div>
+        <button onclick="applyTechniqueAndScroll('role_prompting')" class="card-action-btn" data-i18n="btn_test_studio">
+          Testar no Studio ➔
+        </button>
+      </div>
+
+      <!-- Card 5: CO-STAR Framework -->
+      <div class="card">
+        <div class="card-top">
+          <span class="card-icon">⭐</span>
+          <span class="card-badge">Enterprise Standard</span>
+        </div>
+        <h3 class="card-title">CO-STAR Framework</h3>
+        <p class="card-desc" data-i18n="card_costar_desc">
+          Estruturação corporativa em 6 pilares inegociáveis: Context, Objective, Style, Tone, Audience e Response.
+        </p>
+        <div class="card-when">
+          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_costar_when">Prompts para esteiras produtivas, especificações funcionais e relatórios técnicos formais.</span>
+        </div>
+        <button onclick="applyTechniqueAndScroll('co_star')" class="card-action-btn" data-i18n="btn_test_studio">
+          Testar no Studio ➔
+        </button>
+      </div>
+
+      <!-- Card 6: ReAct (Reasoning + Acting) -->
+      <div class="card">
+        <div class="card-top">
+          <span class="card-icon">🔄</span>
+          <span class="card-badge">Agentic Loop</span>
+        </div>
+        <h3 class="card-title">ReAct Pattern</h3>
+        <p class="card-desc" data-i18n="card_react_desc">
+          Ciclo autônomo e estruturado de raciocínio e ação: Thought (pensamento) ➔ Action (ação/ferramenta) ➔ Observation (observação) ➔ Resposta Final.
+        </p>
+        <div class="card-when">
+          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_react_when">Agentes autônomos, integrações com ferramentas (*tool calling*) e orquestração multi-etapas.</span>
+        </div>
+        <button onclick="applyTechniqueAndScroll('react')" class="card-action-btn" data-i18n="btn_test_studio">
+          Testar no Studio ➔
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ==========================================================================
+         ARCHITECTURE & WHISPER SLM INSIGHTS
+         ========================================================================== -->
+    <div class="section-header">
+      <h2 class="section-title">
+        <span>🧠</span>
+        <span data-i18n="arch_section_title">Arquitetura: ASR Acústico vs. SLM Contextual</span>
+      </h2>
+      <span class="section-subtitle" data-i18n="arch_section_subtitle">Como o Whisper une extração fonética a modelos de linguagem autoregressivos em CPU.</span>
+    </div>
+
+    <div class="arch-container">
+      <div class="arch-grid">
+        
+        <div class="arch-block">
+          <div class="arch-block-title">
+            <span>📡</span>
+            <span data-i18n="arch_encoder_title">1. Audio Encoder (Representação Acústica)</span>
+          </div>
+          <p class="arch-block-desc" data-i18n="arch_encoder_desc">
+            Processa blocos de 30s de áudio convertidos em espectrogramas Log-Mel de 80 canais. Sua função é extrair vetores densos contínuos representando fonemas, pausas, prosódia e entonação.
+          </p>
+        </div>
+
+        <div class="arch-block">
+          <div class="arch-block-title">
+            <span>📖</span>
+            <span data-i18n="arch_decoder_title">2. Text Decoder (O SLM Autoregressivo)</span>
+          </div>
+          <p class="arch-block-desc" data-i18n="arch_decoder_desc">
+            Opera como um Small Language Model autoregressivo. Não apenas "escuta", mas prevê o próximo token baseado no contexto semântico anterior, resolvendo homófonos (ex: <em>"sessão"</em> vs. <em>"seção"</em>) e inserindo pontuação automática.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Pentagon of Defense Row -->
+      <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;" data-i18n="pentagon_title">
+          🛡️ Pentágono de Defesa (Auditoria & Resiliência)
+        </h3>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n="pentagon_subtitle">
+          5 barreiras de segurança implementadas e validadas por 47 testes automatizados e 23 testes de caos ao vivo:
+        </p>
+
+        <div class="pentagon-grid">
+          <div class="pentagon-card">
+            <span class="pentagon-number">01. DB ISOLATION</span>
+            <div class="pentagon-title" data-i18n="p1_title">Banco sem Tranca</div>
+            <p class="pentagon-desc" data-i18n="p1_desc">Queries SQLite exigem tenant_id. Conexões físicas fechadas com finally: conn.close().</p>
+          </div>
+
+          <div class="pentagon-card">
+            <span class="pentagon-number">02. SERVER RBAC</span>
+            <div class="pentagon-title" data-i18n="p2_title">Permissão no Servidor</div>
+            <p class="pentagon-desc" data-i18n="p2_desc">Role viewer restrita a leitura; ingestão de áudio exige operator/admin com 403 ativo.</p>
+          </div>
+
+          <div class="pentagon-card">
+            <span class="pentagon-number">03. ANTI-IDOR</span>
+            <div class="pentagon-title" data-i18n="p3_title">Anti-IDOR & UUID</div>
+            <p class="pentagon-desc" data-i18n="p3_desc">Validação sintática de UUID v4 no path antes do banco; ID de outro tenant responde 404.</p>
+          </div>
+
+          <div class="pentagon-card">
+            <span class="pentagon-number">04. SECURE KEYS</span>
+            <div class="pentagon-title" data-i18n="p4_title">Chaves & Defaults</div>
+            <p class="pentagon-desc" data-i18n="p4_desc">Sem segredos hardcoded; uploads efêmeros limpos no disco via finally: os.unlink().</p>
+          </div>
+
+          <div class="pentagon-card">
+            <span class="pentagon-number">05. MAGIC BYTES</span>
+            <div class="pentagon-title" data-i18n="p5_title">Sanitização & Streaming</div>
+            <p class="pentagon-desc" data-i18n="p5_desc">Magic bytes binários (RIFF/ID3), stream 64KB com limite 413 e anti-prompt injection falado.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==========================================================================
+         ARCHITECTURAL DECISIONS & PROJECT TIMELINE (ADR EXPLORER)
+         ========================================================================== -->
+    <section id="section-adrs" class="adr-section">
+      <div class="section-header-row">
+        <div>
+          <h2 class="section-title">
+            <span>🏛️</span>
+            <span data-i18n="adr_section_title">Decisões Arquiteturais & Linha do Tempo (ADRs)</span>
+          </h2>
+          <span class="section-subtitle" data-i18n="adr_section_subtitle">
+            A história viva da engenharia do projeto: motivações, trade-offs e impacto no Pentágono de Defesa.
+          </span>
+        </div>
+        <a href="ARCHITECTURAL_DECISIONS.md" target="_blank" rel="noopener" class="adr-raw-link" title="Ver especificação bruta em Markdown">
+          📄 <span data-i18n="adr_view_markdown">Ver Markdown Raw</span>
+        </a>
+      </div>
+
+      <!-- Timeline Stepper Track -->
+      <div class="adr-timeline-track">
+        <div class="timeline-step step-1 active" id="tl-step-1" onclick="selectAdr(1)" role="button" tabindex="0">
+          <div class="tl-header-row">
+            <span class="tl-node-badge" data-i18n="adr1_badge">Fase 1 • Core Engine</span>
+            <span class="tl-status-badge">✅ <span data-i18n="adr_status_accepted">Aceito</span></span>
+          </div>
+          <div class="tl-title" data-i18n="adr1_short_title">Motor Core de Transcrição & Compilação Cognitiva</div>
+          <div class="tl-meta">
+            <span class="tl-date">📅 2026-10-28</span>
+            <span class="tl-select-hint" data-i18n="adr_active_hint">Ativo ➔</span>
+          </div>
+        </div>
+
+        <div class="timeline-step step-2" id="tl-step-2" onclick="selectAdr(2)" role="button" tabindex="0">
+          <div class="tl-header-row">
+            <span class="tl-node-badge" data-i18n="adr2_badge">Fase 2 • DevOps</span>
+            <span class="tl-status-badge">✅ <span data-i18n="adr_status_accepted">Aceito</span></span>
+          </div>
+          <div class="tl-title" data-i18n="adr2_short_title">Containerização Hermética com Astral UV</div>
+          <div class="tl-meta">
+            <span class="tl-date">📅 2026-10-29</span>
+            <span class="tl-select-hint" data-i18n="adr_active_hint">Ativo ➔</span>
+          </div>
+        </div>
+
+        <div class="timeline-step step-3" id="tl-step-3" onclick="selectAdr(3)" role="button" tabindex="0">
+          <div class="tl-header-row">
+            <span class="tl-node-badge" data-i18n="adr3_badge">Fase 3 • LLM Orchestration</span>
+            <span class="tl-status-badge">✅ <span data-i18n="adr_status_accepted">Aceito</span></span>
+          </div>
+          <div class="tl-title" data-i18n="adr3_short_title">Motor de Inferência LLM Desacoplado</div>
+          <div class="tl-meta">
+            <span class="tl-date">📅 2026-10-30</span>
+            <span class="tl-select-hint" data-i18n="adr_active_hint">Ativo ➔</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed ADR Card Viewer -->
+      <div class="adr-card-viewer" id="adr-viewer">
+        <div class="adr-viewer-header">
+          <div>
+            <div class="adr-id-tag">
+              <span>🏛️</span>
+              <span id="adr-card-id">ADR-001</span>
+              <span>•</span>
+              <span id="adr-card-phase">Fase 1</span>
+            </div>
+            <h3 class="adr-viewer-title" id="adr-card-title">Motor Core de Transcrição Local & Compilação Cognitiva</h3>
+            <p class="adr-viewer-scope" id="adr-card-scope">Reconhecimento acústico local, normalização NLP determinística...</p>
+          </div>
+          <div class="adr-viewer-meta-box">
+            <div class="adr-meta-chip">
+              <span id="adr-card-status">✅ Status: Aceito e Implementado</span>
+            </div>
+            <div class="adr-meta-chip">
+              <span id="adr-card-date">📅 Data: 2026-10-28</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="adr-pillars-grid">
+          <!-- Pillar 1: Context -->
+          <div class="adr-pillar-card pillar-context">
+            <div class="pillar-header">
+              <div class="pillar-icon-box">🎯</div>
+              <div class="pillar-title" data-i18n="adr_pillar_context_title">1. Contexto & Forças Motivadoras</div>
+            </div>
+            <div class="pillar-body" id="adr-card-context"></div>
+          </div>
+
+          <!-- Pillar 2: Decision -->
+          <div class="adr-pillar-card pillar-decision">
+            <div class="pillar-header">
+              <div class="pillar-icon-box">⚡</div>
+              <div class="pillar-title" data-i18n="adr_pillar_decision_title">2. Decisão Técnica Adotada</div>
+            </div>
+            <div class="pillar-body" id="adr-card-decision"></div>
+          </div>
+
+          <!-- Pillar 3: Rejected -->
+          <div class="adr-pillar-card pillar-rejected">
+            <div class="pillar-header">
+              <div class="pillar-icon-box">⚖️</div>
+              <div class="pillar-title" data-i18n="adr_pillar_rejected_title">3. Alternativas Rejeitadas & Por Quê</div>
+            </div>
+            <div class="pillar-body" id="adr-card-rejected"></div>
+          </div>
+
+          <!-- Pillar 4: Security / Pentagon -->
+          <div class="adr-pillar-card pillar-security">
+            <div class="pillar-header">
+              <div class="pillar-icon-box">🛡️</div>
+              <div class="pillar-title" data-i18n="adr_pillar_security_title">4. Impacto no Pentágono de Defesa</div>
+            </div>
+            <div class="pillar-body" id="adr-card-security"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         DOCKER CONTAINERIZATION QUICK-START
+         ========================================================================== -->
+    <div class="docker-banner">
+      <div class="docker-info">
+        <h3 class="docker-title">
+          <span>🐳</span>
+          <span data-i18n="docker_title">Containerização Pronta com Docker & UV</span>
+        </h3>
+        <p class="docker-desc" data-i18n="docker_desc">
+          Imagem multi-stage não-root (<code>appuser:10001</code>) baseada em Debian Bookworm Slim com UV e ffmpeg pré-instalados. Volumes persistentes para SQLite e cache de modelos Whisper.
+        </p>
+      </div>
+      <div class="docker-code-box">
+        <span>$ docker compose up --build</span>
+        <button onclick="navigator.clipboard.writeText('docker compose up --build'); alert('Comando copiado!');" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;">📋</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== -->
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <div>
+        <strong>Audio Prompt Engine</strong> — 
+        <span data-i18n="footer_rights">Motor de Áudio Local e Engenharia de Prompt</span>.
+      </div>
+      <div class="footer-links">
+        <a href="ARCHITECTURAL_DECISIONS.md" target="_blank" rel="noopener" data-i18n="footer_link_adr">Decisões Arquiteturais (ADRs)</a>
+        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       NATIVE JAVASCRIPT: STUDIO LOGIC, PRESETS, THEME & TRANSLATION
+       ========================================================================== -->
+  <script>
+    /* --------------------------------------------------------------------------
+       DICTIONARY & TRANSLATION ENGINE (PT-BR / EN)
+       -------------------------------------------------------------------------- */
+    const I18N = {
+      'pt-BR': {
+                nav_docs: 'Decisões Arquiteturais (ADRs)',
+        adr_section_title: 'Decisões Arquiteturais & Linha do Tempo (ADRs)',
+        adr_section_subtitle: 'A história viva da engenharia do projeto: motivações, trade-offs e impacto no Pentágono de Defesa.',
+        adr_view_markdown: 'Ver Markdown Raw',
+        adr_status_accepted: 'Aceito',
+        adr_active_hint: 'Ativo ➔',
+        adr1_badge: 'Fase 1 • Core Engine',
+        adr1_short_title: 'Motor Core de Transcrição & Compilação Cognitiva',
+        adr2_badge: 'Fase 2 • DevOps',
+        adr2_short_title: 'Containerização Hermética com Astral UV',
+        adr3_badge: 'Fase 3 • LLM Orchestration',
+        adr3_short_title: 'Motor de Inferência LLM Desacoplado',
+        adr_pillar_context_title: '1. Contexto & Forças Motivadoras',
+        adr_pillar_decision_title: '2. Decisão Técnica Adotada',
+        adr_pillar_rejected_title: '3. Alternativas Rejeitadas & Por Quê',
+        adr_pillar_security_title: '4. Impacto no Pentágono de Defesa',
+        hero_tagline: 'Reconhecimento de Fala Local & Engenharia Cognitiva',
+        hero_title: 'Da Fala Espontânea a Prompts Prontos para LLMs',
+        hero_desc: 'Motor backend em Python (FastAPI) com inferência local Faster-Whisper INT8 em CPU, normalização determinística NLP e síntese profissional em 6 técnicas de prompt engineering.',
+        flow_step1: '1. Áudio (WAV/MP3)',
+        flow_step2: '2. Whisper CPU (INT8)',
+        flow_step3: '3. Normalização NLP',
+        flow_step4: '4. 6 Técnicas de Prompt',
+        flow_step5: '5. Modelo LLM',
+        studio_title: 'Studio Interativo de Prompting',
+        studio_subtitle: 'Simule áudios falados, teste filtros NLP e gere prompts estruturados em tempo real.',
+        presets_label: 'Exemplos de Fala:',
+        preset_1_name: 'Bug JWT (CoT)',
+        preset_2_name: 'Webhook PIX (CO-STAR)',
+        preset_3_name: 'Arquitetura (Role)',
+        raw_input_label: 'Transcrição Acústica Bruta (Whisper):',
+        raw_input_hint: 'Fala espontânea com disfluências',
+        mode_label: 'Modo de Saída:',
+        nlp_label: 'Higienização NLP:',
+        nlp_checkbox_text: 'Filtrar muletas vocais',
+        technique_label: 'Técnica de Prompt Engineering:',
+        tab_prompt: 'Prompt Gerado',
+        tab_llm: 'Execução LLM',
+        btn_copy: 'Copiar',
+        btn_download: 'Baixar',
+        cards_section_title: 'As 6 Técnicas de Prompt Suportadas',
+        cards_section_subtitle: 'Padrões cognitivos estruturados para extrair o máximo de precisão de qualquer LLM.',
+        card_zero_shot_desc: 'Instrução imperativa e minimalista com seções explícitas de Contexto, Tarefa e Formato esperado sem condicionamento por exemplos.',
+        card_zero_shot_when: 'Perguntas objetivas, refatorações pontuais e consultas rápidas sem ambiguidade.',
+        card_few_shot_desc: 'Condicionamento em contexto através de pares de Entrada ➔ Saída demonstrando a tipagem, estrutura sintática ou formato desejado.',
+        card_few_shot_when: 'Extração de entidades, formatação em JSON/YAML rigoroso e padronização corporativa.',
+        card_cot_desc: 'Instrui o modelo a decompor explicitamente o raciocínio em etapas analíticas antes de entregar a conclusão ou implementação.',
+        card_cot_when: 'Resolução de bugs complexos, cálculos de negócio, lógica de arquitetura e trade-offs.',
+        card_role_desc: 'Atribuição de uma persona sênior especializada com diretrizes claras de postura, tom analítico, profundidade técnica e restrições.',
+        card_role_when: 'Code reviews de alto nível, consultorias de engenharia e auditorias de segurança.',
+        card_costar_desc: 'Estruturação corporativa em 6 pilares inegociáveis: Context, Objective, Style, Tone, Audience e Response.',
+        card_costar_when: 'Prompts para esteiras produtivas, especificações funcionais e relatórios técnicos formais.',
+        card_react_desc: 'Ciclo autônomo e estruturado de raciocínio e ação: Thought (pensamento) ➔ Action (ação/ferramenta) ➔ Observation (observação) ➔ Resposta Final.',
+        card_react_when: 'Agentes autônomos, integrações com ferramentas (*tool calling*) e orquestração multi-etapas.',
+        btn_test_studio: 'Testar no Studio ➔',
+        lbl_when: 'Quando usar:',
+        arch_section_title: 'Arquitetura: ASR Acústico vs. SLM Contextual',
+        arch_section_subtitle: 'Como o Whisper une extração fonética a modelos de linguagem autoregressivos em CPU.',
+        arch_encoder_title: '1. Audio Encoder (Representação Acústica)',
+        arch_encoder_desc: 'Processa blocos de 30s de áudio convertidos em espectrogramas Log-Mel de 80 canais. Sua função é extrair vetores densos contínuos representando fonemas, pausas, prosódia e entonação.',
+        arch_decoder_title: '2. Text Decoder (O SLM Autoregressivo)',
+        arch_decoder_desc: 'Opera como um Small Language Model autoregressivo. Não apenas "escuta", mas prevê o próximo token baseado no contexto semântico anterior, resolvendo homófonos (ex: "sessão" vs. "seção") e inserindo pontuação automática.',
+        pentagon_title: '🛡️ Pentágono de Defesa (Auditoria & Resiliência)',
+        pentagon_subtitle: '5 barreiras de segurança implementadas e validadas por 47 testes automatizados e 23 testes de caos ao vivo:',
+        p1_title: 'Banco sem Tranca',
+        p1_desc: 'Queries SQLite exigem tenant_id. Conexões físicas fechadas com finally: conn.close().',
+        p2_title: 'Permissão no Servidor',
+        p2_desc: 'Role viewer restrita a leitura; ingestão de áudio exige operator/admin com 403 ativo.',
+        p3_title: 'Anti-IDOR & UUID',
+        p3_desc: 'Validação sintática de UUID v4 no path antes do banco; ID de outro tenant responde 404.',
+        p4_title: 'Chaves & Defaults',
+        p4_desc: 'Sem segredos hardcoded; uploads efêmeros limpos no disco via finally: os.unlink().',
+        p5_title: 'Sanitização & Streaming',
+        p5_desc: 'Magic bytes binários (RIFF/ID3), stream 64KB com limite 413 e anti-prompt injection falado.',
+        docker_title: 'Containerização Pronta com Docker & UV',
+        docker_desc: 'Imagem multi-stage não-root (appuser:10001) baseada em Debian Bookworm Slim com UV e ffmpeg pré-instalados. Volumes persistentes para SQLite e cache de modelos Whisper.',
+        footer_rights: 'Motor de Áudio Local e Engenharia de Prompt',
+        footer_link_adr: 'Decisões Arquiteturais (ADRs)'
+      },
+      'en': {
+                nav_docs: 'Architectural Decisions (ADRs)',
+        adr_section_title: 'Architectural Decisions & Project Timeline (ADRs)',
+        adr_section_subtitle: 'Living engineering history: motivations, trade-offs, and Pentagon of Defense impacts.',
+        adr_view_markdown: 'View Raw Markdown',
+        adr_status_accepted: 'Accepted',
+        adr_active_hint: 'Active ➔',
+        adr1_badge: 'Phase 1 • Core Engine',
+        adr1_short_title: 'Core Transcription & Cognitive Compilation Engine',
+        adr2_badge: 'Phase 2 • DevOps',
+        adr2_short_title: 'Hermetic Containerization with Astral UV',
+        adr3_badge: 'Phase 3 • LLM Orchestration',
+        adr3_short_title: 'Decoupled LLM Inference Engine',
+        adr_pillar_context_title: '1. Context & Key Drivers',
+        adr_pillar_decision_title: '2. Adopted Technical Decision',
+        adr_pillar_rejected_title: '3. Rejected Alternatives & Trade-offs',
+        adr_pillar_security_title: '4. Defense Pentagon Impact',
+        hero_tagline: 'Local Speech Recognition & Cognitive Prompting',
+        hero_title: 'From Spontaneous Speech to Production-Ready LLM Prompts',
+        hero_desc: 'High-performance Python (FastAPI) backend with Faster-Whisper CPU INT8 local inference, deterministic NLP normalization, and structured synthesis in 6 prompt techniques.',
+        flow_step1: '1. Audio (WAV/MP3)',
+        flow_step2: '2. Whisper CPU (INT8)',
+        flow_step3: '3. NLP Normalization',
+        flow_step4: '4. 6 Prompt Techniques',
+        flow_step5: '5. Target LLM',
+        studio_title: 'Interactive Prompting Studio',
+        studio_subtitle: 'Simulate spoken audio, test NLP cleanup filters, and synthesize structured prompts in real-time.',
+        presets_label: 'Spoken Presets:',
+        preset_1_name: 'JWT Bug (CoT)',
+        preset_2_name: 'PIX Webhook (CO-STAR)',
+        preset_3_name: 'Architecture (Role)',
+        raw_input_label: 'Raw Acoustic Transcript (Whisper):',
+        raw_input_hint: 'Spontaneous speech with verbal fillers',
+        mode_label: 'Output Mode:',
+        nlp_label: 'NLP Sanitization:',
+        nlp_checkbox_text: 'Remove vocal fillers',
+        technique_label: 'Prompt Engineering Technique:',
+        tab_prompt: 'Generated Prompt',
+        tab_llm: 'LLM Execution',
+        btn_copy: 'Copy',
+        btn_download: 'Download',
+        cards_section_title: 'The 6 Supported Prompt Techniques',
+        cards_section_subtitle: 'Structured cognitive patterns engineered to extract maximum precision from any LLM.',
+        card_zero_shot_desc: 'Direct imperative instructions with separated Context, Task, and Output format without few-shot examples.',
+        card_zero_shot_when: 'Unambiguous queries, straightforward refactorings, and quick procedural actions.',
+        card_few_shot_desc: 'In-context learning conditioned with explicit Input ➔ Expected Output pairs to guarantee exact schema conformity.',
+        card_few_shot_when: 'Entity extraction, strict JSON/YAML schemas, and corporate standardization.',
+        card_cot_desc: 'Enforces step-by-step cognitive decomposition of problem requirements prior to generating implementation code.',
+        card_cot_when: 'Complex debugging, business rules, mathematical reasoning, and architectural trade-offs.',
+        card_role_desc: 'Specialized senior persona assignment specifying tone, analytic rigor, architectural constraints, and depth.',
+        card_role_when: 'High-level code reviews, systems engineering consulting, and security audits.',
+        card_costar_desc: 'Enterprise framework structured across 6 pillars: Context, Objective, Style, Tone, Audience, and Response.',
+        card_costar_when: 'Production pipeline prompts, functional specifications, and executive technical briefs.',
+        card_react_desc: 'Structured autonomous reasoning loop: Thought ➔ Action ➔ Observation ➔ Final Answer.',
+        card_react_when: 'Autonomous agents, external tool calling integrations, and multi-step automation.',
+        btn_test_studio: 'Test in Studio ➔',
+        lbl_when: 'When to use:',
+        arch_section_title: 'Architecture: Acoustic ASR vs. Contextual SLM',
+        arch_section_subtitle: 'How Whisper fuses acoustic feature extraction with autoregressive language modeling on CPU.',
+        arch_encoder_title: '1. Audio Encoder (Acoustic Representation)',
+        arch_encoder_desc: 'Transforms 30-second audio windows into 80-channel Log-Mel spectrograms, emitting dense continuous vectors of phonemes, prosody, and pauses.',
+        arch_decoder_title: '2. Text Decoder (Autoregressive Contextual SLM)',
+        arch_decoder_desc: 'Acts as an autoregressive Small Language Model. Rather than naive transcription, it evaluates contextual token probabilities, resolving homophones and injecting punctuation natively.',
+        pentagon_title: '🛡️ Pentagon of Defense (Security & Reliability)',
+        pentagon_subtitle: '5 defensive barriers proven by 47 automated tests and 23 live chaos tests:',
+        p1_title: 'Database Isolation',
+        p1_desc: 'SQLite queries require tenant_id. Physical connections strictly closed in finally: conn.close().',
+        p2_title: 'Server-Side RBAC',
+        p2_desc: 'Viewer role restricted to GET; audio ingestion requires operator/admin role with active 403 checks.',
+        p3_title: 'Anti-IDOR & UUID',
+        p3_desc: 'Syntactic UUID v4 validation before hitting the DB; cross-tenant access returns uniform 404.',
+        p4_title: 'Secure Keys & Lifespan',
+        p4_desc: 'Zero hardcoded secrets; ephemeral audio uploads unlinked from disk in finally: os.unlink().',
+        p5_title: 'Magic Bytes & Streaming',
+        p5_desc: 'Binary magic bytes (RIFF/ID3), 64KB streaming upload with 413 limit, and acoustic prompt injection escaping.',
+        docker_title: 'Hermetic Docker & UV Containerization',
+        docker_desc: 'Multi-stage non-root container (appuser:10001) built on Debian Bookworm Slim with pre-installed UV and ffmpeg. Dedicated volumes for SQLite and Whisper model weights.',
+        footer_rights: 'Local Audio Engine & Cognitive Prompting',
+        footer_link_adr: 'Architectural Decisions (ADRs)'
+      }
+    };
+
+    
+    /* --------------------------------------------------------------------------
+       ARCHITECTURAL DECISIONS DATA REPOSITORY (ADR-001, ADR-002, ADR-003)
+       -------------------------------------------------------------------------- */
+    const ADR_DATA = {
+      'pt-BR': {
+        1: {
+          id: 'ADR-001',
+          phase: 'Fase 1 • Core Engine',
+          title: 'Motor Core de Transcrição Local & Compilação Cognitiva',
+          date: '2026-10-28',
+          status: 'Aceito e Implementado',
+          scope: 'Reconhecimento acústico local, normalização NLP determinística, pipeline dual (.txt / prompt) e mitigação de injeção acústica.',
+          context: `A fala humana espontânea é repleta de hesitações vocais (<em>"ééé"</em>, <em>"tipo assim"</em>, <em>"né"</em>), descontinuidades gramaticais e repetições. Submeter esse áudio bruto diretamente a LLMs resulta em alucinações, instruções frouxas e alto consumo de tokens.<br><br>Ademais, utilizar APIs proprietárias na nuvem impõe custos recorrentes por minuto, riscos de conformidade corporativa (LGPD/GDPR) e dependência de internet.`,
+          decision: `Adoção do <strong>Faster-Whisper (CTranslate2 INT8)</strong> executado 100% localmente em CPU:<br><ul><li><strong>Consumo Enxuto:</strong> Modelo <code>base</code> consome ~150 MB de RAM (contra &gt;800 MB do PyTorch puro).</li><li><strong>SLM Contextual:</strong> O Text Decoder opera como Small Language Model autoregressivo, prevendo tokens futuros, pontuando e desambiguando homófonos (ex: <em>"sessão"</em> vs. <em>"seção"</em>).</li><li><strong>Pipeline Dual:</strong> Padrão Strategy gerando arquivo <code>.txt</code> limpo ou <code>prompt</code> estruturado nas 6 técnicas.</li><li><strong>Ciclo Singleton:</strong> Modelo carregado uma única vez no ciclo <code>lifespan</code> da aplicação FastAPI.</li></ul>`,
+          rejected: `<ul><li><strong>OpenAI Whisper (PyTorch Puro):</strong> Descartado por consumo excessivo de RAM (&gt;800 MB), inferência 4x mais lenta em CPU e dependência pesada de CUDA.</li><li><strong>Whishper Full Stack (Docker + Mongo + LibreTranslate):</strong> Descartado por sobrecarga desnecessária (&gt;4 GB de imagens e &gt;3 GB RAM) para um motor especializado.</li><li><strong>Fallbacks silenciosos de técnica:</strong> Descartado; ausência de técnica no modo prompt resulta em erro estrito <code>422 Unprocessable Content</code>.</li></ul>`,
+          security: `<ul><li><strong>Magic Bytes Binários:</strong> Inspeção física de cabeçalhos (<code>RIFF/WAVE</code>, <code>ID3/MP3</code>, <code>OggS</code>, <code>fLaC</code>), bloqueando extensões renomeadas com <code>400 Bad Request</code>.</li><li><strong>Streaming de 64 KB com Limite:</strong> Aborta uploads maiores que 25 MB com <code>413 Content Too Large</code>, prevenindo OOM.</li><li><strong>Anti-Acoustic Injection:</strong> Fala encapsulada sob tag XML <code>&lt;user_speech&gt;</code> com escape de entidades XML (<code>&amp;lt;</code>, <code>&amp;gt;</code>).</li><li><strong>Isolamento Multi-Tenant:</strong> Queries SQL indexadas por <code>tenant_id</code> e conexões liberadas com <code>finally: conn.close()</code>.</li></ul>`
+        },
+        2: {
+          id: 'ADR-002',
+          phase: 'Fase 2 • DevOps & Packaging',
+          title: 'Containerização Hermética com Astral UV & Usuário Não-Root',
+          date: '2026-10-29',
+          status: 'Aceito e Implementado',
+          scope: 'Empacotamento Docker multi-stage, orquestração Docker Compose, persistência SQLite e conformidade com CIS Benchmark.',
+          context: `Bibliotecas de áudio dependem fortemente de binários C++ e utilitários de sistema (<code>ffmpeg</code>). Executar diretamente no host causava atritos constantes:<br><br>Falta de bibliotecas no PATH, extrema lentidão do instalador <code>pip</code> padrão em pacotes de IA e riscos críticos de segurança ao executar containers sob privilégios de superusuário (<code>root</code>).`,
+          decision: `Adoção da imagem base oficial <strong>ghcr.io/astral-sh/uv:python3.12-bookworm-slim</strong>:<br><ul><li><strong>Instalador UV em Rust:</strong> Compilação e resolução determinística de dependências 10 a 100x mais rápida que pip.</li><li><strong>Usuário Não-Root Dedicado:</strong> Execução sob <code>appuser:10001</code> (UID 10001 / GID 10001) eliminando riscos de Container Escape.</li><li><strong>Persistência Desacoplada:</strong> Bind mount <code>./data:/app/data</code> para o SQLite e named volume <code>hf_cache</code> para pesos Whisper baixados uma única vez.</li><li><strong>Healthcheck Nativo:</strong> Monitoramento com a standard library <code>urllib.request</code> sem utilitários externos como <code>curl</code>.</li></ul>`,
+          rejected: `<ul><li><strong>Container executando como root (UID 0):</strong> Descartado por violação expressa das diretrizes de segurança <em>CIS Docker Benchmark</em>.</li><li><strong>Build com pip tradicional:</strong> Descartado por lentidão intolerável no pipeline de integração e build.</li><li><strong>Containers sem volumes persistentes:</strong> Descartado pois forçava o re-download dos pesos do Whisper (~145 MB) a cada reinicialização.</li></ul>`,
+          security: `<ul><li><strong>Defesa em Profundidade:</strong> Caso ocorra exploração em dependências C++, o processo sem privilégios não compromete o host.</li><li><strong>Isolamento de Contexto (.dockerignore):</strong> Chaves <code>.env</code>, histórico <code>.git/</code> e suítes de teste são banidos da imagem final.</li><li><strong>Limpeza Efêmera:</strong> Uploads temporários removidos do disco em bloco <code>finally: os.unlink()</code>.</li></ul>`
+        },
+        3: {
+          id: 'ADR-003',
+          phase: 'Fase 3 • LLM Orchestration',
+          title: 'Motor de Inferência LLM Desacoplado (Ollama 8B / Grok Cloud 70B)',
+          date: '2026-10-30',
+          status: 'Aceito e Implementado',
+          scope: 'Execução desacoplada de prompts sintetizados contra provedores de LLM locais e em nuvem, persistência pré-inferência e zero dependências externas.',
+          context: `Após a síntese do prompt estruturado (ADR-001), o usuário pode submetê-lo a modelos de linguagem para geração final de respostas.<br><br>Acoplar a inferência LLM diretamente ao endpoint de transcrição de áudio traria latência acumulada excessiva (timeouts HTTP), perda irreversível do prompt caso o LLM falhasse e custo duplicado de CPU obrigando o reenvio do áudio.`,
+          decision: `Desacoplamento transacional via rota dedicada <code>POST /api/v1/transcriptions/{job_id}/execute</code>:<br><ul><li><strong>Persistência Pré-Inferência:</strong> O prompt é salvo no SQLite com seu UUID antes da chamada externa, garantindo rastreabilidade e retentativas a custo zero de CPU.</li><li><strong>Provider Strategy Agnóstico:</strong> Interface <code>ILLMProvider</code> suportando <strong>OllamaProvider</strong> (local, offline, privacidade LGPD total com Llama 3 8B) e <strong>GrokProvider</strong> (nuvem xAI para raciocínio complexo 70B+).</li><li><strong>Zero Dependências Externas:</strong> Comunicação REST feita com o módulo nativo <code>urllib.request</code> da standard library Python, dispensando SDKs externos.</li></ul>`,
+          rejected: `<ul><li><strong>Inferência Síncrona Acoplada ao Upload:</strong> Descartada por causar timeouts no cliente HTTP e impedir auditoria isolada do prompt.</li><li><strong>SDKs proprietários pesados (openai, anthropic):</strong> Descartados para preservar a hermeticidade da imagem Docker e imunidade a supply chain risks.</li><li><strong>Fallbacks silenciosos de provedor:</strong> Descartados; solicitar Grok sem chave configurada resulta em <code>422 Unprocessable Content</code> explícito.</li></ul>`,
+          security: `<ul><li><strong>RBAC no Servidor:</strong> Apenas chaves <code>operator</code> ou <code>admin</code> podem executar prompts; papéis <code>viewer</code> recebem <code>403 Forbidden</code>.</li><li><strong>Anti-IDOR:</strong> Validação sintática do UUID v4 no path e filtro estrito <code>WHERE id = ? AND tenant_id = ?</code> (acesso cruzado responde 404).</li><li><strong>Resiliência e Proteção de Segredos:</strong> Falhas de conectividade upstream retornam <code>502 Bad Gateway</code> tratado, sem expor chaves ou traces internos.</li></ul>`
+        }
+      },
+      'en': {
+        1: {
+          id: 'ADR-001',
+          phase: 'Phase 1 • Core Engine',
+          title: 'Local Transcription & Cognitive Compilation Core Engine',
+          date: '2026-10-28',
+          status: 'Accepted and Implemented',
+          scope: 'Local acoustic recognition, deterministic NLP normalization, dual output pipeline (.txt / prompt), and acoustic prompt injection mitigation.',
+          context: `Spontaneous human speech is fraught with verbal fillers (<em>"uhm"</em>, <em>"like"</em>), grammatical breaks, and repetitions. Submitting raw acoustic transcripts directly to LLMs causes hallucinations, loose outputs, and token waste.<br><br>Furthermore, relying on proprietary cloud ASR APIs incurs recurrent billing, vendor lock-in, and enterprise privacy compliance risks (LGPD/GDPR).`,
+          decision: `Engineered with <strong>Faster-Whisper (CTranslate2 INT8)</strong> running 100% locally on CPU:<br><ul><li><strong>Lightweight Footprint:</strong> <code>base</code> model consumes ~150 MB RAM (vs &gt;800 MB for PyTorch).</li><li><strong>Contextual SLM:</strong> The Text Decoder acts as an autoregressive Small Language Model, predicting upcoming tokens, inserting punctuation, and resolving homophones.</li><li><strong>Dual Pipeline:</strong> Strategy pattern yielding sanitized <code>.txt</code> or XML-structured <code>prompt</code> across 6 industry-standard techniques.</li><li><strong>Singleton Lifecycle:</strong> Model instantiated once in FastAPI <code>lifespan</code>, preventing memory leaks and CPU thrashing.</li></ul>`,
+          rejected: `<ul><li><strong>OpenAI Whisper (Vanilla PyTorch):</strong> Rejected due to &gt;800 MB RAM consumption, 4x slower CPU inference, and heavy CUDA dependencies.</li><li><strong>Whishper Full Stack (Docker + Mongo + LibreTranslate):</strong> Rejected due to excessive overhead (&gt;4 GB images, &gt;3 GB RAM) for a focused prompt engine.</li><li><strong>Silent Technique Fallbacks:</strong> Rejected; missing technique in prompt mode triggers strict <code>422 Unprocessable Content</code>.</li></ul>`,
+          security: `<ul><li><strong>Binary Magic Bytes:</strong> Real binary header validation (<code>RIFF/WAVE</code>, <code>ID3/MP3</code>, <code>OggS</code>, <code>fLaC</code>), rejecting renamed scripts with <code>400 Bad Request</code>.</li><li><strong>64 KB Chunk Streaming:</strong> Aborts uploads exceeding 25 MB with <code>413 Content Too Large</code>, defending against DoS/OOM attacks.</li><li><strong>Acoustic Injection Defense:</strong> Transcribed speech sanitized inside XML <code>&lt;user_speech&gt;</code> tags with full entity escaping (<code>&amp;lt;</code>, <code>&amp;gt;</code>).</li><li><strong>Multi-Tenant Isolation:</strong> Queries strictly scoped by <code>tenant_id</code> and connections closed in <code>finally: conn.close()</code>.</li></ul>`
+        },
+        2: {
+          id: 'ADR-002',
+          phase: 'Phase 2 • DevOps & Packaging',
+          title: 'Hermetic Containerization with Astral UV & Non-Root Security',
+          date: '2026-10-29',
+          status: 'Accepted and Implemented',
+          scope: 'Multi-stage Docker packaging, Docker Compose orchestration, SQLite data persistence, Whisper weight caching, and CIS benchmark compliance.',
+          context: `Audio processing libraries require C++ runtimes and OS utilities (<code>ffmpeg</code>). Running directly on host machines introduced severe friction:<br><br>Missing OS dependencies, excruciatingly slow <code>pip</code> build times for machine learning packages, and critical security risks from running containers as <code>root</code> (UID 0).`,
+          decision: `Adopted official <strong>ghcr.io/astral-sh/uv:python3.12-bookworm-slim</strong> base image:<br><ul><li><strong>Rust UV Installer:</strong> Deterministic packaging 10-100x faster than traditional pip.</li><li><strong>Dedicated Non-Root User:</strong> Runs entirely under <code>appuser:10001</code> (UID 10001 / GID 10001), preventing container escape vulnerabilities.</li><li><strong>Decoupled Persistence:</strong> Bind mount <code>./data:/app/data</code> for SQLite and named volume <code>hf_cache</code> for Whisper weights (~145 MB downloaded once).</li><li><strong>Native Healthcheck:</strong> Continuous health validation via Python's standard <code>urllib.request</code> without bloat like <code>curl</code>.</li></ul>`,
+          rejected: `<ul><li><strong>Root Docker Containers (UID 0):</strong> Rejected due to direct violation of <em>CIS Docker Benchmark</em> and privilege escalation hazards.</li><li><strong>Standard pip builds:</strong> Rejected due to unacceptable build durations and non-deterministic dependency resolution.</li><li><strong>Ephemeral containers without volumes:</strong> Rejected as it forced re-downloading model weights (~145 MB) on every restart.</li></ul>`,
+          security: `<ul><li><strong>Defense in Depth:</strong> In the event of an exploit in native C/C++ audio libraries, non-root privileges prevent host system compromise.</li><li><strong>Context Isolation (.dockerignore):</strong> Secrets in <code>.env</code>, <code>.git/</code> history, and test suites strictly excluded from the image.</li><li><strong>Ephemeral File Disposal:</strong> Uploaded audio temp files unlinked from host disk in <code>finally: os.unlink()</code>.</li></ul>`
+        },
+        3: {
+          id: 'ADR-003',
+          phase: 'Phase 3 • LLM Orchestration',
+          title: 'Decoupled LLM Inference Engine (Ollama 8B / Grok Cloud 70B)',
+          date: '2026-10-30',
+          status: 'Accepted and Implemented',
+          scope: 'Decoupled execution of synthesized prompts against local and cloud LLM providers, pre-inference SQLite persistence, and zero external dependencies.',
+          context: `Once an audio stream is compiled into a high-fidelity prompt, users want to execute it against leading LLMs for code generation and analysis.<br><br>Directly coupling LLM inference to the audio transcription endpoint creates prohibitive latencies (HTTP client timeouts), complete loss of auditability on LLM failures, and duplicate CPU costs on retries.`,
+          decision: `Transactional decoupling via dedicated <code>POST /api/v1/transcriptions/{job_id}/execute</code> route:<br><ul><li><strong>Pre-Inference Persistence:</strong> The compiled prompt is persisted with its UUID in SQLite prior to upstream calls, ensuring permanent audit trails and zero-cost retries.</li><li><strong>Provider Strategy Pattern:</strong> Abstract <code>ILLMProvider</code> supporting <strong>OllamaProvider</strong> (local, offline, full privacy with Llama 3 8B) and <strong>GrokProvider</strong> (cloud xAI for high-complexity 70B+ reasoning).</li><li><strong>Zero External Dependencies:</strong> REST client implemented via Python standard library (<code>urllib.request</code>), eliminating third-party SDK bloat.</li></ul>`,
+          rejected: `<ul><li><strong>Synchronous Inference Coupled to Upload:</strong> Rejected due to client HTTP timeouts and inability to audit or retry independently.</li><li><strong>Proprietary SDKs (openai, anthropic):</strong> Rejected to keep the Docker image hermetic, small, and free from supply chain vulnerabilities.</li><li><strong>Silent Provider Fallbacks:</strong> Rejected; calling Grok without an API key immediately returns explicit <code>422 Unprocessable Content</code>.</li></ul>`,
+          security: `<ul><li><strong>Server-Side RBAC:</strong> Only <code>operator</code> or <code>admin</code> roles can trigger execution; <code>viewer</code> is blocked with <code>403 Forbidden</code>.</li><li><strong>Anti-IDOR:</strong> Path UUID v4 syntactically validated and isolated via <code>WHERE id = ? AND tenant_id = ?</code>; invalid accesses return <code>404</code>.</li><li><strong>Secrets Protection & Fault Isolation:</strong> Provider outages return controlled <code>502 Bad Gateway</code> without leaking stack traces or credentials.</li></ul>`
+        }
+      }
+    };
+
+    let selectedAdrId = 1;
+
+    function selectAdr(id) {
+      selectedAdrId = id;
+      [1, 2, 3].forEach(num => {
+        const el = document.getElementById(`tl-step-${num}`);
+        if (el) {
+          if (num === id) {
+            el.classList.add('active');
+          } else {
+            el.classList.remove('active');
+          }
+        }
+      });
+
+      const lang = currentLang || 'pt-BR';
+      const data = ADR_DATA[lang] && ADR_DATA[lang][id] ? ADR_DATA[lang][id] : ADR_DATA['pt-BR'][id];
+      if (!data) return;
+
+      const idEl = document.getElementById('adr-card-id');
+      const phaseEl = document.getElementById('adr-card-phase');
+      const titleEl = document.getElementById('adr-card-title');
+      const scopeEl = document.getElementById('adr-card-scope');
+      const statusEl = document.getElementById('adr-card-status');
+      const dateEl = document.getElementById('adr-card-date');
+      const ctxEl = document.getElementById('adr-card-context');
+      const decEl = document.getElementById('adr-card-decision');
+      const rejEl = document.getElementById('adr-card-rejected');
+      const secEl = document.getElementById('adr-card-security');
+
+      if (idEl) idEl.textContent = data.id;
+      if (phaseEl) phaseEl.textContent = data.phase;
+      if (titleEl) titleEl.textContent = data.title;
+      if (scopeEl) scopeEl.textContent = data.scope;
+      if (statusEl) statusEl.textContent = `✅ ${data.status}`;
+      if (dateEl) dateEl.textContent = `📅 ${data.date}`;
+      if (ctxEl) ctxEl.innerHTML = data.context;
+      if (decEl) decEl.innerHTML = data.decision;
+      if (rejEl) rejEl.innerHTML = data.rejected;
+      if (secEl) secEl.innerHTML = data.security;
+    }
+
+    let currentLang = 'pt-BR';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      document.getElementById('current-lang-label').textContent = lang === 'pt-BR' ? 'EN' : 'PT';
+      
+      const dict = I18N[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          el.innerHTML = dict[key];
+        }
+      });
+
+      // Update active preset text if not edited manually
+      loadPreset(activePresetId);
+
+      // Update active ADR card viewer in selected language
+      if (typeof selectAdr === 'function') {
+        selectAdr(selectedAdrId);
+      }
+    }
+
+    function toggleLanguage() {
+      setLanguage(currentLang === 'pt-BR' ? 'en' : 'pt-BR');
+    }
+
+    /* --------------------------------------------------------------------------
+       THEME ENGINE (DARK / LIGHT)
+       -------------------------------------------------------------------------- */
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme_preference', theme);
+      const btn = document.getElementById('theme-btn');
+      btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    /* --------------------------------------------------------------------------
+       PRESETS DATA & STATE
+       -------------------------------------------------------------------------- */
+    const PRESETS = {
+      1: {
+        filename: 'audio_sample_bug_jwt.wav',
+        technique: 'chain_of_thought',
+        raw: {
+          'pt-BR': 'ééé cara... então tipo assim, a api de checkout tá quebrando quando o token jwt expira, né? aí o cliente toma um erro 500 feio em vez de 401... precisa consertar isso e retornar 401 padronizado.',
+          'en': 'ummm man... so like, you know, the checkout api is crashing when the jwt token expires, right? then the client gets a nasty 500 internal error instead of 401... we need to fix this and return standard 401.'
+        }
+      },
+      2: {
+        filename: 'audio_sample_pix_webhook.wav',
+        technique: 'co_star',
+        raw: {
+          'pt-BR': 'olha só, a gente precisa criar uma rota que receba o webhook do whatsapp quando o pix for confirmado... tem que ter retry com backoff exponencial e salvar no sqlite com tenant_id isolado.',
+          'en': 'look, we need to create an endpoint to receive the payment webhook when the transfer is confirmed... it must feature exponential backoff retry and persist to sqlite with strict tenant_id isolation.'
+        }
+      },
+      3: {
+        filename: 'audio_sample_arch_whisper.wav',
+        technique: 'role_prompting',
+        raw: {
+          'pt-BR': 'hummm... analisa pra mim se vale a pena rodar o faster-whisper local em cpu com int8 ou pagar a api da nuvem... leva em conta custo financeiro, privacidade lgpd e latência de rede.',
+          'en': 'hmmm... evaluate for me whether it is better to run local faster-whisper on cpu with int8 or pay cloud apis... take into account infrastructure costs, privacy compliance, and network latency.'
+        }
+      }
+    };
+
+    let activePresetId = 1;
+    let currentOutputMode = 'prompt';
+    let currentOutputView = 'prompt';
+    let currentTechnique = 'chain_of_thought';
+    let isPlayingAudio = false;
+    let waveAnimFrame = null;
+    let wavePhase = 0;
+
+    const SIMULATED_LLM_RESPONSES = {
+      1: {
+        'pt-BR': `[LLM: Ollama / Llama-3-8B-Instruct (Inferência Local)]
+Latência: 1.1s • Tokens: 194 • Provider: Ollama (Local)
+
+### 1. Diagnóstico & Causa Raiz:
+O middleware de autenticação decodifica tokens sem interceptar especificamente a exceção \`jwt.ExpiredSignatureError\`. Quando um token expira, a biblioteca lança o erro não capturado, gerando uma resposta default HTTP 500 (Internal Server Error) em vez do código HTTP 401 Unauthorized padronizado pelo RFC 6750.
+
+### 2. Implementação da Solução (FastAPI + PyJWT):
+\`\`\`python
+from fastapi import HTTPException, status
+import jwt
+
+def verify_access_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expirado. Por favor realize novo login.",
+            headers={"WWW-Authenticate": "Bearer error=\\"invalid_token\\""},
+        )
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token de autenticação inválido.",
+        )
+\`\`\`
+
+### 3. Validação de Segurança (Pentágono de Defesa):
+- Previne vazamento de stack trace interno em requisições com token expirado.
+- Garante conformidade com status 401 unificado.`,
+        'en': `[LLM: Ollama / Llama-3-8B-Instruct (Local Inference)]
+Latency: 1.1s • Tokens: 194 • Provider: Ollama (Local)
+
+### 1. Root Cause Analysis:
+The authentication middleware decodes JWT tokens without catching \`jwt.ExpiredSignatureError\`. When the token expires, PyJWT raises an unhandled exception that propagates to FastAPI's generic exception handler, emitting HTTP 500 instead of standard HTTP 401 Unauthorized.
+
+### 2. Implemented Fix (FastAPI + PyJWT):
+\`\`\`python
+from fastapi import HTTPException, status
+import jwt
+
+def verify_access_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired. Please authenticate again.",
+            headers={"WWW-Authenticate": "Bearer error=\\"invalid_token\\""},
+        )
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token.",
+        )
+\`\`\`
+
+### 3. Security Validation (Pentagon of Defense):
+- Eliminates stack trace leakage in public error payloads.
+- Restores strict compliance with RFC 6750 (uniform 401 error code).`
+      },
+      2: {
+        'pt-BR': `[LLM: Grok-Beta / xAI Cloud]
+Latência: 0.85s • Tokens: 238 • Provider: Grok API
+
+### Rota FastAPI de Webhook PIX com Retry e Isolamento Multi-Tenant:
+\`\`\`python
+import sqlite3
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+router = APIRouter(prefix="/api/v1/webhooks")
+
+class PixWebhookPayload(BaseModel):
+    pix_id: str = Field(..., description="ID da transação E2E PIX")
+    tenant_id: str = Field(..., description="Inquilino destinatário")
+    amount_cents: int = Field(..., gt=0)
+    status: str
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+def persist_pix_transaction(db_path: str, data: PixWebhookPayload):
+    conn = sqlite3.connect(db_path)
+    try:
+        with conn:
+            conn.execute(
+                "INSERT INTO pix_events (id, tenant_id, amount_cents, status) VALUES (?, ?, ?, ?)",
+                (data.pix_id, data.tenant_id, data.amount_cents, data.status)
+            )
+    finally:
+        conn.close()
+
+@router.post("/pix", status_code=status.HTTP_200_OK)
+async def handle_pix_webhook(payload: PixWebhookPayload):
+    persist_pix_transaction("data/audio_prompt_engine.db", payload)
+    return {"status": "accepted", "event_id": payload.pix_id}
+\`\`\``,
+        'en': `[LLM: Grok-Beta / xAI Cloud]
+Latency: 0.85s • Tokens: 238 • Provider: Grok API
+
+### FastAPI Webhook Endpoint with Retry & Multi-Tenant Isolation:
+\`\`\`python
+import sqlite3
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+router = APIRouter(prefix="/api/v1/webhooks")
+
+class PaymentWebhookPayload(BaseModel):
+    transaction_id: str = Field(..., description="Unique transaction ID")
+    tenant_id: str = Field(..., description="Tenant owner")
+    amount_cents: int = Field(..., gt=0)
+    status: str
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+def persist_payment_event(db_path: str, data: PaymentWebhookPayload):
+    conn = sqlite3.connect(db_path)
+    try:
+        with conn:
+            conn.execute(
+                "INSERT INTO payment_events (id, tenant_id, amount_cents, status) VALUES (?, ?, ?, ?)",
+                (data.transaction_id, data.tenant_id, data.amount_cents, data.status)
+            )
+    finally:
+        conn.close()
+
+@router.post("/payment", status_code=status.HTTP_200_OK)
+async def handle_payment_webhook(payload: PaymentWebhookPayload):
+    persist_payment_event("data/audio_prompt_engine.db", payload)
+    return {"status": "accepted", "event_id": payload.transaction_id}
+\`\`\``
+      },
+      3: {
+        'pt-BR': `[LLM: Ollama / DeepSeek-Coder-V2 (Inferência Local)]
+Latência: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
+
+### Parecer de Arquitetura: Faster-Whisper INT8 (CPU) vs. APIs em Nuvem
+
+1. Custo & TCO:
+- Faster-Whisper Local: Custo zero de licença e zero custo marginal por minuto de fala. Modelo base consome apenas ~150 MB de RAM em CPU comum.
+- Nuvem (ex: OpenAI Whisper API): $0.006 por minuto. Para 5.000 horas/mês = $1.800/mês recorrente.
+
+2. Privacidade e LGPD:
+- Local: Soberania total. Nenhum byte acústico deixa o perímetro da infraestrutura do cliente. Elimina necessidade de auditoria de terceiros.
+- Nuvem: Requer termo de processamento de dados (DPA) e conformidade externa sobre armazenamento de áudio.
+
+3. Latência e Dependências:
+- Local: Inferência determinística de ~200-400ms sem dependência de internet ou vulnerabilidade a outages de rede.
+- Veredito: Adotar Faster-Whisper INT8 local com CTranslate2 para o pipeline de transcrição.`,
+        'en': `[LLM: Ollama / DeepSeek-Coder-V2 (Local Inference)]
+Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
+
+### Architecture Advisory: Faster-Whisper INT8 (CPU) vs. Cloud APIs
+
+1. Cost & TCO:
+- Local Faster-Whisper: Zero marginal cost per audio minute. Base model requires only ~150 MB RAM on standard CPU.
+- Cloud API (e.g. OpenAI Whisper): $0.006 per minute. 5,000 hours/month = $1,800/month recurring cost.
+
+2. Privacy & Compliance (GDPR/HIPAA):
+- Local: Absolute data sovereignty. User voice never traverses public networks. Compliant by design.
+- Cloud: Requires Data Processing Agreements (DPA) and third-party vendor risk management.
+
+3. Latency & Reliability:
+- Local: Deterministic ~200-400ms inference without network jitter or vendor outages.
+- Recommendation: Standardize on local Faster-Whisper INT8 CPU inference.`
+      }
+    };
+
+    function loadPreset(id) {
+      activePresetId = id;
+      const p = PRESETS[id];
+      document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('preset-btn-' + id);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      document.getElementById('audio-filename').textContent = p.filename;
+      document.getElementById('raw-transcript').value = p.raw[currentLang];
+      setTechnique(p.technique);
+    }
+
+    /* --------------------------------------------------------------------------
+       DETERMINISTIC NLP CLEANUP
+       -------------------------------------------------------------------------- */
+    function cleanTranscriptNlp(raw, lang) {
+      if (!raw) return '';
+      let text = raw;
+      if (lang === 'pt-BR') {
+        text = text.replace(/\b(ééé|ehhh|humm|hummm|tipo assim|tipo|né|olha só|aí tipo|ããã)\b/gi, '');
+      } else {
+        text = text.replace(/\b(ummm|uhhh|hmmm|like|you know|right|so like|well)\b/gi, '');
+      }
+      text = text.replace(/\s+/g, ' ').replace(/\s*([,.\?!])\s*/g, '$1 ').trim();
+      return text.replace(/(^\w|\.\s+\w|\?\s+\w|\!\s+\w)/g, c => c.toUpperCase());
+    }
+
+    /* --------------------------------------------------------------------------
+       PROMPT TEMPLATE SYNTHESIZER
+       -------------------------------------------------------------------------- */
+    function buildPromptTemplate(technique, cleanSpeech, lang) {
+      const isPt = lang === 'pt-BR';
+
+      switch (technique) {
+        case 'zero_shot':
+          return isPt 
+            ? `# INSTRUÇÃO DIRETA (ZERO-SHOT)\n\n## Tarefa\nExecute com precisão técnica a solicitação do usuário:\n\n<user_speech>\n${cleanSpeech}\n</user_speech>\n\n## Requisitos de Saída\n- Forneça solução direta, concisa e orientada a código.\n- Sem preâmbulos, cumprimentos ou explicações prolixas.`
+            : `# DIRECT INSTRUCTION (ZERO-SHOT)\n\n## Task\nExecute with technical accuracy the following user request:\n\n<user_speech>\n${cleanSpeech}\n</user_speech>\n\n## Output Requirements\n- Provide concise, production-ready code solution.\n- Omit pleasantries, conversational preambles, or redundant chatter.`;
+
+        case 'few_shot':
+          return isPt
+            ? `# CLASSIFICAÇÃO COM EXEMPLOS (FEW-SHOT)\n\n### Exemplo 1:\nEntrada: "A API quebra com erro 500 no token expirado."\nSaída: { "type": "BUGFIX_AUTH", "status": 401, "priority": "HIGH" }\n\n### Exemplo 2:\nEntrada: "Preciso de um endpoint para cadastrar clientes via POST."\nSaída: { "type": "FEATURE_API", "status": 201, "priority": "MEDIUM" }\n\n### Sua Entrada:\nEntrada: "${cleanSpeech}"\nSaída:`
+            : `# IN-CONTEXT CLASSIFICATION (FEW-SHOT)\n\n### Example 1:\nInput: "The checkout API crashes with 500 when token expires."\nOutput: { "type": "BUGFIX_AUTH", "status": 401, "priority": "HIGH" }\n\n### Example 2:\nInput: "We need an endpoint to register customers via POST."\nOutput: { "type": "FEATURE_API", "status": 201, "priority": "MEDIUM" }\n\n### Your Input:\nInput: "${cleanSpeech}"\nOutput:`;
+
+        case 'chain_of_thought':
+          return isPt
+            ? `# RACIOCÍNIO PASSO A PASSO (CHAIN-OF-THOUGHT)\n\n## Contexto e Problema\n<user_speech>\n${cleanSpeech}\n</user_speech>\n\n## Instruções de Raciocínio (Passo a Passo)\nPense analiticamente antes de apresentar a solução final:\n1. Decomponha os requisitos essenciais e a causa-raiz técnica.\n2. Avalie as restrições arquiteturais e diretrizes de segurança (Pentágono de Defesa).\n3. Apresente a implementação final limpa, testável e robusta.`
+            : `# STEP-BY-STEP REASONING (CHAIN-OF-THOUGHT)\n\n## Context & Problem\n<user_speech>\n${cleanSpeech}\n</user_speech>\n\n## Reasoning Instructions\nThink step-by-step prior to writing the definitive response:\n1. Deconstruct the technical root cause and functional requirements.\n2. Assess architecture constraints and security controls (Pentagon of Defense).\n3. Formulate the clean, tested, and resilient implementation.`;
+
+        case 'role_prompting':
+          return isPt
+            ? `# CONSULTORIA TÉCNICA ESPECIALISTA (ROLE PROMPTING)\n\nVocê é um **Staff Software Engineer & Security Architect** com sólida vivência em sistemas distribuídos de alta resiliência e padrões OWASP.\n\n## Briefing do Operador\n<user_speech>\n${cleanSpeech}\n</user_speech>\n\n## Diretrizes de Resposta\n- Assuma uma postura analítica, pragmática e propositiva.\n- Destaque riscos de concorrência, tratamento de exceções e testes defensivos.`
+            : `# EXPERT TECHNICAL CONSULTING (ROLE PROMPTING)\n\nYou are a **Staff Software Engineer & Security Architect** specializing in resilient distributed systems and OWASP security standards.\n\n## Operator Briefing\n<user_speech>\n${cleanSpeech}\n</user_speech>\n\n## Response Guidelines\n- Adopt a pragmatic, analytical, and authoritative posture.\n- Highlight concurrency pitfalls, exception handling, and regression test suites.`;
+
+        case 'co_star':
+          return isPt
+            ? `# FRAMEWORK CORPORATIVO CO-STAR\n\n- **C (Context):** Diretriz de engenharia transmitida via áudio do operador.\n- **O (Objective):** Resolver a solicitação com precisão: "${cleanSpeech}".\n- **S (Style):** Engenharia de software sênior, idiomática e limpa.\n- **T (Tone):** Pragmático, técnico e conciso.\n- **A (Audience):** Desenvolvedores de backend e times de infraestrutura.\n- **R (Response):** Código completo, documentação de parâmetros e testes unitários.`
+            : `# ENTERPRISE CO-STAR FRAMEWORK\n\n- **C (Context):** Voice instruction emitted by system operator.\n- **O (Objective):** Accomplish task: "${cleanSpeech}".\n- **S (Style):** Senior idiomatic software engineering.\n- **T (Tone):** Direct, technical, and pragmatic.\n- **A (Audience):** Backend engineers and systems architects.\n- **R (Response):** Complete code solution, parameter contracts, and test assertions.`;
+
+        case 'react':
+          return isPt
+            ? `# PADRÃO ReAct (REASONING + ACTING)\n\n## Solicitação Operacional\n<user_speech>\n${cleanSpeech}\n</user_speech>\n\n## Loop de Execução Autônomo\n**Thought 1:** Qual é o objetivo primordial e as dependências envolvidas?\n**Action 1:** [Mapear endpoints, schemas Pydantic e regras de validação]\n**Observation 1:** [Verificar controle de acesso e idempotência]\n**Final Answer:** [Implementação consolidada e passos de implantação]`
+            : `# ReAct PATTERN (REASONING + ACTING)\n\n## Operational Task\n<user_speech>\n${cleanSpeech}\n</user_speech>\n\n## Autonomous Execution Loop\n**Thought 1:** What is the core requirement and its associated system constraints?\n**Action 1:** [Map routes, Pydantic schemas, and security checks]\n**Observation 1:** [Verify multi-tenant isolation and connection closure]\n**Final Answer:** [Consolidated implementation and test coverage]`;
+
+        default:
+          return cleanSpeech;
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       PIPELINE EXECUTION DISPATCHER
+       -------------------------------------------------------------------------- */
+    function setOutputView(view) {
+      currentOutputView = view;
+      document.getElementById('btn-view-prompt').classList.toggle('active', view === 'prompt');
+      document.getElementById('btn-view-llm').classList.toggle('active', view === 'llm');
+      executePipeline();
+    }
+
+    function executePipeline() {
+      const rawText = document.getElementById('raw-transcript').value || '';
+      const isNlpEnabled = document.getElementById('nlp-toggle').checked;
+      const cleanText = isNlpEnabled ? cleanTranscriptNlp(rawText, currentLang) : rawText;
+
+      // Update Diff preview bar
+      const diffSnippet = cleanText.length > 60 ? cleanText.slice(0, 60) + '...' : cleanText;
+      document.getElementById('nlp-diff-preview').textContent = diffSnippet || (currentLang === 'pt-BR' ? 'Aguardando texto...' : 'Awaiting speech text...');
+
+      const outputArea = document.getElementById('output-content-area');
+      const badge = document.getElementById('output-badge');
+      const stats = document.getElementById('output-stats');
+
+      if (currentOutputView === 'llm') {
+        const responseData = SIMULATED_LLM_RESPONSES[activePresetId] || SIMULATED_LLM_RESPONSES[1];
+        badge.textContent = currentLang === 'pt-BR' ? 'Execução LLM: Ativa' : 'LLM Execution: Active';
+        badge.style.borderColor = 'var(--accent-emerald)';
+        badge.style.color = 'var(--accent-emerald)';
+        badge.style.backgroundColor = 'var(--accent-emerald-subtle)';
+        stats.textContent = currentLang === 'pt-BR' ? '• Motor: Ollama/Grok' : '• Engine: Ollama/Grok';
+        outputArea.textContent = responseData[currentLang];
+        return;
+      }
+
+      if (currentOutputMode === 'txt') {
+        badge.textContent = currentLang === 'pt-BR' ? 'Modo: .txt Limpo' : 'Mode: Clean .txt';
+        badge.style.borderColor = 'var(--accent-emerald)';
+        badge.style.color = 'var(--accent-emerald)';
+        badge.style.backgroundColor = 'var(--accent-emerald-subtle)';
+        stats.textContent = currentLang === 'pt-BR' ? '• Formato: text/plain' : '• Format: text/plain';
+        outputArea.textContent = cleanText;
+      } else {
+        badge.textContent = `Prompt: ${currentTechnique}`;
+        badge.style.borderColor = 'var(--accent-indigo)';
+        badge.style.color = 'var(--accent-indigo)';
+        badge.style.backgroundColor = 'var(--accent-indigo-subtle)';
+        stats.textContent = currentLang === 'pt-BR' ? '• Latência: ~280ms (INT8)' : '• Latency: ~280ms (INT8)';
+        outputArea.textContent = buildPromptTemplate(currentTechnique, cleanText, currentLang);
+      }
+    }
+
+    function setOutputMode(mode) {
+      currentOutputMode = mode;
+      document.getElementById('mode-prompt-btn').classList.toggle('active', mode === 'prompt');
+      document.getElementById('mode-txt-btn').classList.toggle('active', mode === 'txt');
+      
+      const techContainer = document.getElementById('tech-selector-container');
+      if (mode === 'txt') {
+        techContainer.style.opacity = '0.35';
+        techContainer.style.pointerEvents = 'none';
+      } else {
+        techContainer.style.opacity = '1';
+        techContainer.style.pointerEvents = 'auto';
+      }
+      executePipeline();
+    }
+
+    function setTechnique(tech) {
+      currentTechnique = tech;
+      document.querySelectorAll('.tech-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('btn-tech-' + tech);
+      if (activeBtn) activeBtn.classList.add('active');
+      executePipeline();
+    }
+
+    function applyTechniqueAndScroll(tech) {
+      setOutputMode('prompt');
+      setTechnique(tech);
+      const studioCard = document.querySelector('.studio-card');
+      studioCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function copyToClipboard() {
+      const content = document.getElementById('output-content-area').textContent;
+      navigator.clipboard.writeText(content).then(() => {
+        const btn = document.getElementById('copy-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `<span style="color:var(--accent-emerald); font-weight:700;">✓ Copiado!</span>`;
+        setTimeout(() => { btn.innerHTML = originalText; }, 1800);
+      });
+    }
+
+    function downloadOutput() {
+      const content = document.getElementById('output-content-area').textContent;
+      const ext = currentOutputMode === 'txt' ? 'txt' : 'md';
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audio_prompt_engine_${currentTechnique}_${Date.now()}.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    /* --------------------------------------------------------------------------
+       AUDIO WAVEFORM SIMULATION (CANVAS)
+       -------------------------------------------------------------------------- */
+    const waveCanvas = document.getElementById('waveform-canvas');
+    const waveCtx = waveCanvas.getContext('2d');
+
+    function renderWaveform(isAnimated) {
+      waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+      const bars = 36;
+      const barWidth = waveCanvas.width / bars - 2;
+
+      for (let i = 0; i < bars; i++) {
+        let height = isAnimated
+          ? Math.sin(wavePhase + i * 0.45) * 8 + Math.cos(wavePhase * 0.7 + i * 0.25) * 6 + 12
+          : (1 - Math.abs(i - bars / 2) / (bars / 2) * 0.5) * 14 + Math.sin(i * 1.2) * 3 + 4;
+
+        height = Math.max(3, Math.min(waveCanvas.height - 2, height));
+        const x = i * (barWidth + 2);
+        const y = (waveCanvas.height - height) / 2;
+
+        waveCtx.fillStyle = isAnimated ? '#10b981' : '#64748b';
+        waveCtx.beginPath();
+        if (waveCtx.roundRect) {
+          waveCtx.roundRect(x, y, barWidth, height, 2);
+        } else {
+          waveCtx.rect(x, y, barWidth, height);
+        }
+        waveCtx.fill();
+      }
+
+      if (isAnimated) {
+        wavePhase += 0.25;
+        waveAnimFrame = requestAnimationFrame(() => renderWaveform(true));
+      }
+    }
+
+    function toggleAudioPlayback() {
+      isPlayingAudio = !isPlayingAudio;
+      const playIcon = document.getElementById('play-icon');
+
+      if (isPlayingAudio) {
+        playIcon.textContent = '⏸';
+        renderWaveform(true);
+        // Auto stop after 4.5 seconds simulation
+        setTimeout(() => {
+          if (isPlayingAudio) toggleAudioPlayback();
+        }, 4500);
+      } else {
+        playIcon.textContent = '▶';
+        cancelAnimationFrame(waveAnimFrame);
+        renderWaveform(false);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       INITIALIZATION ON LOAD
+       -------------------------------------------------------------------------- */
+    window.addEventListener('DOMContentLoaded', () => {
+      // Restore theme preference
+      const savedTheme = localStorage.getItem('theme_preference') || 'dark';
+      setTheme(savedTheme);
+
+      // Load initial preset and draw waveform
+      loadPreset(1);
+      renderWaveform(false);
+
+      // Initialize ADR viewer with ADR-001
+      if (typeof selectAdr === 'function') {
+        selectAdr(1);
+      }
+    });
+  </script>
+</body>
+</html>
