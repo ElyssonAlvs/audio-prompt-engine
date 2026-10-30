@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Audio Prompt Engine — Showcase & Studio</title>
-  <meta name="description" content="Motor inteligente de transcrição de áudio local com Whisper CPU INT8 e engenharia de prompts estruturados para LLMs.">
+  <meta name="description" content="Serviço de transcrição de áudio local com Whisper CPU INT8 e síntese de prompts estruturados para LLMs.">
   <style>
     /* ==========================================================================
        CSS VARIABLES & THEME SETUP (LIGHT / DARK)
@@ -988,28 +988,6 @@
       }
     }
 
-    .adr-raw-link {
-      font-size: 0.8rem;
-      align-self: flex-start;
-      border: 1px solid var(--border-color);
-      background-color: var(--bg-surface);
-      color: var(--text-secondary);
-      padding: 0.45rem 0.9rem;
-      border-radius: var(--radius-md);
-      transition: var(--transition);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      text-decoration: none;
-    }
-
-    .adr-raw-link:hover {
-      background-color: var(--bg-surface-elevated);
-      color: var(--text-primary);
-      text-decoration: none;
-      border-color: var(--border-focus);
-    }
-
     /* Timeline Stepper Track */
     .adr-timeline-track {
       display: grid;
@@ -1083,15 +1061,6 @@
       color: var(--accent-indigo);
     }
 
-    .tl-status-badge {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--accent-emerald);
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
     .tl-title {
       font-size: 0.95rem;
       font-weight: 700;
@@ -1102,18 +1071,12 @@
     .tl-meta {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       font-size: 0.75rem;
       color: var(--text-muted);
       margin-top: auto;
-      padding-top: 0.6rem;
+      padding-top: 0.5rem;
       border-top: 1px dashed var(--border-color);
-    }
-
-    .tl-date {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
     }
 
     .tl-select-hint {
@@ -1139,20 +1102,9 @@
     }
 
     .adr-viewer-header {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding-bottom: 1.5rem;
+      padding-bottom: 1.25rem;
       border-bottom: 1px solid var(--border-color);
       margin-bottom: 1.5rem;
-    }
-
-    @media (min-width: 768px) {
-      .adr-viewer-header {
-        flex-direction: row;
-        align-items: flex-start;
-        justify-content: space-between;
-      }
     }
 
     .adr-id-tag {
@@ -1180,35 +1132,8 @@
     .adr-viewer-scope {
       font-size: 0.85rem;
       color: var(--text-secondary);
-      max-width: 680px;
+      max-width: 780px;
       line-height: 1.45;
-    }
-
-    .adr-viewer-meta-box {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    @media (min-width: 768px) {
-      .adr-viewer-meta-box {
-        flex-direction: column;
-        align-items: flex-end;
-      }
-    }
-
-    .adr-meta-chip {
-      font-size: 0.78rem;
-      background-color: var(--bg-surface-elevated);
-      border: 1px solid var(--border-color);
-      padding: 0.3rem 0.65rem;
-      border-radius: var(--radius-md);
-      color: var(--text-secondary);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      white-space: nowrap;
     }
 
     /* 4 Pillars Grid */
@@ -1756,12 +1681,9 @@
             <span data-i18n="adr_section_title">Decisões Arquiteturais & Linha do Tempo (ADRs)</span>
           </h2>
           <span class="section-subtitle" data-i18n="adr_section_subtitle">
-            A história viva da engenharia do projeto: motivações, trade-offs e impacto no Pentágono de Defesa.
+            Registro técnico de decisões arquiteturais: contexto, decisões adotadas, alternativas rejeitadas e Pentágono de Defesa.
           </span>
         </div>
-        <a href="ARCHITECTURAL_DECISIONS.md" target="_blank" rel="noopener" class="adr-raw-link" title="Ver especificação bruta em Markdown">
-          📄 <span data-i18n="adr_view_markdown">Ver Markdown Raw</span>
-        </a>
       </div>
 
       <!-- Timeline Stepper Track -->
@@ -1769,36 +1691,30 @@
         <div class="timeline-step step-1 active" id="tl-step-1" onclick="selectAdr(1)" role="button" tabindex="0">
           <div class="tl-header-row">
             <span class="tl-node-badge" data-i18n="adr1_badge">Fase 1 • Core Engine</span>
-            <span class="tl-status-badge">✅ <span data-i18n="adr_status_accepted">Aceito</span></span>
           </div>
-          <div class="tl-title" data-i18n="adr1_short_title">Motor Core de Transcrição & Compilação Cognitiva</div>
+          <div class="tl-title" data-i18n="adr1_short_title">Transcrição Local & Síntese de Prompts</div>
           <div class="tl-meta">
-            <span class="tl-date">📅 2026-10-28</span>
-            <span class="tl-select-hint" data-i18n="adr_active_hint">Ativo ➔</span>
+            <span class="tl-select-hint" data-i18n="adr_active_hint">Selecionado</span>
           </div>
         </div>
 
         <div class="timeline-step step-2" id="tl-step-2" onclick="selectAdr(2)" role="button" tabindex="0">
           <div class="tl-header-row">
             <span class="tl-node-badge" data-i18n="adr2_badge">Fase 2 • DevOps</span>
-            <span class="tl-status-badge">✅ <span data-i18n="adr_status_accepted">Aceito</span></span>
           </div>
           <div class="tl-title" data-i18n="adr2_short_title">Containerização Hermética com Astral UV</div>
           <div class="tl-meta">
-            <span class="tl-date">📅 2026-10-29</span>
-            <span class="tl-select-hint" data-i18n="adr_active_hint">Ativo ➔</span>
+            <span class="tl-select-hint" data-i18n="adr_active_hint">Selecionado</span>
           </div>
         </div>
 
         <div class="timeline-step step-3" id="tl-step-3" onclick="selectAdr(3)" role="button" tabindex="0">
           <div class="tl-header-row">
             <span class="tl-node-badge" data-i18n="adr3_badge">Fase 3 • LLM Orchestration</span>
-            <span class="tl-status-badge">✅ <span data-i18n="adr_status_accepted">Aceito</span></span>
           </div>
-          <div class="tl-title" data-i18n="adr3_short_title">Motor de Inferência LLM Desacoplado</div>
+          <div class="tl-title" data-i18n="adr3_short_title">Inferência LLM Desacoplada</div>
           <div class="tl-meta">
-            <span class="tl-date">📅 2026-10-30</span>
-            <span class="tl-select-hint" data-i18n="adr_active_hint">Ativo ➔</span>
+            <span class="tl-select-hint" data-i18n="adr_active_hint">Selecionado</span>
           </div>
         </div>
       </div>
@@ -1813,16 +1729,8 @@
               <span>•</span>
               <span id="adr-card-phase">Fase 1</span>
             </div>
-            <h3 class="adr-viewer-title" id="adr-card-title">Motor Core de Transcrição Local & Compilação Cognitiva</h3>
-            <p class="adr-viewer-scope" id="adr-card-scope">Reconhecimento acústico local, normalização NLP determinística...</p>
-          </div>
-          <div class="adr-viewer-meta-box">
-            <div class="adr-meta-chip">
-              <span id="adr-card-status">✅ Status: Aceito e Implementado</span>
-            </div>
-            <div class="adr-meta-chip">
-              <span id="adr-card-date">📅 Data: 2026-10-28</span>
-            </div>
+            <h3 class="adr-viewer-title" id="adr-card-title">Serviço de Transcrição Local & Síntese de Prompts</h3>
+            <p class="adr-viewer-scope" id="adr-card-scope">Reconhecimento acústico local, normalização NLP determinística, pipeline dual (.txt / prompt) e mitigação de injeção acústica.</p>
           </div>
         </div>
 
@@ -1897,7 +1805,7 @@
         <span data-i18n="footer_rights">Motor de Áudio Local e Engenharia de Prompt</span>.
       </div>
       <div class="footer-links">
-        <a href="ARCHITECTURAL_DECISIONS.md" target="_blank" rel="noopener" data-i18n="footer_link_adr">Decisões Arquiteturais (ADRs)</a>
+        <a href="#section-adrs" data-i18n="footer_link_adr">Decisões Arquiteturais (ADRs)</a>
         <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
       </div>
     </div>
@@ -1914,16 +1822,14 @@
       'pt-BR': {
                 nav_docs: 'Decisões Arquiteturais (ADRs)',
         adr_section_title: 'Decisões Arquiteturais & Linha do Tempo (ADRs)',
-        adr_section_subtitle: 'A história viva da engenharia do projeto: motivações, trade-offs e impacto no Pentágono de Defesa.',
-        adr_view_markdown: 'Ver Markdown Raw',
-        adr_status_accepted: 'Aceito',
-        adr_active_hint: 'Ativo ➔',
+        adr_section_subtitle: 'Registro técnico de decisões arquiteturais: contexto, decisões adotadas, alternativas rejeitadas e Pentágono de Defesa.',
+        adr_active_hint: 'Selecionado',
         adr1_badge: 'Fase 1 • Core Engine',
-        adr1_short_title: 'Motor Core de Transcrição & Compilação Cognitiva',
+        adr1_short_title: 'Transcrição Local & Síntese de Prompts',
         adr2_badge: 'Fase 2 • DevOps',
         adr2_short_title: 'Containerização Hermética com Astral UV',
         adr3_badge: 'Fase 3 • LLM Orchestration',
-        adr3_short_title: 'Motor de Inferência LLM Desacoplado',
+        adr3_short_title: 'Inferência LLM Desacoplada',
         adr_pillar_context_title: '1. Contexto & Forças Motivadoras',
         adr_pillar_decision_title: '2. Decisão Técnica Adotada',
         adr_pillar_rejected_title: '3. Alternativas Rejeitadas & Por Quê',
@@ -1994,16 +1900,14 @@
       'en': {
                 nav_docs: 'Architectural Decisions (ADRs)',
         adr_section_title: 'Architectural Decisions & Project Timeline (ADRs)',
-        adr_section_subtitle: 'Living engineering history: motivations, trade-offs, and Pentagon of Defense impacts.',
-        adr_view_markdown: 'View Raw Markdown',
-        adr_status_accepted: 'Accepted',
-        adr_active_hint: 'Active ➔',
+        adr_section_subtitle: 'Technical record of architectural decisions: context, technical choices, rejected alternatives, and Defense Pentagon.',
+        adr_active_hint: 'Selected',
         adr1_badge: 'Phase 1 • Core Engine',
-        adr1_short_title: 'Core Transcription & Cognitive Compilation Engine',
+        adr1_short_title: 'Local Transcription & Prompt Synthesis',
         adr2_badge: 'Phase 2 • DevOps',
         adr2_short_title: 'Hermetic Containerization with Astral UV',
         adr3_badge: 'Phase 3 • LLM Orchestration',
-        adr3_short_title: 'Decoupled LLM Inference Engine',
+        adr3_short_title: 'Decoupled LLM Inference',
         adr_pillar_context_title: '1. Context & Key Drivers',
         adr_pillar_decision_title: '2. Adopted Technical Decision',
         adr_pillar_rejected_title: '3. Rejected Alternatives & Trade-offs',
@@ -2082,76 +1986,64 @@
         1: {
           id: 'ADR-001',
           phase: 'Fase 1 • Core Engine',
-          title: 'Motor Core de Transcrição Local & Compilação Cognitiva',
-          date: '2026-10-28',
-          status: 'Aceito e Implementado',
-          scope: 'Reconhecimento acústico local, normalização NLP determinística, pipeline dual (.txt / prompt) e mitigação de injeção acústica.',
-          context: `A fala humana espontânea é repleta de hesitações vocais (<em>"ééé"</em>, <em>"tipo assim"</em>, <em>"né"</em>), descontinuidades gramaticais e repetições. Submeter esse áudio bruto diretamente a LLMs resulta em alucinações, instruções frouxas e alto consumo de tokens.<br><br>Ademais, utilizar APIs proprietárias na nuvem impõe custos recorrentes por minuto, riscos de conformidade corporativa (LGPD/GDPR) e dependência de internet.`,
-          decision: `Adoção do <strong>Faster-Whisper (CTranslate2 INT8)</strong> executado 100% localmente em CPU:<br><ul><li><strong>Consumo Enxuto:</strong> Modelo <code>base</code> consome ~150 MB de RAM (contra &gt;800 MB do PyTorch puro).</li><li><strong>SLM Contextual:</strong> O Text Decoder opera como Small Language Model autoregressivo, prevendo tokens futuros, pontuando e desambiguando homófonos (ex: <em>"sessão"</em> vs. <em>"seção"</em>).</li><li><strong>Pipeline Dual:</strong> Padrão Strategy gerando arquivo <code>.txt</code> limpo ou <code>prompt</code> estruturado nas 6 técnicas.</li><li><strong>Ciclo Singleton:</strong> Modelo carregado uma única vez no ciclo <code>lifespan</code> da aplicação FastAPI.</li></ul>`,
-          rejected: `<ul><li><strong>OpenAI Whisper (PyTorch Puro):</strong> Descartado por consumo excessivo de RAM (&gt;800 MB), inferência 4x mais lenta em CPU e dependência pesada de CUDA.</li><li><strong>Whishper Full Stack (Docker + Mongo + LibreTranslate):</strong> Descartado por sobrecarga desnecessária (&gt;4 GB de imagens e &gt;3 GB RAM) para um motor especializado.</li><li><strong>Fallbacks silenciosos de técnica:</strong> Descartado; ausência de técnica no modo prompt resulta em erro estrito <code>422 Unprocessable Content</code>.</li></ul>`,
-          security: `<ul><li><strong>Magic Bytes Binários:</strong> Inspeção física de cabeçalhos (<code>RIFF/WAVE</code>, <code>ID3/MP3</code>, <code>OggS</code>, <code>fLaC</code>), bloqueando extensões renomeadas com <code>400 Bad Request</code>.</li><li><strong>Streaming de 64 KB com Limite:</strong> Aborta uploads maiores que 25 MB com <code>413 Content Too Large</code>, prevenindo OOM.</li><li><strong>Anti-Acoustic Injection:</strong> Fala encapsulada sob tag XML <code>&lt;user_speech&gt;</code> com escape de entidades XML (<code>&amp;lt;</code>, <code>&amp;gt;</code>).</li><li><strong>Isolamento Multi-Tenant:</strong> Queries SQL indexadas por <code>tenant_id</code> e conexões liberadas com <code>finally: conn.close()</code>.</li></ul>`
+          title: 'Serviço de Transcrição Local & Síntese de Prompts',
+          scope: 'Processamento acústico local, normalização NLP determinística, pipeline dual (.txt / prompt) e mitigação de injeção acústica.',
+          context: `A fala humana espontânea contém hesitações vocais (<em>"ééé"</em>, <em>"tipo assim"</em>, <em>"né"</em>), descontinuidades gramaticais e repetições. Submeter esse áudio bruto diretamente a LLMs resulta em perda de assertividade e alto consumo de tokens.<br><br>Ademais, utilizar APIs de terceiros na nuvem impõe tarifação por minuto, riscos de conformidade corporativa (LGPD/GDPR) e dependência de rede externa.`,
+          decision: `Adoção do <strong>Faster-Whisper (CTranslate2 INT8)</strong> executado 100% localmente em CPU:<br><ul><li><strong>Consumo Enxuto:</strong> Modelo <code>base</code> consome ~150 MB de RAM (contra &gt;800 MB do PyTorch).</li><li><strong>SLM Contextual:</strong> O Text Decoder opera como Small Language Model autoregressivo, prevendo tokens gramaticais, pontuando e desambiguando homófonos (ex: <em>"sessão"</em> vs. <em>"seção"</em>).</li><li><strong>Pipeline Dual:</strong> Padrão Strategy gerando arquivo <code>.txt</code> normalizado ou <code>prompt</code> estruturado nas 6 técnicas.</li><li><strong>Ciclo Singleton:</strong> Modelo carregado no ciclo <code>lifespan</code> da aplicação FastAPI.</li></ul>`,
+          rejected: `<ul><li><strong>OpenAI Whisper (PyTorch):</strong> Descartado por consumo excessivo de RAM (&gt;800 MB), inferência 4x mais lenta em CPU e dependência pesada de CUDA.</li><li><strong>Whishper Full Stack (Docker + Mongo + LibreTranslate):</strong> Descartado por sobrecarga desnecessária (&gt;4 GB de imagens e &gt;3 GB RAM) para um serviço focado.</li><li><strong>Fallbacks silenciosos de técnica:</strong> Descartado; ausência de técnica no modo prompt resulta em erro estrito <code>422 Unprocessable Content</code>.</li></ul>`,
+          security: `<ul><li><strong>Magic Bytes Binários:</strong> Inspeção física de cabeçalhos (<code>RIFF/WAVE</code>, <code>ID3/MP3</code>, <code>OggS</code>, <code>fLaC</code>), bloqueando extensões renomeadas com <code>400 Bad Request</code>.</li><li><strong>Streaming de 64 KB com Limite:</strong> Interrupção com <code>413 Content Too Large</code> em uploads &gt; 25 MB, prevenindo esgotamento de memória.</li><li><strong>Anti-Acoustic Injection:</strong> Fala encapsulada sob tag XML <code>&lt;user_speech&gt;</code> com escape de entidades XML (<code>&amp;lt;</code>, <code>&amp;gt;</code>).</li><li><strong>Isolamento Multi-Tenant:</strong> Queries indexadas por <code>tenant_id</code> e conexões liberadas com <code>finally: conn.close()</code>.</li></ul>`
         },
         2: {
           id: 'ADR-002',
           phase: 'Fase 2 • DevOps & Packaging',
-          title: 'Containerização Hermética com Astral UV & Usuário Não-Root',
-          date: '2026-10-29',
-          status: 'Aceito e Implementado',
+          title: 'Containerização Hermética com Astral UV & Execução Não-Root',
           scope: 'Empacotamento Docker multi-stage, orquestração Docker Compose, persistência SQLite e conformidade com CIS Benchmark.',
-          context: `Bibliotecas de áudio dependem fortemente de binários C++ e utilitários de sistema (<code>ffmpeg</code>). Executar diretamente no host causava atritos constantes:<br><br>Falta de bibliotecas no PATH, extrema lentidão do instalador <code>pip</code> padrão em pacotes de IA e riscos críticos de segurança ao executar containers sob privilégios de superusuário (<code>root</code>).`,
-          decision: `Adoção da imagem base oficial <strong>ghcr.io/astral-sh/uv:python3.12-bookworm-slim</strong>:<br><ul><li><strong>Instalador UV em Rust:</strong> Compilação e resolução determinística de dependências 10 a 100x mais rápida que pip.</li><li><strong>Usuário Não-Root Dedicado:</strong> Execução sob <code>appuser:10001</code> (UID 10001 / GID 10001) eliminando riscos de Container Escape.</li><li><strong>Persistência Desacoplada:</strong> Bind mount <code>./data:/app/data</code> para o SQLite e named volume <code>hf_cache</code> para pesos Whisper baixados uma única vez.</li><li><strong>Healthcheck Nativo:</strong> Monitoramento com a standard library <code>urllib.request</code> sem utilitários externos como <code>curl</code>.</li></ul>`,
-          rejected: `<ul><li><strong>Container executando como root (UID 0):</strong> Descartado por violação expressa das diretrizes de segurança <em>CIS Docker Benchmark</em>.</li><li><strong>Build com pip tradicional:</strong> Descartado por lentidão intolerável no pipeline de integração e build.</li><li><strong>Containers sem volumes persistentes:</strong> Descartado pois forçava o re-download dos pesos do Whisper (~145 MB) a cada reinicialização.</li></ul>`,
-          security: `<ul><li><strong>Defesa em Profundidade:</strong> Caso ocorra exploração em dependências C++, o processo sem privilégios não compromete o host.</li><li><strong>Isolamento de Contexto (.dockerignore):</strong> Chaves <code>.env</code>, histórico <code>.git/</code> e suítes de teste são banidos da imagem final.</li><li><strong>Limpeza Efêmera:</strong> Uploads temporários removidos do disco em bloco <code>finally: os.unlink()</code>.</li></ul>`
+          context: `Bibliotecas de processamento de áudio dependem de binários C++ e utilitários de sistema (<code>ffmpeg</code>). Executar diretamente no host gerava atritos operacionais:<br><br>Ausência de dependências de sistema, lentidão do instalador <code>pip</code> padrão em pacotes de machine learning e riscos de segurança ao executar containers sob privilégios de superusuário (<code>root</code>).`,
+          decision: `Adoção da imagem base oficial <strong>ghcr.io/astral-sh/uv:python3.12-bookworm-slim</strong>:<br><ul><li><strong>Instalador UV em Rust:</strong> Resolução determinística e compilação de dependências 10 a 100x mais rápida que pip.</li><li><strong>Usuário Não-Root Dedicado:</strong> Execução sob <code>appuser:10001</code> (UID 10001 / GID 10001), eliminando riscos de Container Escape.</li><li><strong>Persistência Desacoplada:</strong> Bind mount <code>./data:/app/data</code> para o SQLite e named volume <code>hf_cache</code> para pesos Whisper baixados uma única vez.</li><li><strong>Healthcheck Nativo:</strong> Monitoramento com a standard library <code>urllib.request</code> sem utilitários externos como <code>curl</code>.</li></ul>`,
+          rejected: `<ul><li><strong>Container executando como root (UID 0):</strong> Descartado por violação direta das diretrizes <em>CIS Docker Benchmark</em>.</li><li><strong>Build com pip tradicional:</strong> Descartado por tempo de build excessivo e falta de isolamento hermético.</li><li><strong>Containers sem volumes persistentes:</strong> Descartado pois forçava o re-download dos pesos do Whisper (~145 MB) a cada reinicialização.</li></ul>`,
+          security: `<ul><li><strong>Privilégio Mínimo:</strong> Processo sem permissões administrativas restringe o impacto em caso de falha de dependência C++.</li><li><strong>Isolamento de Contexto (.dockerignore):</strong> Arquivos <code>.env</code>, histórico <code>.git/</code> e suítes de teste excluídos da imagem de produção.</li><li><strong>Limpeza Efêmera:</strong> Uploads temporários removidos fisicamente do disco em bloco <code>finally: os.unlink()</code>.</li></ul>`
         },
         3: {
           id: 'ADR-003',
           phase: 'Fase 3 • LLM Orchestration',
-          title: 'Motor de Inferência LLM Desacoplado (Ollama 8B / Grok Cloud 70B)',
-          date: '2026-10-30',
-          status: 'Aceito e Implementado',
-          scope: 'Execução desacoplada de prompts sintetizados contra provedores de LLM locais e em nuvem, persistência pré-inferência e zero dependências externas.',
-          context: `Após a síntese do prompt estruturado (ADR-001), o usuário pode submetê-lo a modelos de linguagem para geração final de respostas.<br><br>Acoplar a inferência LLM diretamente ao endpoint de transcrição de áudio traria latência acumulada excessiva (timeouts HTTP), perda irreversível do prompt caso o LLM falhasse e custo duplicado de CPU obrigando o reenvio do áudio.`,
-          decision: `Desacoplamento transacional via rota dedicada <code>POST /api/v1/transcriptions/{job_id}/execute</code>:<br><ul><li><strong>Persistência Pré-Inferência:</strong> O prompt é salvo no SQLite com seu UUID antes da chamada externa, garantindo rastreabilidade e retentativas a custo zero de CPU.</li><li><strong>Provider Strategy Agnóstico:</strong> Interface <code>ILLMProvider</code> suportando <strong>OllamaProvider</strong> (local, offline, privacidade LGPD total com Llama 3 8B) e <strong>GrokProvider</strong> (nuvem xAI para raciocínio complexo 70B+).</li><li><strong>Zero Dependências Externas:</strong> Comunicação REST feita com o módulo nativo <code>urllib.request</code> da standard library Python, dispensando SDKs externos.</li></ul>`,
-          rejected: `<ul><li><strong>Inferência Síncrona Acoplada ao Upload:</strong> Descartada por causar timeouts no cliente HTTP e impedir auditoria isolada do prompt.</li><li><strong>SDKs proprietários pesados (openai, anthropic):</strong> Descartados para preservar a hermeticidade da imagem Docker e imunidade a supply chain risks.</li><li><strong>Fallbacks silenciosos de provedor:</strong> Descartados; solicitar Grok sem chave configurada resulta em <code>422 Unprocessable Content</code> explícito.</li></ul>`,
-          security: `<ul><li><strong>RBAC no Servidor:</strong> Apenas chaves <code>operator</code> ou <code>admin</code> podem executar prompts; papéis <code>viewer</code> recebem <code>403 Forbidden</code>.</li><li><strong>Anti-IDOR:</strong> Validação sintática do UUID v4 no path e filtro estrito <code>WHERE id = ? AND tenant_id = ?</code> (acesso cruzado responde 404).</li><li><strong>Resiliência e Proteção de Segredos:</strong> Falhas de conectividade upstream retornam <code>502 Bad Gateway</code> tratado, sem expor chaves ou traces internos.</li></ul>`
+          title: 'Inferência LLM Desacoplada (Ollama 8B / Grok Cloud 70B)',
+          scope: 'Execução desacoplada de prompts sintetizados contra provedores de LLM locais e em nuvem, persistência transacional e zero dependências externas.',
+          context: `Após a síntese do prompt estruturado (ADR-001), o cliente pode solicitar a execução do prompt em um modelo de linguagem.<br><br>Acoplar a inferência LLM diretamente ao endpoint de transcrição de áudio causaria latência excessiva acumulada (timeouts no cliente HTTP), ausência de histórico caso o LLM falhasse e custo duplicado de CPU ao exigir novo upload do áudio para retentativas.`,
+          decision: `Desacoplamento transacional via rota dedicada <code>POST /api/v1/transcriptions/{job_id}/execute</code>:<br><ul><li><strong>Persistência Pré-Inferência:</strong> O prompt é salvo no SQLite com seu UUID antes da chamada ao LLM, garantindo histórico permanente e retentativas a custo zero de CPU.</li><li><strong>Provider Strategy Agnóstico:</strong> Interface <code>ILLMProvider</code> implementando <strong>OllamaProvider</strong> (local, offline, privacidade LGPD com Llama 3 8B) e <strong>GrokProvider</strong> (nuvem xAI para raciocínio complexo 70B+).</li><li><strong>Zero Dependências Externas:</strong> Requisições HTTP implementadas com o módulo nativo <code>urllib.request</code> da standard library, dispensando SDKs externos.</li></ul>`,
+          rejected: `<ul><li><strong>Inferência Síncrona Acoplada ao Upload:</strong> Descartada por provocar timeouts no cliente HTTP e impedir auditoria isolada do prompt gerado.</li><li><strong>SDKs proprietários de terceiros:</strong> Descartados para preservar o tamanho enxuto do container e eliminar riscos de supply chain.</li><li><strong>Fallbacks silenciosos de provedor:</strong> Descartados; solicitar Grok sem chave configurada resulta em erro contratual estrito <code>422 Unprocessable Content</code>.</li></ul>`,
+          security: `<ul><li><strong>RBAC no Servidor:</strong> Apenas chaves <code>operator</code> ou <code>admin</code> podem executar prompts; papel <code>viewer</code> recebe <code>403 Forbidden</code>.</li><li><strong>Anti-IDOR:</strong> Validação sintática do UUID v4 no path e filtro estrito <code>WHERE id = ? AND tenant_id = ?</code> (acesso cruzado responde 404).</li><li><strong>Resiliência e Proteção de Segredos:</strong> Falhas de conectividade upstream retornam <code>502 Bad Gateway</code> tratado sem expor credenciais ou stack traces.</li></ul>`
         }
       },
       'en': {
         1: {
           id: 'ADR-001',
           phase: 'Phase 1 • Core Engine',
-          title: 'Local Transcription & Cognitive Compilation Core Engine',
-          date: '2026-10-28',
-          status: 'Accepted and Implemented',
-          scope: 'Local acoustic recognition, deterministic NLP normalization, dual output pipeline (.txt / prompt), and acoustic prompt injection mitigation.',
-          context: `Spontaneous human speech is fraught with verbal fillers (<em>"uhm"</em>, <em>"like"</em>), grammatical breaks, and repetitions. Submitting raw acoustic transcripts directly to LLMs causes hallucinations, loose outputs, and token waste.<br><br>Furthermore, relying on proprietary cloud ASR APIs incurs recurrent billing, vendor lock-in, and enterprise privacy compliance risks (LGPD/GDPR).`,
-          decision: `Engineered with <strong>Faster-Whisper (CTranslate2 INT8)</strong> running 100% locally on CPU:<br><ul><li><strong>Lightweight Footprint:</strong> <code>base</code> model consumes ~150 MB RAM (vs &gt;800 MB for PyTorch).</li><li><strong>Contextual SLM:</strong> The Text Decoder acts as an autoregressive Small Language Model, predicting upcoming tokens, inserting punctuation, and resolving homophones.</li><li><strong>Dual Pipeline:</strong> Strategy pattern yielding sanitized <code>.txt</code> or XML-structured <code>prompt</code> across 6 industry-standard techniques.</li><li><strong>Singleton Lifecycle:</strong> Model instantiated once in FastAPI <code>lifespan</code>, preventing memory leaks and CPU thrashing.</li></ul>`,
-          rejected: `<ul><li><strong>OpenAI Whisper (Vanilla PyTorch):</strong> Rejected due to &gt;800 MB RAM consumption, 4x slower CPU inference, and heavy CUDA dependencies.</li><li><strong>Whishper Full Stack (Docker + Mongo + LibreTranslate):</strong> Rejected due to excessive overhead (&gt;4 GB images, &gt;3 GB RAM) for a focused prompt engine.</li><li><strong>Silent Technique Fallbacks:</strong> Rejected; missing technique in prompt mode triggers strict <code>422 Unprocessable Content</code>.</li></ul>`,
-          security: `<ul><li><strong>Binary Magic Bytes:</strong> Real binary header validation (<code>RIFF/WAVE</code>, <code>ID3/MP3</code>, <code>OggS</code>, <code>fLaC</code>), rejecting renamed scripts with <code>400 Bad Request</code>.</li><li><strong>64 KB Chunk Streaming:</strong> Aborts uploads exceeding 25 MB with <code>413 Content Too Large</code>, defending against DoS/OOM attacks.</li><li><strong>Acoustic Injection Defense:</strong> Transcribed speech sanitized inside XML <code>&lt;user_speech&gt;</code> tags with full entity escaping (<code>&amp;lt;</code>, <code>&amp;gt;</code>).</li><li><strong>Multi-Tenant Isolation:</strong> Queries strictly scoped by <code>tenant_id</code> and connections closed in <code>finally: conn.close()</code>.</li></ul>`
+          title: 'Local Transcription Service & Prompt Synthesis',
+          scope: 'Local acoustic processing, deterministic NLP normalization, dual output pipeline (.txt / prompt), and acoustic prompt injection mitigation.',
+          context: `Spontaneous human speech contains verbal fillers (<em>"uhm"</em>, <em>"like"</em>), grammatical breaks, and repetitions. Submitting raw transcripts directly to LLMs degrades instruction fidelity and wastes tokens.<br><br>Furthermore, relying on third-party cloud APIs incurs per-minute billing, privacy compliance concerns (LGPD/GDPR), and external network dependence.`,
+          decision: `Adopted <strong>Faster-Whisper (CTranslate2 INT8)</strong> running 100% locally on CPU:<br><ul><li><strong>Lean Footprint:</strong> <code>base</code> model consumes ~150 MB RAM (vs &gt;800 MB for PyTorch).</li><li><strong>Contextual SLM:</strong> The Text Decoder acts as an autoregressive Small Language Model, evaluating token probabilities, inserting punctuation, and resolving homophones.</li><li><strong>Dual Pipeline:</strong> Strategy pattern yielding normalized <code>.txt</code> or XML-structured <code>prompt</code> across 6 techniques.</li><li><strong>Singleton Lifecycle:</strong> Model loaded in FastAPI <code>lifespan</code>, preventing memory leaks and CPU thrashing.</li></ul>`,
+          rejected: `<ul><li><strong>OpenAI Whisper (PyTorch):</strong> Rejected due to &gt;800 MB RAM consumption, 4x slower CPU inference, and heavy CUDA dependencies.</li><li><strong>Whishper Full Stack (Docker + Mongo + LibreTranslate):</strong> Rejected due to excessive overhead (&gt;4 GB images, &gt;3 GB RAM) for a focused service.</li><li><strong>Silent Technique Fallbacks:</strong> Rejected; missing technique in prompt mode returns strict <code>422 Unprocessable Content</code>.</li></ul>`,
+          security: `<ul><li><strong>Binary Magic Bytes:</strong> Physical binary header validation (<code>RIFF/WAVE</code>, <code>ID3/MP3</code>, <code>OggS</code>, <code>fLaC</code>), rejecting renamed scripts with <code>400 Bad Request</code>.</li><li><strong>64 KB Chunk Streaming:</strong> Aborts uploads exceeding 25 MB with <code>413 Content Too Large</code>, preventing memory exhaustion.</li><li><strong>Acoustic Injection Defense:</strong> Transcribed speech sanitized inside XML <code>&lt;user_speech&gt;</code> tags with full entity escaping (<code>&amp;lt;</code>, <code>&amp;gt;</code>).</li><li><strong>Multi-Tenant Isolation:</strong> Queries strictly scoped by <code>tenant_id</code> and connections closed in <code>finally: conn.close()</code>.</li></ul>`
         },
         2: {
           id: 'ADR-002',
           phase: 'Phase 2 • DevOps & Packaging',
-          title: 'Hermetic Containerization with Astral UV & Non-Root Security',
-          date: '2026-10-29',
-          status: 'Accepted and Implemented',
+          title: 'Hermetic Containerization with Astral UV & Non-Root Execution',
           scope: 'Multi-stage Docker packaging, Docker Compose orchestration, SQLite data persistence, Whisper weight caching, and CIS benchmark compliance.',
-          context: `Audio processing libraries require C++ runtimes and OS utilities (<code>ffmpeg</code>). Running directly on host machines introduced severe friction:<br><br>Missing OS dependencies, excruciatingly slow <code>pip</code> build times for machine learning packages, and critical security risks from running containers as <code>root</code> (UID 0).`,
-          decision: `Adopted official <strong>ghcr.io/astral-sh/uv:python3.12-bookworm-slim</strong> base image:<br><ul><li><strong>Rust UV Installer:</strong> Deterministic packaging 10-100x faster than traditional pip.</li><li><strong>Dedicated Non-Root User:</strong> Runs entirely under <code>appuser:10001</code> (UID 10001 / GID 10001), preventing container escape vulnerabilities.</li><li><strong>Decoupled Persistence:</strong> Bind mount <code>./data:/app/data</code> for SQLite and named volume <code>hf_cache</code> for Whisper weights (~145 MB downloaded once).</li><li><strong>Native Healthcheck:</strong> Continuous health validation via Python's standard <code>urllib.request</code> without bloat like <code>curl</code>.</li></ul>`,
-          rejected: `<ul><li><strong>Root Docker Containers (UID 0):</strong> Rejected due to direct violation of <em>CIS Docker Benchmark</em> and privilege escalation hazards.</li><li><strong>Standard pip builds:</strong> Rejected due to unacceptable build durations and non-deterministic dependency resolution.</li><li><strong>Ephemeral containers without volumes:</strong> Rejected as it forced re-downloading model weights (~145 MB) on every restart.</li></ul>`,
-          security: `<ul><li><strong>Defense in Depth:</strong> In the event of an exploit in native C/C++ audio libraries, non-root privileges prevent host system compromise.</li><li><strong>Context Isolation (.dockerignore):</strong> Secrets in <code>.env</code>, <code>.git/</code> history, and test suites strictly excluded from the image.</li><li><strong>Ephemeral File Disposal:</strong> Uploaded audio temp files unlinked from host disk in <code>finally: os.unlink()</code>.</li></ul>`
+          context: `Audio processing libraries require C++ runtimes and system utilities (<code>ffmpeg</code>). Running directly on host machines introduced operational friction:<br><br>Missing OS dependencies, slow <code>pip</code> build times for machine learning packages, and security risks from running containers as <code>root</code> (UID 0).`,
+          decision: `Adopted official <strong>ghcr.io/astral-sh/uv:python3.12-bookworm-slim</strong> base image:<br><ul><li><strong>Rust UV Installer:</strong> Deterministic packaging 10 to 100x faster than traditional pip.</li><li><strong>Dedicated Non-Root User:</strong> Runs entirely under <code>appuser:10001</code> (UID 10001 / GID 10001), preventing container escape vulnerabilities.</li><li><strong>Decoupled Persistence:</strong> Bind mount <code>./data:/app/data</code> for SQLite and named volume <code>hf_cache</code> for Whisper weights (~145 MB downloaded once).</li><li><strong>Native Healthcheck:</strong> Continuous health validation via Python standard <code>urllib.request</code> without external utilities like <code>curl</code>.</li></ul>`,
+          rejected: `<ul><li><strong>Root Docker Containers (UID 0):</strong> Rejected due to direct violation of <em>CIS Docker Benchmark</em>.</li><li><strong>Standard pip builds:</strong> Rejected due to unacceptable build durations and non-deterministic dependency resolution.</li><li><strong>Containers without volumes:</strong> Rejected as it forced re-downloading model weights (~145 MB) on every restart.</li></ul>`,
+          security: `<ul><li><strong>Least Privilege:</strong> Non-root privileges prevent host compromise in the event of an exploit in native C++ libraries.</li><li><strong>Context Isolation (.dockerignore):</strong> Secrets in <code>.env</code>, <code>.git/</code> history, and test suites strictly excluded from the production image.</li><li><strong>Ephemeral File Disposal:</strong> Uploaded audio temp files unlinked from host disk in <code>finally: os.unlink()</code>.</li></ul>`
         },
         3: {
           id: 'ADR-003',
           phase: 'Phase 3 • LLM Orchestration',
-          title: 'Decoupled LLM Inference Engine (Ollama 8B / Grok Cloud 70B)',
-          date: '2026-10-30',
-          status: 'Accepted and Implemented',
-          scope: 'Decoupled execution of synthesized prompts against local and cloud LLM providers, pre-inference SQLite persistence, and zero external dependencies.',
-          context: `Once an audio stream is compiled into a high-fidelity prompt, users want to execute it against leading LLMs for code generation and analysis.<br><br>Directly coupling LLM inference to the audio transcription endpoint creates prohibitive latencies (HTTP client timeouts), complete loss of auditability on LLM failures, and duplicate CPU costs on retries.`,
-          decision: `Transactional decoupling via dedicated <code>POST /api/v1/transcriptions/{job_id}/execute</code> route:<br><ul><li><strong>Pre-Inference Persistence:</strong> The compiled prompt is persisted with its UUID in SQLite prior to upstream calls, ensuring permanent audit trails and zero-cost retries.</li><li><strong>Provider Strategy Pattern:</strong> Abstract <code>ILLMProvider</code> supporting <strong>OllamaProvider</strong> (local, offline, full privacy with Llama 3 8B) and <strong>GrokProvider</strong> (cloud xAI for high-complexity 70B+ reasoning).</li><li><strong>Zero External Dependencies:</strong> REST client implemented via Python standard library (<code>urllib.request</code>), eliminating third-party SDK bloat.</li></ul>`,
-          rejected: `<ul><li><strong>Synchronous Inference Coupled to Upload:</strong> Rejected due to client HTTP timeouts and inability to audit or retry independently.</li><li><strong>Proprietary SDKs (openai, anthropic):</strong> Rejected to keep the Docker image hermetic, small, and free from supply chain vulnerabilities.</li><li><strong>Silent Provider Fallbacks:</strong> Rejected; calling Grok without an API key immediately returns explicit <code>422 Unprocessable Content</code>.</li></ul>`,
-          security: `<ul><li><strong>Server-Side RBAC:</strong> Only <code>operator</code> or <code>admin</code> roles can trigger execution; <code>viewer</code> is blocked with <code>403 Forbidden</code>.</li><li><strong>Anti-IDOR:</strong> Path UUID v4 syntactically validated and isolated via <code>WHERE id = ? AND tenant_id = ?</code>; invalid accesses return <code>404</code>.</li><li><strong>Secrets Protection & Fault Isolation:</strong> Provider outages return controlled <code>502 Bad Gateway</code> without leaking stack traces or credentials.</li></ul>`
+          title: 'Decoupled LLM Inference (Ollama 8B / Grok Cloud 70B)',
+          scope: 'Decoupled execution of synthesized prompts against local and cloud LLM providers, transactional persistence, and zero external dependencies.',
+          context: `Once an audio stream is compiled into a structured prompt, the client may request execution against a language model.<br><br>Coupling LLM inference directly to the audio transcription endpoint creates excessive latency (HTTP client timeouts), loss of auditability if the LLM fails, and duplicate CPU costs on retries.`,
+          decision: `Transactional decoupling via dedicated <code>POST /api/v1/transcriptions/{job_id}/execute</code> route:<br><ul><li><strong>Pre-Inference Persistence:</strong> The prompt is saved in SQLite with its UUID prior to upstream calls, ensuring permanent audit trails and zero-cost retries.</li><li><strong>Provider Strategy Pattern:</strong> Abstract <code>ILLMProvider</code> supporting <strong>OllamaProvider</strong> (local, offline, full privacy with Llama 3 8B) and <strong>GrokProvider</strong> (cloud xAI for complex 70B+ reasoning).</li><li><strong>Zero External Dependencies:</strong> REST client implemented via Python standard library (<code>urllib.request</code>), eliminating third-party SDK bloat.</li></ul>`,
+          rejected: `<ul><li><strong>Synchronous Inference Coupled to Upload:</strong> Rejected due to client HTTP timeouts and inability to audit or retry independently.</li><li><strong>Proprietary Third-Party SDKs:</strong> Rejected to keep the Docker image hermetic, small, and free from supply chain vulnerabilities.</li><li><strong>Silent Provider Fallbacks:</strong> Rejected; calling Grok without an API key immediately returns explicit <code>422 Unprocessable Content</code>.</li></ul>`,
+          security: `<ul><li><strong>Server-Side RBAC:</strong> Only <code>operator</code> or <code>admin</code> roles can trigger execution; <code>viewer</code> is blocked with <code>403 Forbidden</code>.</li><li><strong>Anti-IDOR:</strong> Path UUID v4 syntactically validated and isolated via <code>WHERE id = ? AND tenant_id = ?</code>; invalid accesses return <code>404</code>.</li><li><strong>Secrets Protection & Fault Isolation:</strong> Provider outages return controlled <code>502 Bad Gateway</code> without leaking credentials or stack traces.</li></ul>`
         }
       }
     };
@@ -2179,8 +2071,6 @@
       const phaseEl = document.getElementById('adr-card-phase');
       const titleEl = document.getElementById('adr-card-title');
       const scopeEl = document.getElementById('adr-card-scope');
-      const statusEl = document.getElementById('adr-card-status');
-      const dateEl = document.getElementById('adr-card-date');
       const ctxEl = document.getElementById('adr-card-context');
       const decEl = document.getElementById('adr-card-decision');
       const rejEl = document.getElementById('adr-card-rejected');
@@ -2190,8 +2080,6 @@
       if (phaseEl) phaseEl.textContent = data.phase;
       if (titleEl) titleEl.textContent = data.title;
       if (scopeEl) scopeEl.textContent = data.scope;
-      if (statusEl) statusEl.textContent = `✅ ${data.status}`;
-      if (dateEl) dateEl.textContent = `📅 ${data.date}`;
       if (ctxEl) ctxEl.innerHTML = data.context;
       if (decEl) decEl.innerHTML = data.decision;
       if (rejEl) rejEl.innerHTML = data.rejected;

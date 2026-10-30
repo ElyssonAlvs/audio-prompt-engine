@@ -1,13 +1,13 @@
 # 🎙️ Audio Prompt Engine
 
-> **Motor inteligente de transcrição de áudio local e engenharia de prompts estruturados para LLMs.**  
+> **Serviço de transcrição de áudio local e síntese estruturada de prompts para LLMs.**  
 > Transforma a fala humana em texto limpo e normalizado (`.txt`) ou em prompts otimizados de alta fidelidade para modelos de linguagem através de técnicas consagradas de engenharia cognitiva.
 
 ---
 
 ## 📌 Visão Geral
 
-O **`audio-prompt-engine`** é uma solução backend de alta performance desenvolvida em Python 3.12 (FastAPI), projetada para eliminar o abismo entre a **fala espontânea humana** e as **entradas estruturadas exigidas por LLMs modernos** (Claude, GPT-4, Llama 3, DeepSeek, Mistral).
+O **`audio-prompt-engine`** é uma solução backend de alta performance desenvolvida em Python 3.12 (FastAPI), projetada para processar **fala humana espontânea** e convertê-la em **entradas estruturadas para LLMs** (Claude, GPT-4, Llama 3, DeepSeek, Mistral).
 
 Ao invés de submeter transcrições brutas repletas de disfluências vocais (*"ééé... eu queria tipo uma rota..."*), o motor processa o áudio localmente via **`faster-whisper` (CTranslate2 com quantização INT8)** e disponibiliza dois modos operacionais:
 
@@ -18,7 +18,7 @@ Ao invés de submeter transcrições brutas repletas de disfluências vocais (*"
 
 ## 🧠 Como o Whisper Funciona: ASR vs. SLM Contextual
 
-Existe uma confusão recorrente sobre o Whisper ser apenas um "transcritor acústico" ou se ele opera como um "modelo de linguagem". A realidade arquitetural é fascinante e explica sua alta precisão:
+O Whisper combina processamento acústico e modelagem contextual de linguagem:
 
 ```
                       ARQUITETURA TRANSFORMER ENCODER-DECODER
@@ -40,7 +40,7 @@ Existe uma confusão recorrente sobre o Whisper ser apenas um "transcritor acús
 - **Desambiguação Homófona:** Se o áudio em português contiver o som fonético idêntico para *"sessão"*, *"seção"* e *"cessão"*, o decodificador atua como um modelo de linguagem: ele analisa a semântica da sentença (*"fomos à sessão de cinema"* vs. *"departamento de compras na seção de ferramentas"*) para inferir e emitir a grafia correta.
 - **Pontuação e Capitalização Nativas:** O decodificador insere automaticamente pontos finais, vírgulas, interrogações e letras maiúsculas no fluxo de texto, compensando pausas naturais da voz.
 
-### 3. Eficiência Extrema com CTranslate2 e Quantização INT8
+### 3. Otimização com CTranslate2 e Quantização INT8
 - A biblioteca `faster-whisper` reimplementa o modelo original da OpenAI no runtime em C++ **CTranslate2**, aplicando quantização **INT8** com instruções vetoriais otimizadas para CPU (AVX2 / AVX-512).
 - **Resultados práticos:**
   - O modelo `base` consome aproximadamente **150 MB de memória RAM** (redução de ~70% em comparação ao PyTorch puro).
@@ -198,7 +198,7 @@ Todas as requisições autenticadas exigem o cabeçalho HTTP `X-API-Key`.
 
 O projeto inclui uma collection completa e pronta para uso em desenvolvimento e homologação:
 
-- **Arquivo:** [`audio-prompt-engine.insomnia.json`](file:///C:/Users/elyss/Desktop/Projects/audio-prompt-engine/audio-prompt-engine.insomnia.json) (formato Insomnia v4 na raiz do projeto).
+- **Arquivo:** [`docs/audio-prompt-engine.insomnia.json`](docs/audio-prompt-engine.insomnia.json) (formato Insomnia v4).
 - **Variáveis de Ambiente Pré-configuradas:**
   - `{{ base_url }}`: `http://127.0.0.1:8000` (ou `http://localhost:8000` no Docker)
   - `{{ operator_key }}`: `dev-operator-alpha` (papel de operador do Tenant Alpha)
@@ -232,9 +232,9 @@ O projeto inclui uma collection completa e pronta para uso em desenvolvimento e 
 O projeto possui **100% de aprovação** em todas as baterias de homologação técnica:
 
 - **Suíte de Testes Automatizados:**
-  - **47 testes aprovados em 1.29s** (`pytest -v`).
-  - 22 testes unitários (limpeza NLP, remoção de hesitações, as 6 técnicas de prompt e criação resiliente de diretórios de persistência).
-  - 6 testes de integração E2E de ponta a ponta.
+  - **69 testes aprovados** (`pytest -v`).
+  - 35 testes unitários (limpeza NLP, remoção de hesitações, as 6 técnicas de prompt e serviço desacoplado de LLM).
+  - 15 testes de integração E2E (fluxos de áudio, downloads e execução Ollama/Grok).
   - 19 testes rigorosos de segurança defensiva do Pentágono de Defesa.
 - **Live Chaos Testing em Container Docker (Fase 4):**
   - **23/23 testes de estresse e caos aprovados** executados contra o container ativo em `http://localhost:8000`.
@@ -246,5 +246,4 @@ O projeto possui **100% de aprovação** em todas as baterias de homologação t
 
 As decisões de engenharia e os fundamentos arquiteturais do projeto estão consolidados e disponíveis publicamente:
 
-- 🏛️ **[Consolidação de Decisões Arquiteturais (ADR Digest)](docs/ARCHITECTURAL_DECISIONS.md):** Visão pública e detalhada das decisões ADR-001 (Transcrição local, NLP determinístico, Strategy Pattern e Pentágono de Defesa) e ADR-002 (Containerização com Docker, UV, Não-Root e persistência de dados).
-- 🌐 **[Showcase Interativo (GitHub Pages)](docs/index.html):** Demonstração interativa e visual do pipeline de áudio, técnicas de prompt e matriz de segurança.
+- 🏛️ **[Consolidação de Decisões Arquiteturais (ADR Digest)](docs/ARCHITECTURAL_DECISIONS.md):** Documentação técnica das decisões arquiteturais do projeto (ADR-001, ADR-002 e ADR-003).
