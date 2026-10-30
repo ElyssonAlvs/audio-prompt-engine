@@ -7,7 +7,7 @@
   <meta name="description" content="Serviço de transcrição de áudio local com Whisper CPU INT8 e síntese de prompts estruturados para LLMs.">
   <style>
     /* ==========================================================================
-       CSS VARIABLES & THEME SETUP (HIGH-CONTRAST MINIMALIST)
+       CSS VARIABLES & THEME SETUP (HIGH-CONTRAST DYNAMIC BLUE)
        ========================================================================== */
     :root {
       --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Helvetica, Arial, sans-serif;
@@ -20,17 +20,19 @@
 
     [data-theme="dark"] {
       --bg-page: #09090b;
-      --bg-surface: #121215;
+      --bg-surface: #111114;
       --bg-surface-elevated: #18181b;
       --bg-surface-sunken: #0c0c0e;
       --border-color: #27272a;
-      --border-focus: #10b981;
       --border-subtle: #1f1f23;
       --text-primary: #fafafa;
       --text-secondary: #a1a1aa;
       --text-muted: #71717a;
-      --accent-emerald: #10b981;
-      --accent-emerald-subtle: rgba(16, 185, 129, 0.1);
+      --accent-blue: #3b82f6;
+      --accent-blue-subtle: rgba(59, 130, 246, 0.12);
+      --accent-blue-border: rgba(59, 130, 246, 0.3);
+      --accent-blue-hover: #2563eb;
+      --border-focus: var(--accent-blue);
       --code-bg: #0c0c0e;
       --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
     }
@@ -41,13 +43,15 @@
       --bg-surface-elevated: #f4f4f5;
       --bg-surface-sunken: #f8fafc;
       --border-color: #e4e4e7;
-      --border-focus: #059669;
       --border-subtle: #f1f5f9;
       --text-primary: #09090b;
       --text-secondary: #52525b;
       --text-muted: #71717a;
-      --accent-emerald: #059669;
-      --accent-emerald-subtle: rgba(5, 150, 105, 0.08);
+      --accent-blue: #2563eb;
+      --accent-blue-subtle: rgba(37, 99, 235, 0.08);
+      --accent-blue-border: rgba(37, 99, 235, 0.25);
+      --accent-blue-hover: #1d4ed8;
+      --border-focus: var(--accent-blue);
       --code-bg: #f4f4f5;
       --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
     }
@@ -86,7 +90,7 @@
       transition: color 150ms ease, border-color 150ms ease;
     }
     a:hover {
-      color: var(--accent-emerald);
+      color: var(--accent-blue);
     }
 
     button {
@@ -99,7 +103,7 @@
     }
 
     :focus-visible {
-      outline: 2px solid var(--accent-emerald);
+      outline: 2px solid var(--accent-blue);
       outline-offset: 2px;
     }
 
@@ -113,17 +117,23 @@
     }
 
     /* ==========================================================================
-       CONTAINER & LAYOUT
+       CONTAINER & WIDESCREEN LAYOUT (MAX-WIDTH 1440PX)
        ========================================================================== */
     .container {
       width: 100%;
-      max-width: 1120px;
+      max-width: 1440px;
       margin: 0 auto;
-      padding: 0 1.25rem;
+      padding: 0 2rem;
+    }
+
+    /* Modular Section Delimiters */
+    .modular-section {
+      padding: 3.5rem 0;
+      border-bottom: 1px solid var(--border-color);
     }
 
     /* ==========================================================================
-       HEADER & NAVIGATION BAR
+       DIVISÃO 1: TOP BAR & HERO COM MÉTRICAS DE SISTEMA
        ========================================================================== */
     header.site-header {
       background-color: var(--bg-surface);
@@ -138,7 +148,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 60px;
+      height: 64px;
       gap: 1rem;
     }
 
@@ -157,7 +167,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--accent-emerald);
+      color: var(--accent-blue);
       flex-shrink: 0;
     }
 
@@ -173,9 +183,9 @@
       font-size: 0.6875rem;
       padding: 0.15rem 0.5rem;
       border-radius: var(--radius-sm);
-      background-color: var(--accent-emerald-subtle);
-      color: var(--accent-emerald);
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      background-color: var(--accent-blue-subtle);
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue-border);
       font-weight: 500;
       letter-spacing: 0.02em;
     }
@@ -183,14 +193,14 @@
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.6rem;
     }
 
     .pill-btn {
       display: inline-flex;
       align-items: center;
       gap: 0.45rem;
-      padding: 0.375rem 0.75rem;
+      padding: 0.4rem 0.85rem;
       border-radius: var(--radius-md);
       font-size: 0.8125rem;
       font-weight: 500;
@@ -200,8 +210,8 @@
       transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .pill-btn:hover {
-      border-color: var(--text-secondary);
-      background-color: var(--bg-surface);
+      border-color: var(--accent-blue-border);
+      color: var(--accent-blue);
     }
 
     .icon-btn {
@@ -218,14 +228,12 @@
       transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .icon-btn:hover {
-      border-color: var(--text-secondary);
+      border-color: var(--accent-blue-border);
     }
 
-    /* ==========================================================================
-       HERO BANNER
-       ========================================================================== */
+    /* Hero Section */
     .hero-section {
-      padding: 3.5rem 0 2.25rem;
+      padding: 4rem 0 3.5rem;
       text-align: center;
     }
 
@@ -237,85 +245,94 @@
       font-size: 0.6875rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--accent-emerald);
-      background-color: var(--accent-emerald-subtle);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      padding: 0.25rem 0.75rem;
+      color: var(--accent-blue);
+      background-color: var(--accent-blue-subtle);
+      border: 1px solid var(--accent-blue-border);
+      padding: 0.25rem 0.85rem;
       border-radius: 9999px;
       margin-bottom: 1.25rem;
       font-weight: 600;
     }
 
     .hero-title {
-      font-size: 2.25rem;
+      font-size: 2.5rem;
       font-weight: 800;
       line-height: 1.15;
       letter-spacing: -0.035em;
       color: var(--text-primary);
-      max-width: 820px;
+      max-width: 900px;
       margin: 0 auto 1.25rem;
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: 768px) {
       .hero-title {
-        font-size: 2.75rem;
+        font-size: 3.25rem;
       }
     }
 
     .hero-desc {
-      font-size: 1rem;
+      font-size: 1.05rem;
       color: var(--text-secondary);
-      max-width: 680px;
-      margin: 0 auto 2.25rem;
+      max-width: 760px;
+      margin: 0 auto 2.5rem;
       line-height: 1.6;
     }
 
-    .flow-pipeline-bar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 768px) {
+      .metrics-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .metric-card {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-color);
-      padding: 0.75rem 1.25rem;
-      border-radius: var(--radius-xl);
-      max-width: 860px;
-      margin: 0 auto 2rem;
-      box-shadow: var(--shadow);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      text-align: left;
+      transition: border-color 150ms ease, background-color 150ms ease;
+    }
+    .metric-card:hover {
+      border-color: var(--accent-blue-border);
+      background-color: var(--bg-surface-elevated);
     }
 
-    .flow-step {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
+    .metric-val {
       font-family: var(--font-mono);
-      font-size: 0.75rem;
-      font-weight: 500;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      line-height: 1.2;
+      margin-bottom: 0.35rem;
+    }
+
+    .metric-title {
+      font-size: 0.8125rem;
+      font-weight: 600;
       color: var(--text-primary);
+      margin-bottom: 0.2rem;
     }
 
-    .flow-step .step-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background-color: var(--text-muted);
-    }
-    .flow-step .step-dot.active,
-    .flow-step:last-child .step-dot {
-      background-color: var(--accent-emerald);
-    }
-
-    .flow-arrow {
+    .metric-sub {
+      font-size: 0.72rem;
       color: var(--text-muted);
-      font-size: 0.8rem;
+      line-height: 1.4;
     }
 
     /* ==========================================================================
-       SECTION HEADINGS
+       DIVISÃO 2: PIPELINE DE 5 PASSOS (WIDESCREEN & DESTACADO)
        ========================================================================== */
     .section-header {
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.75rem;
       display: flex;
       align-items: baseline;
       justify-content: space-between;
@@ -324,13 +341,13 @@
     }
 
     .section-title {
-      font-size: 1.25rem;
+      font-size: 1.35rem;
       font-weight: 700;
       letter-spacing: -0.025em;
       color: var(--text-primary);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.6rem;
     }
 
     .section-subtitle {
@@ -338,27 +355,97 @@
       color: var(--text-muted);
     }
 
+    .pipeline-wrapper {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .pipeline-track {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    @media (min-width: 900px) {
+      .pipeline-track {
+        grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr auto 1fr;
+      }
+    }
+
+    .pipeline-step-card {
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      transition: border-color 150ms ease, background-color 150ms ease;
+      height: 100%;
+    }
+    .pipeline-step-card:hover {
+      border-color: var(--accent-blue);
+    }
+    .pipeline-step-card.active {
+      border-color: var(--accent-blue);
+      background-color: var(--accent-blue-subtle);
+    }
+
+    .pipe-badge {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      letter-spacing: 0.04em;
+    }
+
+    .pipe-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    .pipe-desc {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    .pipeline-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-blue);
+      font-size: 1.1rem;
+      padding: 0.25rem;
+    }
+
     /* ==========================================================================
-       INTERACTIVE STUDIO CONTAINER
+       DIVISÃO 3: STUDIO INTERATIVO (WIDESCREEN DASHBOARD 42% / 58%)
        ========================================================================== */
     .studio-card {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      margin-bottom: 3rem;
+      border-radius: var(--radius-xl);
+      padding: 1.75rem;
       box-shadow: var(--shadow);
     }
 
     .studio-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 1.5rem;
+      gap: 1.75rem;
     }
 
-    @media (min-width: 900px) {
+    @media (min-width: 1024px) {
       .studio-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 42% 58%;
+        align-items: stretch;
       }
     }
 
@@ -368,7 +455,7 @@
       gap: 1.25rem;
     }
 
-    /* Presets row */
+    /* Presets Row */
     .presets-row {
       display: flex;
       align-items: center;
@@ -393,7 +480,7 @@
     }
 
     .preset-btn {
-      padding: 0.3rem 0.65rem;
+      padding: 0.35rem 0.7rem;
       font-size: 0.75rem;
       border-radius: var(--radius-sm);
       background-color: var(--bg-surface-elevated);
@@ -403,43 +490,43 @@
       transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .preset-btn:hover {
-      border-color: var(--text-secondary);
+      border-color: var(--accent-blue-border);
       color: var(--text-primary);
     }
     .preset-btn.active {
-      border-color: var(--accent-emerald);
-      background-color: var(--accent-emerald-subtle);
-      color: var(--accent-emerald);
+      border-color: var(--accent-blue);
+      background-color: var(--accent-blue-subtle);
+      color: var(--accent-blue);
       font-weight: 600;
     }
 
-    /* Simulated Audio Player Box */
+    /* Audio Player Strip */
     .audio-player-box {
       background-color: var(--bg-surface-sunken);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
-      padding: 0.75rem 1rem;
+      padding: 0.85rem 1rem;
       display: flex;
       align-items: center;
-      gap: 0.85rem;
+      gap: 1rem;
     }
 
     .play-btn {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
-      background-color: var(--accent-emerald);
-      color: #09090b;
+      background-color: var(--accent-blue);
+      color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 0.875rem;
       font-weight: 700;
       flex-shrink: 0;
-      transition: opacity 150ms ease;
+      transition: background-color 150ms ease, opacity 150ms ease;
     }
     .play-btn:hover {
-      opacity: 0.9;
+      background-color: var(--accent-blue-hover);
     }
 
     .audio-meta {
@@ -452,7 +539,7 @@
       justify-content: space-between;
       font-family: var(--font-mono);
       font-size: 0.72rem;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.45rem;
     }
 
     .audio-filename {
@@ -464,23 +551,23 @@
     }
 
     .audio-format-badge {
-      color: var(--accent-emerald);
-      font-weight: 500;
+      color: var(--accent-blue);
+      font-weight: 600;
     }
 
     canvas#waveform-canvas {
       width: 100%;
-      height: 28px;
+      height: 30px;
       display: block;
       border-radius: var(--radius-sm);
     }
 
-    /* Raw Speech Input */
+    /* Raw Speech Textarea */
     .field-label-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.45rem;
       font-size: 0.78rem;
     }
 
@@ -502,19 +589,19 @@
       color: var(--text-primary);
       font-family: var(--font-mono);
       font-size: 0.8125rem;
-      padding: 0.75rem;
+      padding: 0.85rem;
       border-radius: var(--radius-md);
       resize: vertical;
       line-height: 1.6;
       transition: border-color 150ms ease;
-      min-height: 84px;
+      min-height: 90px;
     }
     textarea.raw-speech-box:focus {
       outline: none;
       border-color: var(--border-focus);
     }
 
-    /* Controls Grid: Mode & NLP */
+    /* Controls: Mode & NLP */
     .controls-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -554,7 +641,7 @@
       background-color: var(--bg-surface-elevated);
       color: var(--text-primary);
       font-weight: 600;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--accent-blue-border);
     }
 
     .nlp-checkbox-card {
@@ -573,18 +660,18 @@
       transition: border-color 150ms ease, color 150ms ease;
     }
     .nlp-checkbox-card:hover {
-      border-color: var(--text-secondary);
+      border-color: var(--accent-blue-border);
       color: var(--text-primary);
     }
 
     .nlp-checkbox-card input[type="checkbox"] {
-      accent-color: var(--accent-emerald);
+      accent-color: var(--accent-blue);
       cursor: pointer;
       width: 16px;
       height: 16px;
     }
 
-    /* Prompt Technique Buttons */
+    /* Technique Selector Buttons */
     .techniques-panel {
       display: flex;
       flex-direction: column;
@@ -617,17 +704,17 @@
       transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .tech-btn:hover {
-      border-color: var(--text-secondary);
+      border-color: var(--accent-blue-border);
       color: var(--text-primary);
     }
     .tech-btn.active {
-      border-color: var(--accent-emerald);
-      background-color: var(--accent-emerald-subtle);
-      color: var(--accent-emerald);
+      border-color: var(--accent-blue);
+      background-color: var(--accent-blue-subtle);
+      color: var(--accent-blue);
       font-weight: 600;
     }
 
-    /* Output Box Wrapper */
+    /* Output Box Wrapper (Expanded Widescreen View) */
     .output-box-wrapper {
       background-color: var(--bg-surface-sunken);
       border: 1px solid var(--border-color);
@@ -635,14 +722,14 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      min-height: 400px;
+      min-height: 480px;
     }
 
     .output-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.6rem 0.85rem;
+      padding: 0.65rem 1rem;
       border-bottom: 1px solid var(--border-color);
       background-color: var(--bg-surface);
       border-top-left-radius: var(--radius-md);
@@ -652,18 +739,18 @@
     .output-meta {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.6rem;
       font-family: var(--font-mono);
       font-size: 0.72rem;
     }
 
     .output-tag {
-      padding: 0.15rem 0.5rem;
+      padding: 0.15rem 0.55rem;
       border-radius: var(--radius-sm);
-      background-color: var(--accent-emerald-subtle);
-      color: var(--accent-emerald);
+      background-color: var(--accent-blue-subtle);
+      color: var(--accent-blue);
       font-weight: 600;
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      border: 1px solid var(--accent-blue-border);
     }
 
     .output-stats {
@@ -676,7 +763,7 @@
     }
 
     .action-btn {
-      padding: 0.25rem 0.6rem;
+      padding: 0.3rem 0.65rem;
       font-size: 0.72rem;
       font-weight: 500;
       font-family: var(--font-mono);
@@ -687,12 +774,12 @@
       transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
     .action-btn:hover {
-      color: var(--text-primary);
-      border-color: var(--text-secondary);
+      color: var(--accent-blue);
+      border-color: var(--accent-blue-border);
     }
 
     .clean-diff-bar {
-      padding: 0.45rem 0.85rem;
+      padding: 0.45rem 1rem;
       background-color: var(--bg-surface-elevated);
       border-bottom: 1px solid var(--border-color);
       font-family: var(--font-mono);
@@ -704,7 +791,7 @@
     }
 
     .clean-diff-title {
-      color: var(--accent-emerald);
+      color: var(--accent-blue);
       font-weight: 600;
       flex-shrink: 0;
     }
@@ -717,10 +804,10 @@
 
     pre.output-code-area {
       flex: 1;
-      padding: 1rem;
+      padding: 1.15rem;
       font-family: var(--font-mono);
       font-size: 0.8125rem;
-      line-height: 1.6;
+      line-height: 1.65;
       color: var(--text-primary);
       overflow-y: auto;
       white-space: pre-wrap;
@@ -729,24 +816,23 @@
     }
 
     /* ==========================================================================
-       CARDS GRID: 6 PROMPT TECHNIQUES
+       DIVISÃO 4: CATÁLOGO DAS 6 TÉCNICAS COGNITIVAS (3 COLUNAS LARGAS)
        ========================================================================== */
     .techniques-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 1rem;
-      margin-bottom: 3rem;
+      gap: 1.25rem;
     }
 
     @media (min-width: 640px) {
       .techniques-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
     @media (min-width: 1024px) {
       .techniques-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
 
@@ -754,15 +840,16 @@
       background-color: var(--bg-surface);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
-      padding: 1.25rem;
+      padding: 1.35rem;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.85rem;
       transition: border-color 150ms ease, background-color 150ms ease;
       box-shadow: var(--shadow);
     }
     .card:hover {
-      border-color: var(--text-secondary);
+      border-color: var(--accent-blue-border);
+      background-color: var(--bg-surface-elevated);
     }
 
     .card-top {
@@ -771,8 +858,11 @@
       justify-content: space-between;
     }
 
-    .card-icon {
-      font-size: 1.25rem;
+    .card-num {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent-blue);
     }
 
     .card-badge {
@@ -787,7 +877,7 @@
     }
 
     .card-title {
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: var(--text-primary);
       letter-spacing: -0.02em;
@@ -796,7 +886,7 @@
     .card-desc {
       font-size: 0.825rem;
       color: var(--text-secondary);
-      line-height: 1.5;
+      line-height: 1.55;
       flex: 1;
     }
 
@@ -804,7 +894,7 @@
       font-size: 0.75rem;
       color: var(--text-muted);
       border-top: 1px dashed var(--border-color);
-      padding-top: 0.5rem;
+      padding-top: 0.6rem;
     }
 
     .card-when strong {
@@ -825,210 +915,14 @@
       transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
     }
     .card-action-btn:hover {
-      border-color: var(--accent-emerald);
-      color: var(--accent-emerald);
-      background-color: var(--accent-emerald-subtle);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      background-color: var(--accent-blue-subtle);
     }
 
     /* ==========================================================================
-       ARCHITECTURE & PENTAGON SECTIONS
+       DIVISÃO 5: DECISÕES ARQUITETURAIS (ADRS 001, 002 E 003)
        ========================================================================== */
-    .arch-container {
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      margin-bottom: 3rem;
-      box-shadow: var(--shadow);
-    }
-
-    .arch-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-
-    @media (min-width: 800px) {
-      .arch-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    .arch-block {
-      background-color: var(--bg-surface-sunken);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .arch-block-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .arch-block-desc {
-      font-size: 0.825rem;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-
-    .pentagon-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.85rem;
-      margin-top: 1rem;
-    }
-
-    @media (min-width: 640px) {
-      .pentagon-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .pentagon-grid {
-        grid-template-columns: repeat(5, 1fr);
-      }
-    }
-
-    .pentagon-card {
-      background-color: var(--bg-surface-sunken);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .pentagon-number {
-      font-family: var(--font-mono);
-      font-size: 0.6875rem;
-      font-weight: 700;
-      color: var(--accent-emerald);
-      letter-spacing: 0.04em;
-    }
-
-    .pentagon-title {
-      font-size: 0.875rem;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-
-    .pentagon-desc {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-
-    /* ==========================================================================
-       DOCKER QUICK-START CARD
-       ========================================================================== */
-    .docker-banner {
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      margin-bottom: 3rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      box-shadow: var(--shadow);
-    }
-
-    @media (min-width: 768px) {
-      .docker-banner {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-    }
-
-    .docker-info {
-      max-width: 550px;
-    }
-
-    .docker-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 0.35rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .docker-desc {
-      font-size: 0.8125rem;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-
-    .docker-code-box {
-      background-color: var(--code-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 0.65rem 1rem;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      justify-content: space-between;
-    }
-
-    .docker-code-box code {
-      color: var(--accent-emerald);
-    }
-
-    .docker-copy-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.2rem 0.4rem;
-      border-radius: var(--radius-sm);
-      transition: color 150ms ease;
-    }
-    .docker-copy-btn:hover {
-      color: var(--text-primary);
-    }
-
-    /* ==========================================================================
-       ADR TIMELINE & ARCHITECTURAL EXPLORER
-       ========================================================================== */
-    .adr-section {
-      margin-top: 3.5rem;
-      margin-bottom: 3rem;
-    }
-
-    .section-header-row {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-
-    @media (min-width: 768px) {
-      .section-header-row {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-    }
-
-    /* Timeline Stepper Track */
     .adr-timeline-track {
       display: grid;
       grid-template-columns: 1fr;
@@ -1058,12 +952,12 @@
     }
 
     .timeline-step:hover {
-      border-color: var(--text-secondary);
+      border-color: var(--accent-blue-border);
       background-color: var(--bg-surface-elevated);
     }
 
     .timeline-step.active {
-      border-color: var(--accent-emerald);
+      border-color: var(--accent-blue);
       background-color: var(--bg-surface-elevated);
     }
 
@@ -1087,9 +981,9 @@
     }
 
     .timeline-step.active .tl-node-badge {
-      background-color: var(--accent-emerald-subtle);
-      color: var(--accent-emerald);
-      border-color: rgba(16, 185, 129, 0.25);
+      background-color: var(--accent-blue-subtle);
+      color: var(--accent-blue);
+      border-color: var(--accent-blue-border);
     }
 
     .tl-title {
@@ -1113,7 +1007,7 @@
     .tl-select-hint {
       font-family: var(--font-mono);
       font-size: 0.6875rem;
-      color: var(--accent-emerald);
+      color: var(--accent-blue);
       font-weight: 600;
       opacity: 0;
       transition: opacity 150ms ease;
@@ -1145,9 +1039,9 @@
       font-family: var(--font-mono);
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--accent-emerald);
-      background-color: var(--accent-emerald-subtle);
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: var(--accent-blue);
+      background-color: var(--accent-blue-subtle);
+      border: 1px solid var(--accent-blue-border);
       padding: 0.2rem 0.55rem;
       border-radius: var(--radius-sm);
       margin-bottom: 0.5rem;
@@ -1165,7 +1059,7 @@
     .adr-viewer-scope {
       font-size: 0.875rem;
       color: var(--text-secondary);
-      max-width: 780px;
+      max-width: 820px;
       line-height: 1.5;
     }
 
@@ -1194,7 +1088,7 @@
     }
 
     .adr-pillar-card:hover {
-      border-color: var(--text-secondary);
+      border-color: var(--accent-blue-border);
     }
 
     .pillar-header {
@@ -1215,12 +1109,14 @@
       background-color: var(--bg-surface-elevated);
       color: var(--text-primary);
       border: 1px solid var(--border-color);
+      font-family: var(--font-mono);
+      font-weight: 700;
     }
 
     .pillar-decision .pillar-icon-box {
-      background-color: var(--accent-emerald-subtle);
-      color: var(--accent-emerald);
-      border-color: rgba(16, 185, 129, 0.25);
+      background-color: var(--accent-blue-subtle);
+      color: var(--accent-blue);
+      border-color: var(--accent-blue-border);
     }
 
     .pillar-title {
@@ -1259,13 +1155,184 @@
     }
 
     /* ==========================================================================
+       DIVISÃO 6: PENTÁGONO DE DEFESA (5 PILARES DE SEGURANÇA EM 5 COLUNAS)
+       ========================================================================== */
+    .arch-container {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+    }
+
+    .arch-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.75rem;
+    }
+
+    @media (min-width: 800px) {
+      .arch-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .arch-block {
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .arch-block-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .arch-block-desc {
+      font-size: 0.825rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .pentagon-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+      .pentagon-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .pentagon-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
+
+    .pentagon-card {
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      transition: border-color 150ms ease;
+    }
+    .pentagon-card:hover {
+      border-color: var(--accent-blue-border);
+    }
+
+    .pentagon-number {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      letter-spacing: 0.04em;
+    }
+
+    .pentagon-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .pentagon-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* ==========================================================================
+       DIVISÃO 7: CONTAINERIZAÇÃO DOCKER & INICIALIZAÇÃO RÁPIDA
+       ========================================================================== */
+    .docker-banner {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+
+    @media (min-width: 768px) {
+      .docker-banner {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .docker-info {
+      max-width: 680px;
+    }
+
+    .docker-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.4rem;
+    }
+
+    .docker-desc {
+      font-size: 0.825rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .docker-code-box {
+      background-color: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1.15rem;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      justify-content: space-between;
+    }
+
+    .docker-code-box code {
+      color: var(--accent-blue);
+    }
+
+    .docker-copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.2rem 0.4rem;
+      border-radius: var(--radius-sm);
+      transition: color 150ms ease;
+    }
+    .docker-copy-btn:hover {
+      color: var(--accent-blue);
+    }
+
+    /* ==========================================================================
        FOOTER
        ========================================================================== */
     footer.site-footer {
       margin-top: auto;
       border-top: 1px solid var(--border-color);
       background-color: var(--bg-surface);
-      padding: 2rem 0;
+      padding: 2.25rem 0;
       font-size: 0.8125rem;
       color: var(--text-muted);
     }
@@ -1288,14 +1355,14 @@
 
     .footer-links {
       display: flex;
-      gap: 1.25rem;
+      gap: 1.5rem;
     }
   </style>
 </head>
 <body>
 
   <!-- ==========================================================================
-       STICKY HEADER WITH CONTROLS
+       TOP BAR
        ========================================================================== -->
   <header class="site-header">
     <div class="container header-content">
@@ -1335,11 +1402,11 @@
   </header>
 
   <!-- ==========================================================================
-       MAIN CONTENT CONTAINER
+       MAIN CONTENT CONTAINER (WIDESCREEN 1440PX)
        ========================================================================== -->
   <main class="container" style="flex: 1;">
 
-    <!-- HERO SECTION -->
+    <!-- DIVISÃO 1: HERO COM MÉTRICAS DE SISTEMA -->
     <section class="hero-section">
       <span class="hero-tagline" data-i18n="hero_tagline">Reconhecimento de Fala Local & Engenharia Cognitiva</span>
       <h1 class="hero-title" data-i18n="hero_title">Da Fala Espontânea a Prompts Prontos para LLMs</h1>
@@ -1347,389 +1414,365 @@
         Motor backend em Python (FastAPI) com inferência local Faster-Whisper INT8 em CPU, normalização determinística NLP e síntese profissional em 6 técnicas de prompt engineering.
       </p>
 
-      <!-- Pipeline Visualization Flow -->
-      <div class="flow-pipeline-bar">
-        <div class="flow-step">
-          <span class="step-dot"></span>
-          <span data-i18n="flow_step1">1. Áudio (WAV/MP3)</span>
+      <!-- System Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-val" data-i18n="metric_ram_val">~150 MB</div>
+          <div class="metric-title" data-i18n="metric_ram_title">Memória em CPU</div>
+          <div class="metric-sub" data-i18n="metric_ram_sub">Whisper INT8 vs &gt;800MB PyTorch</div>
         </div>
-        <span class="flow-arrow" aria-hidden="true">→</span>
-        <div class="flow-step">
-          <span class="step-dot"></span>
-          <span data-i18n="flow_step2">2. Whisper CPU (INT8)</span>
+        <div class="metric-card">
+          <div class="metric-val" data-i18n="metric_lat_val">~280ms</div>
+          <div class="metric-title" data-i18n="metric_lat_title">Latência de Inferência</div>
+          <div class="metric-sub" data-i18n="metric_lat_sub">Tempo de transcrição local</div>
         </div>
-        <span class="flow-arrow" aria-hidden="true">→</span>
-        <div class="flow-step">
-          <span class="step-dot"></span>
-          <span data-i18n="flow_step3">3. Normalização NLP</span>
+        <div class="metric-card">
+          <div class="metric-val" data-i18n="metric_priv_val">100% Offline</div>
+          <div class="metric-title" data-i18n="metric_priv_title">Soberania de Dados</div>
+          <div class="metric-sub" data-i18n="metric_priv_sub">Zero dados trafegados em nuvem</div>
         </div>
-        <span class="flow-arrow" aria-hidden="true">→</span>
-        <div class="flow-step">
-          <span class="step-dot"></span>
-          <span data-i18n="flow_step4">4. 6 Técnicas de Prompt</span>
-        </div>
-        <span class="flow-arrow" aria-hidden="true">→</span>
-        <div class="flow-step">
-          <span class="step-dot active"></span>
-          <span data-i18n="flow_step5">5. Modelo LLM</span>
+        <div class="metric-card">
+          <div class="metric-val" data-i18n="metric_prompts_val">6 Padrões</div>
+          <div class="metric-title" data-i18n="metric_prompts_title">Engenharia de Prompt</div>
+          <div class="metric-sub" data-i18n="metric_prompts_sub">Síntese em XML estruturado</div>
         </div>
       </div>
     </section>
 
-    <!-- ==========================================================================
-         INTERACTIVE SIMULATION STUDIO
-         ========================================================================== -->
-    <div class="section-header">
-      <h2 class="section-title">
-        <span data-i18n="studio_title">Studio Interativo de Prompting</span>
-      </h2>
-      <span class="section-subtitle" data-i18n="studio_subtitle">Simule áudios falados, teste filtros NLP e gere prompts estruturados em tempo real.</span>
-    </div>
+    <!-- DIVISÃO 2: PIPELINE DE 5 PASSOS (WIDESCREEN & DESTACADO) -->
+    <section class="modular-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span data-i18n="pipeline_title">Pipeline de Processamento em 5 Estágios</span>
+        </h2>
+        <span class="section-subtitle" data-i18n="pipeline_subtitle">Fluxo determinístico de ponta a ponta: do áudio analógico à execução de inferência em LLM.</span>
+      </div>
 
-    <div class="studio-card">
-      <div class="studio-grid">
-        
-        <!-- LEFT COLUMN: INPUT CONTROLS -->
-        <div class="input-column">
+      <div class="pipeline-wrapper">
+        <div class="pipeline-track">
           
-          <!-- Audio Presets Selector -->
-          <div class="presets-row">
-            <span class="presets-label" data-i18n="presets_label">Exemplos de Fala:</span>
-            <div class="preset-buttons">
-              <button onclick="loadPreset(1)" class="preset-btn active" id="preset-btn-1">
-                <span data-i18n="preset_1_name">Bug JWT (CoT)</span>
-              </button>
-              <button onclick="loadPreset(2)" class="preset-btn" id="preset-btn-2">
-                <span data-i18n="preset_2_name">Webhook PIX (CO-STAR)</span>
-              </button>
-              <button onclick="loadPreset(3)" class="preset-btn" id="preset-btn-3">
-                <span data-i18n="preset_3_name">Arquitetura (Role)</span>
-              </button>
-            </div>
+          <!-- Step 1 -->
+          <div class="pipeline-step-card">
+            <span class="pipe-badge" data-i18n="pipe1_step">ETAPA 01</span>
+            <div class="pipe-title" data-i18n="pipe1_title">1. Áudio (WAV/MP3)</div>
+            <div class="pipe-desc" data-i18n="pipe1_desc">Streaming 64KB com validação binária de magic bytes (RIFF/ID3).</div>
           </div>
 
-          <!-- Simulated Audio Player Strip -->
-          <div class="audio-player-box">
-            <button onclick="toggleAudioPlayback()" class="play-btn" id="audio-play-btn" title="Simular reprodução de áudio" aria-label="Reproduzir áudio">
-              <span id="play-icon">▶</span>
-            </button>
-            <div class="audio-meta">
-              <div class="audio-meta-header">
-                <span id="audio-filename" class="audio-filename">audio_sample_bug_jwt.wav</span>
-                <span class="audio-format-badge">RIFF/WAVE 16kHz</span>
-              </div>
-              <canvas id="waveform-canvas" width="400" height="28"></canvas>
-            </div>
+          <div class="pipeline-arrow" aria-hidden="true">→</div>
+
+          <!-- Step 2 -->
+          <div class="pipeline-step-card">
+            <span class="pipe-badge" data-i18n="pipe2_step">ETAPA 02</span>
+            <div class="pipe-title" data-i18n="pipe2_title">2. Whisper CPU (INT8)</div>
+            <div class="pipe-desc" data-i18n="pipe2_desc">ASR acústico + Decoder SLM autoregressivo de alta precisão.</div>
           </div>
 
-          <!-- Input Raw Speech Box -->
-          <div>
-            <div class="field-label-row">
-              <label class="field-label" for="raw-transcript" data-i18n="raw_input_label">Transcrição Acústica Bruta (Whisper):</label>
-              <span class="field-hint" data-i18n="raw_input_hint">Fala espontânea com disfluências</span>
-            </div>
-            <textarea id="raw-transcript" class="raw-speech-box" rows="3" oninput="executePipeline()"></textarea>
+          <div class="pipeline-arrow" aria-hidden="true">→</div>
+
+          <!-- Step 3 -->
+          <div class="pipeline-step-card">
+            <span class="pipe-badge" data-i18n="pipe3_step">ETAPA 03</span>
+            <div class="pipe-title" data-i18n="pipe3_title">3. Normalização NLP</div>
+            <div class="pipe-desc" data-i18n="pipe3_desc">Remoção determinística de hesitações, pausas e muletas vocais.</div>
           </div>
 
-          <!-- Output Mode & NLP Toggle Grid -->
-          <div class="controls-grid">
-            <div>
-              <span class="control-block-label" data-i18n="mode_label">Modo de Saída:</span>
-              <div class="toggle-group">
-                <button onclick="setOutputMode('prompt')" id="mode-prompt-btn" class="active">Prompt</button>
-                <button onclick="setOutputMode('txt')" id="mode-txt-btn">.txt Puro</button>
-              </div>
-            </div>
+          <div class="pipeline-arrow" aria-hidden="true">→</div>
 
-            <div>
-              <span class="control-block-label" data-i18n="nlp_label">Higienização NLP:</span>
-              <label class="nlp-checkbox-card">
-                <span data-i18n="nlp_checkbox_text">Filtrar muletas vocais</span>
-                <input type="checkbox" id="nlp-toggle" checked onchange="executePipeline()">
-              </label>
-            </div>
+          <!-- Step 4 -->
+          <div class="pipeline-step-card">
+            <span class="pipe-badge" data-i18n="pipe4_step">ETAPA 04</span>
+            <div class="pipe-title" data-i18n="pipe4_title">4. 6 Técnicas de Prompt</div>
+            <div class="pipe-desc" data-i18n="pipe4_desc">Síntese contextual em XML com escape estrito anti-injection.</div>
           </div>
 
-          <!-- Prompt Technique Selector -->
-          <div class="techniques-panel" id="tech-selector-container">
-            <span class="control-block-label" data-i18n="technique_label">Técnica de Prompt Engineering:</span>
-            <div class="technique-buttons">
-              <button onclick="setTechnique('chain_of_thought')" id="btn-tech-chain_of_thought" class="tech-btn active">
-                CoT
-              </button>
-              <button onclick="setTechnique('co_star')" id="btn-tech-co_star" class="tech-btn">
-                CO-STAR
-              </button>
-              <button onclick="setTechnique('role_prompting')" id="btn-tech-role_prompting" class="tech-btn">
-                Role
-              </button>
-              <button onclick="setTechnique('zero_shot')" id="btn-tech-zero_shot" class="tech-btn">
-                Zero-Shot
-              </button>
-              <button onclick="setTechnique('few_shot')" id="btn-tech-few_shot" class="tech-btn">
-                Few-Shot
-              </button>
-              <button onclick="setTechnique('react')" id="btn-tech-react" class="tech-btn">
-                ReAct
-              </button>
-            </div>
+          <div class="pipeline-arrow" aria-hidden="true">→</div>
+
+          <!-- Step 5 -->
+          <div class="pipeline-step-card active">
+            <span class="pipe-badge" data-i18n="pipe5_step">ETAPA 05</span>
+            <div class="pipe-title" data-i18n="pipe5_title">5. Modelo LLM</div>
+            <div class="pipe-desc" data-i18n="pipe5_desc">Execução desacoplada via Ollama (Local) ou Grok (Cloud xAI).</div>
           </div>
 
         </div>
+      </div>
+    </section>
 
-        <!-- RIGHT COLUMN: PROMPT / TXT OUTPUT -->
-        <div class="output-column">
-          <div class="output-box-wrapper">
+    <!-- DIVISÃO 3: STUDIO INTERATIVO (WIDESCREEN DASHBOARD 42% / 58%) -->
+    <section class="modular-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span data-i18n="studio_title">Studio Interativo de Prompting</span>
+        </h2>
+        <span class="section-subtitle" data-i18n="studio_subtitle">Simule áudios falados, teste filtros NLP e gere prompts estruturados em tempo real.</span>
+      </div>
+
+      <div class="studio-card">
+        <div class="studio-grid">
+          
+          <!-- LEFT COLUMN: INPUT CONTROLS (42%) -->
+          <div class="input-column">
             
-            <div class="output-header">
-              <div class="output-meta">
-                <span class="output-tag" id="output-badge">Prompt: chain_of_thought</span>
-                <span class="output-stats" id="output-stats">• Latência: ~280ms (INT8)</span>
-              </div>
-              <div class="output-actions">
-                <button onclick="copyToClipboard()" class="action-btn" id="copy-btn">
-                  <span data-i18n="btn_copy">Copiar</span>
+            <!-- Audio Presets Selector -->
+            <div class="presets-row">
+              <span class="presets-label" data-i18n="presets_label">Exemplos de Fala:</span>
+              <div class="preset-buttons">
+                <button onclick="loadPreset(1)" class="preset-btn active" id="preset-btn-1">
+                  <span data-i18n="preset_1_name">Bug JWT (CoT)</span>
                 </button>
-                <button onclick="downloadOutput()" class="action-btn" id="download-btn">
-                  <span data-i18n="btn_download">Baixar</span>
+                <button onclick="loadPreset(2)" class="preset-btn" id="preset-btn-2">
+                  <span data-i18n="preset_2_name">Webhook PIX (CO-STAR)</span>
+                </button>
+                <button onclick="loadPreset(3)" class="preset-btn" id="preset-btn-3">
+                  <span data-i18n="preset_3_name">Arquitetura (Role)</span>
                 </button>
               </div>
             </div>
 
-            <!-- View Mode Switcher: Prompt vs LLM Output -->
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.4rem 0.85rem; background-color:var(--bg-surface); border-bottom:1px solid var(--border-color); flex-wrap:wrap; gap:0.4rem;">
-              <div class="toggle-group" style="padding:2px; height:28px;">
-                <button onclick="setOutputView('prompt')" id="btn-view-prompt" class="active" style="padding:0.15rem 0.65rem; font-size:0.72rem;">
-                  <span data-i18n="tab_prompt">Prompt Gerado</span>
+            <!-- Simulated Audio Player Strip -->
+            <div class="audio-player-box">
+              <button onclick="toggleAudioPlayback()" class="play-btn" id="audio-play-btn" title="Simular reprodução de áudio" aria-label="Reproduzir áudio">
+                <span id="play-icon">▶</span>
+              </button>
+              <div class="audio-meta">
+                <div class="audio-meta-header">
+                  <span id="audio-filename" class="audio-filename">audio_sample_bug_jwt.wav</span>
+                  <span class="audio-format-badge">RIFF/WAVE 16kHz</span>
+                </div>
+                <canvas id="waveform-canvas" width="500" height="30"></canvas>
+              </div>
+            </div>
+
+            <!-- Input Raw Speech Box -->
+            <div>
+              <div class="field-label-row">
+                <label class="field-label" for="raw-transcript" data-i18n="raw_input_label">Transcrição Acústica Bruta (Whisper):</label>
+                <span class="field-hint" data-i18n="raw_input_hint">Fala espontânea com disfluências</span>
+              </div>
+              <textarea id="raw-transcript" class="raw-speech-box" rows="3" oninput="executePipeline()"></textarea>
+            </div>
+
+            <!-- Output Mode & NLP Toggle Grid -->
+            <div class="controls-grid">
+              <div>
+                <span class="control-block-label" data-i18n="mode_label">Modo de Saída:</span>
+                <div class="toggle-group">
+                  <button onclick="setOutputMode('prompt')" id="mode-prompt-btn" class="active">Prompt</button>
+                  <button onclick="setOutputMode('txt')" id="mode-txt-btn">.txt Puro</button>
+                </div>
+              </div>
+
+              <div>
+                <span class="control-block-label" data-i18n="nlp_label">Higienização NLP:</span>
+                <label class="nlp-checkbox-card">
+                  <span data-i18n="nlp_checkbox_text">Filtrar muletas vocais</span>
+                  <input type="checkbox" id="nlp-toggle" checked onchange="executePipeline()">
+                </label>
+              </div>
+            </div>
+
+            <!-- Prompt Technique Selector -->
+            <div class="techniques-panel" id="tech-selector-container">
+              <span class="control-block-label" data-i18n="technique_label">Técnica de Prompt Engineering:</span>
+              <div class="technique-buttons">
+                <button onclick="setTechnique('chain_of_thought')" id="btn-tech-chain_of_thought" class="tech-btn active">
+                  CoT
                 </button>
-                <button onclick="setOutputView('llm')" id="btn-view-llm" style="padding:0.15rem 0.65rem; font-size:0.72rem;">
-                  <span data-i18n="tab_llm">Execução LLM</span>
+                <button onclick="setTechnique('co_star')" id="btn-tech-co_star" class="tech-btn">
+                  CO-STAR
+                </button>
+                <button onclick="setTechnique('role_prompting')" id="btn-tech-role_prompting" class="tech-btn">
+                  Role
+                </button>
+                <button onclick="setTechnique('zero_shot')" id="btn-tech-zero_shot" class="tech-btn">
+                  Zero-Shot
+                </button>
+                <button onclick="setTechnique('few_shot')" id="btn-tech-few_shot" class="tech-btn">
+                  Few-Shot
+                </button>
+                <button onclick="setTechnique('react')" id="btn-tech-react" class="tech-btn">
+                  ReAct
                 </button>
               </div>
-              <span id="view-mode-hint" style="font-family:var(--font-mono); font-size:0.6875rem; color:var(--text-muted);">
-                Whisper CPU → Prompt Engine → LLM Execution
-              </span>
             </div>
-
-            <!-- NLP Diff Info Bar -->
-            <div class="clean-diff-bar">
-              <span class="clean-diff-title">NLP Clean:</span>
-              <span class="clean-diff-text" id="nlp-diff-preview">Texto normalizado sem disfluências</span>
-            </div>
-
-            <!-- Output Content Area -->
-            <pre class="output-code-area" id="output-content-area"></pre>
 
           </div>
-        </div>
 
+          <!-- RIGHT COLUMN: PROMPT / TXT OUTPUT (58%) -->
+          <div class="output-column">
+            <div class="output-box-wrapper">
+              
+              <div class="output-header">
+                <div class="output-meta">
+                  <span class="output-tag" id="output-badge">Prompt: chain_of_thought</span>
+                  <span class="output-stats" id="output-stats">• Latência: ~280ms (INT8)</span>
+                </div>
+                <div class="output-actions">
+                  <button onclick="copyToClipboard()" class="action-btn" id="copy-btn">
+                    <span data-i18n="btn_copy">Copiar</span>
+                  </button>
+                  <button onclick="downloadOutput()" class="action-btn" id="download-btn">
+                    <span data-i18n="btn_download">Baixar</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- View Mode Switcher: Prompt vs LLM Output -->
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:0.45rem 1rem; background-color:var(--bg-surface); border-bottom:1px solid var(--border-color); flex-wrap:wrap; gap:0.4rem;">
+                <div class="toggle-group" style="padding:2px; height:28px;">
+                  <button onclick="setOutputView('prompt')" id="btn-view-prompt" class="active" style="padding:0.15rem 0.75rem; font-size:0.72rem;">
+                    <span data-i18n="tab_prompt">Prompt Gerado</span>
+                  </button>
+                  <button onclick="setOutputView('llm')" id="btn-view-llm" style="padding:0.15rem 0.75rem; font-size:0.72rem;">
+                    <span data-i18n="tab_llm">Execução LLM</span>
+                  </button>
+                </div>
+                <span id="view-mode-hint" style="font-family:var(--font-mono); font-size:0.6875rem; color:var(--text-muted);">
+                  Whisper CPU → Prompt Engine → LLM Execution
+                </span>
+              </div>
+
+              <!-- NLP Diff Info Bar -->
+              <div class="clean-diff-bar">
+                <span class="clean-diff-title">NLP Clean:</span>
+                <span class="clean-diff-text" id="nlp-diff-preview">Texto normalizado sem disfluências</span>
+              </div>
+
+              <!-- Output Content Area -->
+              <pre class="output-code-area" id="output-content-area"></pre>
+
+            </div>
+          </div>
+
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ==========================================================================
-         6 PROMPT ENGINEERING TECHNIQUES CARDS
-         ========================================================================== -->
-    <div class="section-header">
-      <h2 class="section-title">
-        <span data-i18n="cards_section_title">As 6 Técnicas de Prompt Suportadas</span>
-      </h2>
-      <span class="section-subtitle" data-i18n="cards_section_subtitle">Padrões cognitivos estruturados para extrair o máximo de precisão de qualquer LLM.</span>
-    </div>
-
-    <div class="techniques-grid">
-      
-      <!-- Card 1: Zero-Shot -->
-      <div class="card">
-        <div class="card-top">
-          <span class="card-icon">🎯</span>
-          <span class="card-badge">Direct Instruction</span>
-        </div>
-        <h3 class="card-title">Zero-Shot</h3>
-        <p class="card-desc" data-i18n="card_zero_shot_desc">
-          Instrução imperativa e minimalista com seções explícitas de Contexto, Tarefa e Formato esperado sem condicionamento por exemplos.
-        </p>
-        <div class="card-when">
-          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_zero_shot_when">Perguntas objetivas, refatorações pontuais e consultas rápidas sem ambiguidade.</span>
-        </div>
-        <button onclick="applyTechniqueAndScroll('zero_shot')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio →
-        </button>
-      </div>
-
-      <!-- Card 2: Few-Shot -->
-      <div class="card">
-        <div class="card-top">
-          <span class="card-icon">📚</span>
-          <span class="card-badge">Pattern Conditioning</span>
-        </div>
-        <h3 class="card-title">Few-Shot</h3>
-        <p class="card-desc" data-i18n="card_few_shot_desc">
-          Condicionamento em contexto através de pares de Entrada → Saída demonstrando a tipagem, estrutura sintática ou formato desejado.
-        </p>
-        <div class="card-when">
-          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_few_shot_when">Extração de entidades, formatação em JSON/YAML rigoroso e padronização corporativa.</span>
-        </div>
-        <button onclick="applyTechniqueAndScroll('few_shot')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio →
-        </button>
-      </div>
-
-      <!-- Card 3: Chain-of-Thought (CoT) -->
-      <div class="card">
-        <div class="card-top">
-          <span class="card-icon">🧠</span>
-          <span class="card-badge">Step-by-Step</span>
-        </div>
-        <h3 class="card-title">Chain-of-Thought (CoT)</h3>
-        <p class="card-desc" data-i18n="card_cot_desc">
-          Instrui o modelo a decompor explicitamente o raciocínio em etapas analíticas antes de entregar a conclusão ou implementação.
-        </p>
-        <div class="card-when">
-          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_cot_when">Resolução de bugs complexos, cálculos de negócio, lógica de arquitetura e trade-offs.</span>
-        </div>
-        <button onclick="applyTechniqueAndScroll('chain_of_thought')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio →
-        </button>
+    <!-- DIVISÃO 4: CATÁLOGO DAS 6 TÉCNICAS COGNITIVAS (3 COLUNAS LARGAS) -->
+    <section class="modular-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span data-i18n="cards_section_title">As 6 Técnicas de Prompt Suportadas</span>
+        </h2>
+        <span class="section-subtitle" data-i18n="cards_section_subtitle">Padrões cognitivos estruturados para extrair o máximo de precisão de qualquer LLM.</span>
       </div>
 
-      <!-- Card 4: Role Prompting -->
-      <div class="card">
-        <div class="card-top">
-          <span class="card-icon">🎭</span>
-          <span class="card-badge">Expert Persona</span>
-        </div>
-        <h3 class="card-title">Role Prompting</h3>
-        <p class="card-desc" data-i18n="card_role_desc">
-          Atribuição de uma persona sênior especializada com diretrizes claras de postura, tom analítico, profundidade técnica e restrições.
-        </p>
-        <div class="card-when">
-          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_role_when">Code reviews de alto nível, consultorias de engenharia e auditorias de segurança.</span>
-        </div>
-        <button onclick="applyTechniqueAndScroll('role_prompting')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio →
-        </button>
-      </div>
-
-      <!-- Card 5: CO-STAR Framework -->
-      <div class="card">
-        <div class="card-top">
-          <span class="card-icon">⭐</span>
-          <span class="card-badge">Enterprise Standard</span>
-        </div>
-        <h3 class="card-title">CO-STAR Framework</h3>
-        <p class="card-desc" data-i18n="card_costar_desc">
-          Estruturação corporativa em 6 pilares inegociáveis: Context, Objective, Style, Tone, Audience e Response.
-        </p>
-        <div class="card-when">
-          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_costar_when">Prompts para esteiras produtivas, especificações funcionais e relatórios técnicos formais.</span>
-        </div>
-        <button onclick="applyTechniqueAndScroll('co_star')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio →
-        </button>
-      </div>
-
-      <!-- Card 6: ReAct (Reasoning + Acting) -->
-      <div class="card">
-        <div class="card-top">
-          <span class="card-icon">🔄</span>
-          <span class="card-badge">Agentic Loop</span>
-        </div>
-        <h3 class="card-title">ReAct Pattern</h3>
-        <p class="card-desc" data-i18n="card_react_desc">
-          Ciclo autônomo e estruturado de raciocínio e ação: Thought (pensamento) → Action (ação/ferramenta) → Observation (observação) → Resposta Final.
-        </p>
-        <div class="card-when">
-          <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_react_when">Agentes autônomos, integrações com ferramentas (*tool calling*) e orquestração multi-etapas.</span>
-        </div>
-        <button onclick="applyTechniqueAndScroll('react')" class="card-action-btn" data-i18n="btn_test_studio">
-          Testar no Studio →
-        </button>
-      </div>
-
-    </div>
-
-    <!-- ==========================================================================
-         ARCHITECTURE & WHISPER SLM INSIGHTS
-         ========================================================================== -->
-    <div class="section-header">
-      <h2 class="section-title">
-        <span data-i18n="arch_section_title">Arquitetura: ASR Acústico vs. SLM Contextual</span>
-      </h2>
-      <span class="section-subtitle" data-i18n="arch_section_subtitle">Como o Whisper une extração fonética a modelos de linguagem autoregressivos em CPU.</span>
-    </div>
-
-    <div class="arch-container">
-      <div class="arch-grid">
+      <div class="techniques-grid">
         
-        <div class="arch-block">
-          <div class="arch-block-title">
-            <span data-i18n="arch_encoder_title">1. Audio Encoder (Representação Acústica)</span>
+        <!-- Card 1: Zero-Shot -->
+        <div class="card">
+          <div class="card-top">
+            <span class="card-num">01</span>
+            <span class="card-badge">Direct Instruction</span>
           </div>
-          <p class="arch-block-desc" data-i18n="arch_encoder_desc">
-            Processa blocos de 30s de áudio convertidos em espectrogramas Log-Mel de 80 canais. Sua função é extrair vetores densos contínuos representando fonemas, pausas, prosódia e entonação.
+          <h3 class="card-title">Zero-Shot</h3>
+          <p class="card-desc" data-i18n="card_zero_shot_desc">
+            Instrução imperativa e minimalista com seções explícitas de Contexto, Tarefa e Formato esperado sem condicionamento por exemplos.
           </p>
+          <div class="card-when">
+            <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_zero_shot_when">Perguntas objetivas, refatorações pontuais e consultas rápidas sem ambiguidade.</span>
+          </div>
+          <button onclick="applyTechniqueAndScroll('zero_shot')" class="card-action-btn" data-i18n="btn_test_studio">
+            Testar no Studio →
+          </button>
         </div>
 
-        <div class="arch-block">
-          <div class="arch-block-title">
-            <span data-i18n="arch_decoder_title">2. Text Decoder (O SLM Autoregressivo)</span>
+        <!-- Card 2: Few-Shot -->
+        <div class="card">
+          <div class="card-top">
+            <span class="card-num">02</span>
+            <span class="card-badge">Pattern Conditioning</span>
           </div>
-          <p class="arch-block-desc" data-i18n="arch_decoder_desc">
-            Opera como um Small Language Model autoregressivo. Não apenas "escuta", mas prevê o próximo token baseado no contexto semântico anterior, resolvendo homófonos (ex: <em>"sessão"</em> vs. <em>"seção"</em>) e inserindo pontuação automática.
+          <h3 class="card-title">Few-Shot</h3>
+          <p class="card-desc" data-i18n="card_few_shot_desc">
+            Condicionamento em contexto através de pares de Entrada → Saída demonstrando a tipagem, estrutura sintática ou formato desejado.
           </p>
+          <div class="card-when">
+            <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_few_shot_when">Extração de entidades, formatação em JSON/YAML rigoroso e padronização corporativa.</span>
+          </div>
+          <button onclick="applyTechniqueAndScroll('few_shot')" class="card-action-btn" data-i18n="btn_test_studio">
+            Testar no Studio →
+          </button>
+        </div>
+
+        <!-- Card 3: Chain-of-Thought (CoT) -->
+        <div class="card">
+          <div class="card-top">
+            <span class="card-num">03</span>
+            <span class="card-badge">Step-by-Step</span>
+          </div>
+          <h3 class="card-title">Chain-of-Thought (CoT)</h3>
+          <p class="card-desc" data-i18n="card_cot_desc">
+            Instrui o modelo a decompor explicitamente o raciocínio em etapas analíticas antes de entregar a conclusão ou implementação.
+          </p>
+          <div class="card-when">
+            <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_cot_when">Resolução de bugs complexos, cálculos de negócio, lógica de arquitetura e trade-offs.</span>
+          </div>
+          <button onclick="applyTechniqueAndScroll('chain_of_thought')" class="card-action-btn" data-i18n="btn_test_studio">
+            Testar no Studio →
+          </button>
+        </div>
+
+        <!-- Card 4: Role Prompting -->
+        <div class="card">
+          <div class="card-top">
+            <span class="card-num">04</span>
+            <span class="card-badge">Expert Persona</span>
+          </div>
+          <h3 class="card-title">Role Prompting</h3>
+          <p class="card-desc" data-i18n="card_role_desc">
+            Atribuição de uma persona sênior especializada com diretrizes claras de postura, tom analítico, profundidade técnica e restrições.
+          </p>
+          <div class="card-when">
+            <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_role_when">Code reviews de alto nível, consultorias de engenharia e auditorias de segurança.</span>
+          </div>
+          <button onclick="applyTechniqueAndScroll('role_prompting')" class="card-action-btn" data-i18n="btn_test_studio">
+            Testar no Studio →
+          </button>
+        </div>
+
+        <!-- Card 5: CO-STAR Framework -->
+        <div class="card">
+          <div class="card-top">
+            <span class="card-num">05</span>
+            <span class="card-badge">Enterprise Standard</span>
+          </div>
+          <h3 class="card-title">CO-STAR Framework</h3>
+          <p class="card-desc" data-i18n="card_costar_desc">
+            Estruturação corporativa em 6 pilares inegociáveis: Context, Objective, Style, Tone, Audience e Response.
+          </p>
+          <div class="card-when">
+            <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_costar_when">Prompts para esteiras produtivas, especificações funcionais e relatórios técnicos formais.</span>
+          </div>
+          <button onclick="applyTechniqueAndScroll('co_star')" class="card-action-btn" data-i18n="btn_test_studio">
+            Testar no Studio →
+          </button>
+        </div>
+
+        <!-- Card 6: ReAct (Reasoning + Acting) -->
+        <div class="card">
+          <div class="card-top">
+            <span class="card-num">06</span>
+            <span class="card-badge">Agentic Loop</span>
+          </div>
+          <h3 class="card-title">ReAct Pattern</h3>
+          <p class="card-desc" data-i18n="card_react_desc">
+            Ciclo autônomo e estruturado de raciocínio e ação: Thought (pensamento) → Action (ação/ferramenta) → Observation (observação) → Resposta Final.
+          </p>
+          <div class="card-when">
+            <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_react_when">Agentes autônomos, integrações com ferramentas (tool calling) e orquestração multi-etapas.</span>
+          </div>
+          <button onclick="applyTechniqueAndScroll('react')" class="card-action-btn" data-i18n="btn_test_studio">
+            Testar no Studio →
+          </button>
         </div>
 
       </div>
+    </section>
 
-      <!-- Pentagon of Defense Row -->
-      <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
-        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;" data-i18n="pentagon_title">
-          Pentágono de Defesa (Auditoria & Resiliência)
-        </h3>
-        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n="pentagon_subtitle">
-          5 barreiras de segurança implementadas e validadas por 47 testes automatizados e 23 testes de caos ao vivo:
-        </p>
-
-        <div class="pentagon-grid">
-          <div class="pentagon-card">
-            <span class="pentagon-number">01. DB ISOLATION</span>
-            <div class="pentagon-title" data-i18n="p1_title">Banco sem Tranca</div>
-            <p class="pentagon-desc" data-i18n="p1_desc">Queries SQLite exigem tenant_id. Conexões físicas fechadas com finally: conn.close().</p>
-          </div>
-
-          <div class="pentagon-card">
-            <span class="pentagon-number">02. SERVER RBAC</span>
-            <div class="pentagon-title" data-i18n="p2_title">Permissão no Servidor</div>
-            <p class="pentagon-desc" data-i18n="p2_desc">Role viewer restrita a leitura; ingestão de áudio exige operator/admin com 403 ativo.</p>
-          </div>
-
-          <div class="pentagon-card">
-            <span class="pentagon-number">03. ANTI-IDOR</span>
-            <div class="pentagon-title" data-i18n="p3_title">Anti-IDOR & UUID</div>
-            <p class="pentagon-desc" data-i18n="p3_desc">Validação sintática de UUID v4 no path antes do banco; ID de outro tenant responde 404.</p>
-          </div>
-
-          <div class="pentagon-card">
-            <span class="pentagon-number">04. SECURE KEYS</span>
-            <div class="pentagon-title" data-i18n="p4_title">Chaves & Defaults</div>
-            <p class="pentagon-desc" data-i18n="p4_desc">Sem segredos hardcoded; uploads efêmeros limpos no disco via finally: os.unlink().</p>
-          </div>
-
-          <div class="pentagon-card">
-            <span class="pentagon-number">05. MAGIC BYTES</span>
-            <div class="pentagon-title" data-i18n="p5_title">Sanitização & Streaming</div>
-            <p class="pentagon-desc" data-i18n="p5_desc">Magic bytes binários (RIFF/ID3), stream 64KB com limite 413 e anti-prompt injection falado.</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ==========================================================================
-         ARCHITECTURAL DECISIONS & PROJECT TIMELINE (ADR EXPLORER)
-         ========================================================================== -->
-    <section id="section-adrs" class="adr-section">
-      <div class="section-header-row">
+    <!-- DIVISÃO 5: DECISÕES ARQUITETURAIS (ADRS 001, 002 E 003) -->
+    <section id="section-adrs" class="modular-section">
+      <div class="section-header">
         <div>
           <h2 class="section-title">
             <span data-i18n="adr_section_title">Decisões Arquiteturais & Linha do Tempo (ADRs)</span>
@@ -1827,28 +1870,100 @@
       </div>
     </section>
 
-    <!-- ==========================================================================
-         DOCKER CONTAINERIZATION QUICK-START
-         ========================================================================== -->
-    <div class="docker-banner">
-      <div class="docker-info">
-        <h3 class="docker-title">
-          <span data-i18n="docker_title">Containerização Pronta com Docker & UV</span>
-        </h3>
-        <p class="docker-desc" data-i18n="docker_desc">
-          Imagem multi-stage não-root (<code>appuser:10001</code>) baseada em Debian Bookworm Slim com UV e ffmpeg pré-instalados. Volumes persistentes para SQLite e cache de modelos Whisper.
-        </p>
+    <!-- DIVISÃO 6: PENTÁGONO DE DEFESA (5 PILARES DE SEGURANÇA EM 5 COLUNAS) -->
+    <section class="modular-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span data-i18n="pentagon_section_title">Pentágono de Defesa & Arquitetura Interna</span>
+        </h2>
+        <span class="section-subtitle" data-i18n="pentagon_section_subtitle">
+          5 barreiras de segurança validadas por 47 testes de request specs e 23 testes de caos ao vivo.
+        </span>
       </div>
-      <div class="docker-code-box">
-        <code>$ docker compose up --build</code>
-        <button id="docker-copy-btn" class="docker-copy-btn" onclick="copyDockerCommand()" title="Copiar comando" aria-label="Copiar comando">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-        </button>
+
+      <div class="arch-container">
+        <!-- Architecture Insight Blocks -->
+        <div class="arch-grid">
+          <div class="arch-block">
+            <div class="arch-block-title" data-i18n="arch_encoder_title">1. Audio Encoder (Representação Acústica)</div>
+            <p class="arch-block-desc" data-i18n="arch_encoder_desc">
+              Processa blocos de 30s de áudio convertidos em espectrogramas Log-Mel de 80 canais. Sua função é extrair vetores densos contínuos representando fonemas, pausas, prosódia e entonação.
+            </p>
+          </div>
+
+          <div class="arch-block">
+            <div class="arch-block-title" data-i18n="arch_decoder_title">2. Text Decoder (O SLM Autoregressivo)</div>
+            <p class="arch-block-desc" data-i18n="arch_decoder_desc">
+              Opera como um Small Language Model autoregressivo. Não apenas "escuta", mas prevê o próximo token baseado no contexto semântico anterior, resolvendo homófonos (ex: <em>"sessão"</em> vs. <em>"seção"</em>) e inserindo pontuação automática.
+            </p>
+          </div>
+        </div>
+
+        <!-- Pentagon 5 Columns Row -->
+        <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+          <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;" data-i18n="pentagon_title">
+            Os 5 Pilares de Defesa & Confiabilidade
+          </h3>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1.25rem;" data-i18n="pentagon_subtitle">
+            Garantias estruturais do backend contra vazamentos, injeções acústicas e esgotamento de recursos:
+          </p>
+
+          <div class="pentagon-grid">
+            <div class="pentagon-card">
+              <span class="pentagon-number">01. DB ISOLATION</span>
+              <div class="pentagon-title" data-i18n="p1_title">Banco sem Tranca</div>
+              <p class="pentagon-desc" data-i18n="p1_desc">Queries SQLite exigem tenant_id. Conexões físicas fechadas com finally: conn.close().</p>
+            </div>
+
+            <div class="pentagon-card">
+              <span class="pentagon-number">02. SERVER RBAC</span>
+              <div class="pentagon-title" data-i18n="p2_title">Permissão no Servidor</div>
+              <p class="pentagon-desc" data-i18n="p2_desc">Role viewer restrita a leitura; ingestão de áudio exige operator/admin com 403 ativo.</p>
+            </div>
+
+            <div class="pentagon-card">
+              <span class="pentagon-number">03. ANTI-IDOR</span>
+              <div class="pentagon-title" data-i18n="p3_title">Anti-IDOR & UUID</div>
+              <p class="pentagon-desc" data-i18n="p3_desc">Validação sintática de UUID v4 no path antes do banco; ID de outro tenant responde 404.</p>
+            </div>
+
+            <div class="pentagon-card">
+              <span class="pentagon-number">04. SECURE KEYS</span>
+              <div class="pentagon-title" data-i18n="p4_title">Chaves & Defaults</div>
+              <p class="pentagon-desc" data-i18n="p4_desc">Sem segredos hardcoded; uploads efêmeros limpos no disco via finally: os.unlink().</p>
+            </div>
+
+            <div class="pentagon-card">
+              <span class="pentagon-number">05. MAGIC BYTES</span>
+              <div class="pentagon-title" data-i18n="p5_title">Sanitização & Streaming</div>
+              <p class="pentagon-desc" data-i18n="p5_desc">Magic bytes binários (RIFF/ID3), stream 64KB com limite 413 e anti-prompt injection falado.</p>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
+    </section>
+
+    <!-- DIVISÃO 7: CONTAINERIZAÇÃO DOCKER & INICIALIZAÇÃO RÁPIDA -->
+    <section class="modular-section" style="border-bottom: none;">
+      <div class="docker-banner">
+        <div class="docker-info">
+          <h3 class="docker-title" data-i18n="docker_title">Containerização Pronta com Docker & UV</h3>
+          <p class="docker-desc" data-i18n="docker_desc">
+            Imagem multi-stage não-root (<code>appuser:10001</code>) baseada em Debian Bookworm Slim com UV e ffmpeg pré-instalados. Volumes persistentes para SQLite e cache de modelos Whisper.
+          </p>
+        </div>
+        <div class="docker-code-box">
+          <code>$ docker compose up --build</code>
+          <button id="docker-copy-btn" class="docker-copy-btn" onclick="copyDockerCommand()" title="Copiar comando" aria-label="Copiar comando">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
 
   </main>
 
@@ -1878,27 +1993,38 @@
     const I18N = {
       'pt-BR': {
         nav_docs: 'Decisões Arquiteturais (ADRs)',
-        adr_section_title: 'Decisões Arquiteturais & Linha do Tempo (ADRs)',
-        adr_section_subtitle: 'Registro técnico de decisões arquiteturais: contexto, decisões adotadas, alternativas rejeitadas e Pentágono de Defesa.',
-        adr_active_hint: 'Selecionado',
-        adr1_badge: 'Fase 1 • Core Engine',
-        adr1_short_title: 'Transcrição Local & Síntese de Prompts',
-        adr2_badge: 'Fase 2 • DevOps',
-        adr2_short_title: 'Containerização Hermética com Astral UV',
-        adr3_badge: 'Fase 3 • LLM Orchestration',
-        adr3_short_title: 'Inferência LLM Desacoplada',
-        adr_pillar_context_title: '1. Contexto & Forças Motivadoras',
-        adr_pillar_decision_title: '2. Decisão Técnica Adotada',
-        adr_pillar_rejected_title: '3. Alternativas Rejeitadas & Por Quê',
-        adr_pillar_security_title: '4. Impacto no Pentágono de Defesa',
         hero_tagline: 'Reconhecimento de Fala Local & Engenharia Cognitiva',
         hero_title: 'Da Fala Espontânea a Prompts Prontos para LLMs',
         hero_desc: 'Motor backend em Python (FastAPI) com inferência local Faster-Whisper INT8 em CPU, normalização determinística NLP e síntese profissional em 6 técnicas de prompt engineering.',
-        flow_step1: '1. Áudio (WAV/MP3)',
-        flow_step2: '2. Whisper CPU (INT8)',
-        flow_step3: '3. Normalização NLP',
-        flow_step4: '4. 6 Técnicas de Prompt',
-        flow_step5: '5. Modelo LLM',
+        metric_ram_val: '~150 MB',
+        metric_ram_title: 'Memória em CPU',
+        metric_ram_sub: 'Whisper INT8 vs >800MB PyTorch',
+        metric_lat_val: '~280ms',
+        metric_lat_title: 'Latência de Inferência',
+        metric_lat_sub: 'Tempo de transcrição local',
+        metric_priv_val: '100% Offline',
+        metric_priv_title: 'Soberania de Dados',
+        metric_priv_sub: 'Zero dados trafegados em nuvem',
+        metric_prompts_val: '6 Padrões',
+        metric_prompts_title: 'Engenharia de Prompt',
+        metric_prompts_sub: 'Síntese em XML estruturado',
+        pipeline_title: 'Pipeline de Processamento em 5 Estágios',
+        pipeline_subtitle: 'Fluxo determinístico de ponta a ponta: do áudio analógico à execução de inferência em LLM.',
+        pipe1_step: 'ETAPA 01',
+        pipe1_title: '1. Áudio (WAV/MP3)',
+        pipe1_desc: 'Streaming 64KB com validação binária de magic bytes (RIFF/ID3).',
+        pipe2_step: 'ETAPA 02',
+        pipe2_title: '2. Whisper CPU (INT8)',
+        pipe2_desc: 'ASR acústico + Decoder SLM autoregressivo de alta precisão.',
+        pipe3_step: 'ETAPA 03',
+        pipe3_title: '3. Normalização NLP',
+        pipe3_desc: 'Remoção determinística de hesitações, pausas e muletas vocais.',
+        pipe4_step: 'ETAPA 04',
+        pipe4_title: '4. 6 Técnicas de Prompt',
+        pipe4_desc: 'Síntese contextual em XML com escape estrito anti-injection.',
+        pipe5_step: 'ETAPA 05',
+        pipe5_title: '5. Modelo LLM',
+        pipe5_desc: 'Execução desacoplada via Ollama (Local) ou Grok (Cloud xAI).',
         studio_title: 'Studio Interativo de Prompting',
         studio_subtitle: 'Simule áudios falados, teste filtros NLP e gere prompts estruturados em tempo real.',
         presets_label: 'Exemplos de Fala:',
@@ -1931,14 +2057,27 @@
         card_react_when: 'Agentes autônomos, integrações com ferramentas (tool calling) e orquestração multi-etapas.',
         btn_test_studio: 'Testar no Studio →',
         lbl_when: 'Quando usar:',
-        arch_section_title: 'Arquitetura: ASR Acústico vs. SLM Contextual',
-        arch_section_subtitle: 'Como o Whisper une extração fonética a modelos de linguagem autoregressivos em CPU.',
+        adr_section_title: 'Decisões Arquiteturais & Linha do Tempo (ADRs)',
+        adr_section_subtitle: 'Registro técnico de decisões arquiteturais: contexto, decisões adotadas, alternativas rejeitadas e Pentágono de Defesa.',
+        adr_active_hint: 'Selecionado',
+        adr1_badge: 'Fase 1 • Core Engine',
+        adr1_short_title: 'Transcrição Local & Síntese de Prompts',
+        adr2_badge: 'Fase 2 • DevOps',
+        adr2_short_title: 'Containerização Hermética com Astral UV',
+        adr3_badge: 'Fase 3 • LLM Orchestration',
+        adr3_short_title: 'Inferência LLM Desacoplada',
+        adr_pillar_context_title: '1. Contexto & Forças Motivadoras',
+        adr_pillar_decision_title: '2. Decisão Técnica Adotada',
+        adr_pillar_rejected_title: '3. Alternativas Rejeitadas & Por Quê',
+        adr_pillar_security_title: '4. Impacto no Pentágono de Defesa',
+        pentagon_section_title: 'Pentágono de Defesa & Arquitetura Interna',
+        pentagon_section_subtitle: '5 barreiras de segurança validadas por 47 testes de request specs e 23 testes de caos ao vivo.',
         arch_encoder_title: '1. Audio Encoder (Representação Acústica)',
         arch_encoder_desc: 'Processa blocos de 30s de áudio convertidos em espectrogramas Log-Mel de 80 canais. Sua função é extrair vetores densos contínuos representando fonemas, pausas, prosódia e entonação.',
         arch_decoder_title: '2. Text Decoder (O SLM Autoregressivo)',
         arch_decoder_desc: 'Opera como um Small Language Model autoregressivo. Não apenas "escuta", mas prevê o próximo token baseado no contexto semântico anterior, resolvendo homófonos (ex: "sessão" vs. "seção") e inserindo pontuação automática.',
-        pentagon_title: 'Pentágono de Defesa (Auditoria & Resiliência)',
-        pentagon_subtitle: '5 barreiras de segurança implementadas e validadas por 47 testes automatizados e 23 testes de caos ao vivo:',
+        pentagon_title: 'Os 5 Pilares de Defesa & Confiabilidade',
+        pentagon_subtitle: 'Garantias estruturais do backend contra vazamentos, injeções acústicas e esgotamento de recursos:',
         p1_title: 'Banco sem Tranca',
         p1_desc: 'Queries SQLite exigem tenant_id. Conexões físicas fechadas com finally: conn.close().',
         p2_title: 'Permissão no Servidor',
@@ -1956,27 +2095,38 @@
       },
       'en': {
         nav_docs: 'Architectural Decisions (ADRs)',
-        adr_section_title: 'Architectural Decisions & Project Timeline (ADRs)',
-        adr_section_subtitle: 'Technical record of architectural decisions: context, technical choices, rejected alternatives, and Defense Pentagon.',
-        adr_active_hint: 'Selected',
-        adr1_badge: 'Phase 1 • Core Engine',
-        adr1_short_title: 'Local Transcription & Prompt Synthesis',
-        adr2_badge: 'Phase 2 • DevOps',
-        adr2_short_title: 'Hermetic Containerization with Astral UV',
-        adr3_badge: 'Phase 3 • LLM Orchestration',
-        adr3_short_title: 'Decoupled LLM Inference',
-        adr_pillar_context_title: '1. Context & Key Drivers',
-        adr_pillar_decision_title: '2. Adopted Technical Decision',
-        adr_pillar_rejected_title: '3. Rejected Alternatives & Trade-offs',
-        adr_pillar_security_title: '4. Defense Pentagon Impact',
         hero_tagline: 'Local Speech Recognition & Cognitive Prompting',
         hero_title: 'From Spontaneous Speech to Production-Ready LLM Prompts',
         hero_desc: 'High-performance Python (FastAPI) backend with Faster-Whisper CPU INT8 local inference, deterministic NLP normalization, and structured synthesis in 6 prompt techniques.',
-        flow_step1: '1. Audio (WAV/MP3)',
-        flow_step2: '2. Whisper CPU (INT8)',
-        flow_step3: '3. NLP Normalization',
-        flow_step4: '4. 6 Prompt Techniques',
-        flow_step5: '5. Target LLM',
+        metric_ram_val: '~150 MB',
+        metric_ram_title: 'CPU Memory Footprint',
+        metric_ram_sub: 'Whisper INT8 vs >800MB PyTorch',
+        metric_lat_val: '~280ms',
+        metric_lat_title: 'Inference Latency',
+        metric_lat_sub: 'Local CPU transcription duration',
+        metric_priv_val: '100% Offline',
+        metric_priv_title: 'Data Sovereignty',
+        metric_priv_sub: 'Zero voice bytes leave host perimeter',
+        metric_prompts_val: '6 Patterns',
+        metric_prompts_title: 'Prompt Engineering',
+        metric_prompts_sub: 'Structured XML synthesis output',
+        pipeline_title: '5-Stage Processing Pipeline',
+        pipeline_subtitle: 'Deterministic end-to-end flow: from streaming audio to target LLM inference execution.',
+        pipe1_step: 'STAGE 01',
+        pipe1_title: '1. Audio (WAV/MP3)',
+        pipe1_desc: '64KB chunk streaming with binary magic bytes verification (RIFF/ID3).',
+        pipe2_step: 'STAGE 02',
+        pipe2_title: '2. Whisper CPU (INT8)',
+        pipe2_desc: 'Acoustic ASR + autoregressive contextual SLM Decoder.',
+        pipe3_step: 'STAGE 03',
+        pipe3_title: '3. NLP Normalization',
+        pipe3_desc: 'Deterministic cleanup of vocal fillers and spoken disfluencies.',
+        pipe4_step: 'STAGE 04',
+        pipe4_title: '4. 6 Prompt Techniques',
+        pipe4_desc: 'XML prompt compilation with strict acoustic injection escaping.',
+        pipe5_step: 'STAGE 05',
+        pipe5_title: '5. Target LLM',
+        pipe5_desc: 'Decoupled execution via Ollama (Local) or Grok (Cloud xAI).',
         studio_title: 'Interactive Prompting Studio',
         studio_subtitle: 'Simulate spoken audio, test NLP cleanup filters, and synthesize structured prompts in real-time.',
         presets_label: 'Spoken Presets:',
@@ -2009,14 +2159,27 @@
         card_react_when: 'Autonomous agents, external tool calling integrations, and multi-step automation.',
         btn_test_studio: 'Test in Studio →',
         lbl_when: 'When to use:',
-        arch_section_title: 'Architecture: Acoustic ASR vs. Contextual SLM',
-        arch_section_subtitle: 'How Whisper fuses acoustic feature extraction with autoregressive language modeling on CPU.',
+        adr_section_title: 'Architectural Decisions & Project Timeline (ADRs)',
+        adr_section_subtitle: 'Technical record of architectural decisions: context, technical choices, rejected alternatives, and Defense Pentagon.',
+        adr_active_hint: 'Selected',
+        adr1_badge: 'Phase 1 • Core Engine',
+        adr1_short_title: 'Local Transcription & Prompt Synthesis',
+        adr2_badge: 'Phase 2 • DevOps',
+        adr2_short_title: 'Hermetic Containerization with Astral UV',
+        adr3_badge: 'Phase 3 • LLM Orchestration',
+        adr3_short_title: 'Decoupled LLM Inference',
+        adr_pillar_context_title: '1. Context & Key Drivers',
+        adr_pillar_decision_title: '2. Adopted Technical Decision',
+        adr_pillar_rejected_title: '3. Rejected Alternatives & Trade-offs',
+        adr_pillar_security_title: '4. Defense Pentagon Impact',
+        pentagon_section_title: 'Defense Pentagon & System Architecture',
+        pentagon_section_subtitle: '5 security barriers validated by 47 request specs tests and 23 live chaos tests.',
         arch_encoder_title: '1. Audio Encoder (Acoustic Representation)',
         arch_encoder_desc: 'Transforms 30-second audio windows into 80-channel Log-Mel spectrograms, emitting dense continuous vectors of phonemes, prosody, and pauses.',
         arch_decoder_title: '2. Text Decoder (Autoregressive Contextual SLM)',
         arch_decoder_desc: 'Acts as an autoregressive Small Language Model. Rather than naive transcription, it evaluates contextual token probabilities, resolving homophones and injecting punctuation natively.',
-        pentagon_title: 'Pentagon of Defense (Security & Reliability)',
-        pentagon_subtitle: '5 defensive barriers proven by 47 automated tests and 23 live chaos tests:',
+        pentagon_title: 'The 5 Pillars of Defense & Reliability',
+        pentagon_subtitle: 'Structural backend guarantees mitigating data leaks, acoustic injections, and resource starvation:',
         p1_title: 'Database Isolation',
         p1_desc: 'SQLite queries require tenant_id. Physical connections strictly closed in finally: conn.close().',
         p2_title: 'Server-Side RBAC',
@@ -2494,9 +2657,9 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
       if (currentOutputView === 'llm') {
         const responseData = SIMULATED_LLM_RESPONSES[activePresetId] || SIMULATED_LLM_RESPONSES[1];
         badge.textContent = currentLang === 'pt-BR' ? 'Execução LLM: Ativa' : 'LLM Execution: Active';
-        badge.style.borderColor = 'rgba(16, 185, 129, 0.25)';
-        badge.style.color = 'var(--accent-emerald)';
-        badge.style.backgroundColor = 'var(--accent-emerald-subtle)';
+        badge.style.borderColor = 'var(--accent-blue-border)';
+        badge.style.color = 'var(--accent-blue)';
+        badge.style.backgroundColor = 'var(--accent-blue-subtle)';
         stats.textContent = currentLang === 'pt-BR' ? '• Motor: Ollama/Grok' : '• Engine: Ollama/Grok';
         outputArea.textContent = responseData[currentLang];
         return;
@@ -2511,9 +2674,9 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
         outputArea.textContent = cleanText;
       } else {
         badge.textContent = `Prompt: ${currentTechnique}`;
-        badge.style.borderColor = 'rgba(16, 185, 129, 0.25)';
-        badge.style.color = 'var(--accent-emerald)';
-        badge.style.backgroundColor = 'var(--accent-emerald-subtle)';
+        badge.style.borderColor = 'var(--accent-blue-border)';
+        badge.style.color = 'var(--accent-blue)';
+        badge.style.backgroundColor = 'var(--accent-blue-subtle)';
         stats.textContent = currentLang === 'pt-BR' ? '• Latência: ~280ms (INT8)' : '• Latency: ~280ms (INT8)';
         outputArea.textContent = buildPromptTemplate(currentTechnique, cleanText, currentLang);
       }
@@ -2555,7 +2718,7 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
       navigator.clipboard.writeText(content).then(() => {
         const btn = document.getElementById('copy-btn');
         const originalText = btn.innerHTML;
-        btn.innerHTML = `<span style="color:var(--accent-emerald); font-weight:600;">✓ ${currentLang === 'pt-BR' ? 'Copiado!' : 'Copied!'}</span>`;
+        btn.innerHTML = `<span style="color:var(--accent-blue); font-weight:600;">✓ ${currentLang === 'pt-BR' ? 'Copiado!' : 'Copied!'}</span>`;
         setTimeout(() => { btn.innerHTML = originalText; }, 1800);
       });
     }
@@ -2577,7 +2740,7 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
         const btn = document.getElementById('docker-copy-btn');
         if (!btn) return;
         const orig = btn.innerHTML;
-        btn.innerHTML = '<span style="color:var(--accent-emerald); font-size:0.75rem; font-weight:700;">✓</span>';
+        btn.innerHTML = '<span style="color:var(--accent-blue); font-size:0.75rem; font-weight:700;">✓</span>';
         setTimeout(() => { btn.innerHTML = orig; }, 1500);
       });
     }
@@ -2590,7 +2753,7 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
 
     function renderWaveform(isAnimated) {
       waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
-      const bars = 36;
+      const bars = 40;
       const barWidth = waveCanvas.width / bars - 2;
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
       const staticBarColor = isDark ? '#3f3f46' : '#cbd5e1';
@@ -2604,7 +2767,7 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
         const x = i * (barWidth + 2);
         const y = (waveCanvas.height - height) / 2;
 
-        waveCtx.fillStyle = isAnimated ? '#10b981' : staticBarColor;
+        waveCtx.fillStyle = isAnimated ? '#3b82f6' : staticBarColor;
         waveCtx.beginPath();
         if (waveCtx.roundRect) {
           waveCtx.roundRect(x, y, barWidth, height, 2);
