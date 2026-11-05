@@ -8,7 +8,13 @@ from fastapi.testclient import TestClient
 from src.api.routes import get_llm_service
 from src.config import Settings
 from src.main import app
-from src.services.llm_service import GrokProvider, LLMExecutionService, OllamaProvider
+from src.services.llm_service import (
+    GeminiProvider,
+    GrokProvider,
+    GroqProvider,
+    LLMExecutionService,
+    OllamaProvider,
+)
 
 
 class TestLLMExecutionEndpoint:
@@ -109,6 +115,91 @@ class TestLLMExecutionEndpoint:
         finally:
             app.dependency_overrides.pop(get_llm_service, None)
 
+    def test_execute_prompt_gemini_200_ok(
+        self, client: TestClient, synthetic_wav_bytes: bytes, headers_operator_alpha: dict
+    ):
+        """Happy path: successfully executes prompt against Google Gemini API."""
+        job_id = self._create_prompt_job(client, synthetic_wav_bytes, headers_operator_alpha)
+
+        mock_settings = Settings(GEMINI_API_KEY="test-gemini-key-secret", DEFAULT_GEMINI_MODEL="gemini-1.5-flash")
+        gemini_provider = GeminiProvider(settings=mock_settings)
+        llm_service = LLMExecutionService(settings=mock_settings, gemini_provider=gemini_provider)
+        app.dependency_overrides[get_llm_service] = lambda: llm_service
+
+        mock_data = {
+            "candidates": [
+                {
+                    "content": {
+                        "parts": [
+                            {"text": "Resposta analítica estruturada do Gemini."}
+                        ]
+                    }
+                }
+            ],
+            "usageMetadata": {
+                "totalTokenCount": 95,
+            },
+        }
+        mock_cm = MagicMock()
+        mock_cm.read.return_value = json.dumps(mock_data).encode("utf-8")
+        mock_cm.__enter__.return_value = mock_cm
+
+        try:
+            with patch("urllib.request.urlopen", return_value=mock_cm):
+                resp = client.post(
+                    f"/api/v1/transcriptions/{job_id}/execute",
+                    json={"provider": "gemini", "model": "gemini-1.5-flash", "temperature": 0.4},
+                    headers=headers_operator_alpha,
+                )
+
+                assert resp.status_code == 200, resp.text
+                body = resp.json()
+                assert body["job_id"] == job_id
+                assert body["provider"] == "gemini"
+                assert body["model"] == "gemini-1.5-flash"
+                assert body["response_text"] == "Resposta analítica estruturada do Gemini."
+                assert body["tokens_used"] == 95
+        finally:
+            app.dependency_overrides.pop(get_llm_service, None)
+
+    def test_execute_prompt_groq_200_ok(
+        self, client: TestClient, synthetic_wav_bytes: bytes, headers_operator_alpha: dict
+    ):
+        """Happy path: successfully executes prompt against Groq Cloud LPU API."""
+        job_id = self._create_prompt_job(client, synthetic_wav_bytes, headers_operator_alpha)
+
+        mock_settings = Settings(GROQ_API_KEY="test-groq-key-secret", DEFAULT_GROQ_MODEL="llama-3.3-70b-versatile")
+        groq_provider = GroqProvider(settings=mock_settings)
+        llm_service = LLMExecutionService(settings=mock_settings, groq_provider=groq_provider)
+        app.dependency_overrides[get_llm_service] = lambda: llm_service
+
+        mock_data = {
+            "choices": [{"message": {"content": "Resposta ultra-rápida do Groq LPU."}}],
+            "usage": {"total_tokens": 140},
+        }
+        mock_cm = MagicMock()
+        mock_cm.read.return_value = json.dumps(mock_data).encode("utf-8")
+        mock_cm.__enter__.return_value = mock_cm
+
+        try:
+            with patch("urllib.request.urlopen", return_value=mock_cm):
+                resp = client.post(
+                    f"/api/v1/transcriptions/{job_id}/execute",
+                    json={"provider": "groq", "model": "llama-3.3-70b-versatile", "temperature": 0.2},
+                    headers=headers_operator_alpha,
+                )
+
+                assert resp.status_code == 200, resp.text
+                body = resp.json()
+                assert body["job_id"] == job_id
+                assert body["provider"] == "groq"
+                assert body["model"] == "llama-3.3-70b-versatile"
+                assert body["response_text"] == "Resposta ultra-rápida do Groq LPU."
+                assert body["tokens_used"] == 140
+        finally:
+            app.dependency_overrides.pop(get_llm_service, None)
+
+
     def test_execute_prompt_404_anti_idor(
         self,
         client: TestClient,
@@ -192,6 +283,51 @@ class TestLLMExecutionEndpoint:
             assert "XAI_API_KEY não configurada" in resp.json()["detail"]
         finally:
             app.dependency_overrides.pop(get_llm_service, None)
+
+    def test_execute_prompt_422_gemini_without_api_key(
+        self, client: TestClient, synthetic_wav_bytes: bytes, headers_operator_alpha: dict
+    ):
+        """Returns 422 Unprocessable Content if Gemini provider is requested but GEMINI_API_KEY is not configured."""
+        job_id = self._create_prompt_job(client, synthetic_wav_bytes, headers_operator_alpha)
+
+        mock_settings = Settings(GEMINI_API_KEY=None)
+        gemini_provider = GeminiProvider(settings=mock_settings)
+        llm_service = LLMExecutionService(settings=mock_settings, gemini_provider=gemini_provider)
+        app.dependency_overrides[get_llm_service] = lambda: llm_service
+
+        try:
+            resp = client.post(
+                f"/api/v1/transcriptions/{job_id}/execute",
+                json={"provider": "gemini"},
+                headers=headers_operator_alpha,
+            )
+            assert resp.status_code == 422
+            assert "GEMINI_API_KEY não configurada" in resp.json()["detail"]
+        finally:
+            app.dependency_overrides.pop(get_llm_service, None)
+
+    def test_execute_prompt_422_groq_without_api_key(
+        self, client: TestClient, synthetic_wav_bytes: bytes, headers_operator_alpha: dict
+    ):
+        """Returns 422 Unprocessable Content if Groq provider is requested but GROQ_API_KEY is not configured."""
+        job_id = self._create_prompt_job(client, synthetic_wav_bytes, headers_operator_alpha)
+
+        mock_settings = Settings(GROQ_API_KEY=None)
+        groq_provider = GroqProvider(settings=mock_settings)
+        llm_service = LLMExecutionService(settings=mock_settings, groq_provider=groq_provider)
+        app.dependency_overrides[get_llm_service] = lambda: llm_service
+
+        try:
+            resp = client.post(
+                f"/api/v1/transcriptions/{job_id}/execute",
+                json={"provider": "groq"},
+                headers=headers_operator_alpha,
+            )
+            assert resp.status_code == 422
+            assert "GROQ_API_KEY não configurada" in resp.json()["detail"]
+        finally:
+            app.dependency_overrides.pop(get_llm_service, None)
+
 
     def test_execute_prompt_502_upstream_connection_refused(
         self, client: TestClient, synthetic_wav_bytes: bytes, headers_operator_alpha: dict

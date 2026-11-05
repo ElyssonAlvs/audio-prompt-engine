@@ -20,6 +20,7 @@ RUN mkdir -p /app/data /home/appuser/.cache/huggingface && \
 # Copy project specification files and source code
 COPY --chown=appuser:appuser pyproject.toml README.md ./
 COPY --chown=appuser:appuser src ./src
+COPY --chown=appuser:appuser docs ./docs
 
 # Install production dependencies directly into system environment via uv
 RUN uv pip install --system --no-cache .

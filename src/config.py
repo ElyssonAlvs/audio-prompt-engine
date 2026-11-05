@@ -35,7 +35,7 @@ class Settings(BaseSettings):
         default=25 * 1024 * 1024, description="Maximum audio upload size in bytes (25MB)"
     )
 
-    # LLM Execution Engine Configuration (Ollama & Grok)
+    # LLM Execution Engine Configuration (Ollama, Grok, Gemini, Groq)
     OLLAMA_BASE_URL: str = Field(
         default="http://host.docker.internal:11434", description="Ollama API base URL"
     )
@@ -47,6 +47,18 @@ class Settings(BaseSettings):
     )
     DEFAULT_OLLAMA_MODEL: str = Field(
         default="llama3", description="Default model for Ollama inference"
+    )
+    GEMINI_API_KEY: Optional[str] = Field(
+        default=None, description="Google AI Studio API Key for Gemini"
+    )
+    GROQ_API_KEY: Optional[str] = Field(
+        default=None, description="Groq Cloud LPU API Key"
+    )
+    DEFAULT_GEMINI_MODEL: str = Field(
+        default="gemini-1.5-flash", description="Default model for Gemini"
+    )
+    DEFAULT_GROQ_MODEL: str = Field(
+        default="llama-3.3-70b-versatile", description="Default model for Groq Cloud"
     )
     DEFAULT_LLM_PROVIDER: LLMProvider = Field(
         default=LLMProvider.OLLAMA, description="Default LLM provider"

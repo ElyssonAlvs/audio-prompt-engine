@@ -24,6 +24,12 @@ data/
 uploads/
 tmp/
 temp_audio/
+*.m4a
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.webm
 
 # Environment files and credentials
 .env

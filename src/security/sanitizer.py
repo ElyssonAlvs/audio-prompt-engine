@@ -19,6 +19,7 @@ def detect_and_validate_audio_format(header: bytes) -> str:
     - OGG: 'OggS' at 0..4
     - FLAC: 'fLaC' at 0..4
     - M4A: 'ftyp' in bytes 4..12
+    - WEBM: '\x1a\x45\xdf\xa3' at 0..4 (EBML container)
     """
     if len(header) < 12:
         raise AudioValidationError("Audio file header is too short to verify format signature.")
@@ -47,8 +48,12 @@ def detect_and_validate_audio_format(header: bytes) -> str:
     if b"ftyp" in header[4:16]:
         return "m4a"
 
+    # WebM / EBML container
+    if header[:4] == b"\x1a\x45\xdf\xa3":
+        return "webm"
+
     raise AudioValidationError(
-        "Invalid or unsupported audio format. Magic bytes mismatch: expected WAV, MP3, OGG, FLAC, or M4A."
+        "Invalid or unsupported audio format. Magic bytes mismatch: expected WAV, MP3, OGG, FLAC, M4A, or WEBM."
     )
 
 

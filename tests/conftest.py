@@ -36,6 +36,13 @@ def fake_mp3_bytes() -> bytes:
 
 
 @pytest.fixture
+def synthetic_webm_bytes() -> bytes:
+    """Generate valid EBML WebM header bytes."""
+    return b"\x1a\x45\xdf\xa3" + (b"\x00" * 28)
+
+
+
+@pytest.fixture
 def test_repo(tmp_path) -> TranscriptionRepository:
     """Provide an isolated, fresh SQLite repository for each test."""
     db_file = tmp_path / "test_audio_engine.db"

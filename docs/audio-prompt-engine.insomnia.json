@@ -633,6 +633,148 @@
       "color": "#6366f1",
       "isPrivate": false,
       "metaSortKey": 1729375200000
+    },
+    {
+      "_id": "req_execute_gemini",
+      "_type": "request",
+      "parentId": "fld_transcricoes",
+      "modified": 1793909669477,
+      "created": 1793909669477,
+      "url": "{{ _.base_url }}/api/v1/transcriptions/{{ _.job_id }}/execute",
+      "name": "Executar Prompt no Gemini",
+      "description": "Executa o prompt compilado de um job de transcrição via Google AI Studio API (Gemini 1.5 Flash).",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"provider\": \"gemini\",\n  \"model\": \"gemini-1.5-flash\",\n  \"temperature\": 0.7\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-API-Key",
+          "value": "{{ _.operator_key }}",
+          "description": "Chave de operador (dev-operator-alpha)"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 308,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_execute_groq",
+      "_type": "request",
+      "parentId": "fld_transcricoes",
+      "modified": 1793909669477,
+      "created": 1793909669477,
+      "url": "{{ _.base_url }}/api/v1/transcriptions/{{ _.job_id }}/execute",
+      "name": "Executar Prompt no Groq",
+      "description": "Executa o prompt compilado de um job de transcrição via Groq Cloud LPU API (Llama 3.3 70B Versatile).",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"provider\": \"groq\",\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"temperature\": 0.7\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-API-Key",
+          "value": "{{ _.operator_key }}",
+          "description": "Chave de operador (dev-operator-alpha)"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 309,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_sec_gemini_no_key",
+      "_type": "request",
+      "parentId": "fld_seguranca",
+      "modified": 1793909669477,
+      "created": 1793909669477,
+      "url": "{{ _.base_url }}/api/v1/transcriptions/{{ _.job_id }}/execute",
+      "name": "Executar Prompt sem Chave Gemini (422)",
+      "description": "Tentativa de execução no provider Gemini sem que a variável GEMINI_API_KEY esteja configurada no servidor. Deve retornar 422 Unprocessable Content.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"provider\": \"gemini\",\n  \"model\": \"gemini-1.5-flash\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-API-Key",
+          "value": "{{ _.operator_key }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 407,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_sec_groq_no_key",
+      "_type": "request",
+      "parentId": "fld_seguranca",
+      "modified": 1793909669477,
+      "created": 1793909669477,
+      "url": "{{ _.base_url }}/api/v1/transcriptions/{{ _.job_id }}/execute",
+      "name": "Executar Prompt sem Chave Groq (422)",
+      "description": "Tentativa de execução no provider Groq sem que a variável GROQ_API_KEY esteja configurada no servidor. Deve retornar 422 Unprocessable Content.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"provider\": \"groq\",\n  \"model\": \"llama-3.3-70b-versatile\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-API-Key",
+          "value": "{{ _.operator_key }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 408,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
     }
   ]
 }

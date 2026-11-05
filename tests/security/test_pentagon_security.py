@@ -106,6 +106,36 @@ class TestPentagonSecurity:
         assert resp.status_code == 400
         assert "Magic bytes mismatch" in resp.json()["error"]
 
+    def test_magic_bytes_valid_webm_accepted(
+        self, client: TestClient, headers_operator_alpha: dict
+    ):
+        """A valid WebM/EBML audio container must pass magic bytes validation."""
+        valid_webm = b"\x1a\x45\xdf\xa3" + b"\x00" * 16
+        files = {"file": ("recording.webm", valid_webm, "audio/webm")}
+        resp = client.post(
+            "/api/v1/transcriptions",
+            files=files,
+            data={"output_mode": "txt"},
+            headers=headers_operator_alpha,
+        )
+        assert resp.status_code == 201
+        assert resp.json()["filename"] == "recording.webm"
+
+    def test_magic_bytes_fake_webm_rejected_with_400(
+        self, client: TestClient, headers_operator_alpha: dict
+    ):
+        """A fake text file renamed to .webm must be rejected by magic bytes inspection."""
+        fake_webm = b"Not really a webm audio file at all."
+        files = {"file": ("fake.webm", fake_webm, "audio/webm")}
+        resp = client.post(
+            "/api/v1/transcriptions",
+            files=files,
+            data={"output_mode": "txt"},
+            headers=headers_operator_alpha,
+        )
+        assert resp.status_code == 400
+        assert "Magic bytes mismatch" in resp.json()["error"]
+
     def test_magic_bytes_script_rejected_with_400(
         self, client: TestClient, headers_operator_alpha: dict
     ):
@@ -350,3 +380,30 @@ class TestPentagonSecurity:
         # Operator allowed
         op_auth = AuthContext(api_key="k2", tenant_id="t1", role=UserRole.OPERATOR)
         assert checker(op_auth) == op_auth
+
+    def test_corrupted_audio_stream_returns_400_not_500(
+        self, client: TestClient, synthetic_wav_bytes: bytes, headers_operator_alpha: dict
+    ):
+        """Audio passing magic bytes but failing in Whisper C++ decoder must return 400 Bad Request, never 500."""
+        from unittest.mock import MagicMock
+        from src.api.routes import get_whisper_service
+        from src.main import app
+
+        mock_whisper = MagicMock()
+        mock_whisper.transcribe_audio.side_effect = RuntimeError("PyAV/FFmpeg: InvalidDataError - Corrupted bitstream")
+        app.dependency_overrides[get_whisper_service] = lambda: mock_whisper
+
+        try:
+            files = {"file": ("corrupted.wav", synthetic_wav_bytes, "audio/wav")}
+            resp = client.post(
+                "/api/v1/transcriptions",
+                files=files,
+                data={"output_mode": "txt"},
+                headers=headers_operator_alpha,
+            )
+            assert resp.status_code == 400, f"Expected 400 Bad Request, got {resp.status_code}"
+            assert "Corrupted or undecodable audio file" in resp.json()["detail"]
+            assert "InvalidDataError" in resp.json()["detail"]
+        finally:
+            app.dependency_overrides.pop(get_whisper_service, None)
+

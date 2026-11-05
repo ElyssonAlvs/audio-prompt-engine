@@ -13,7 +13,9 @@ from src.config import Settings
 from src.domain.enums import LLMProvider
 from src.domain.schemas import LLMExecutionRequest
 from src.services.llm_service import (
+    GeminiProvider,
     GrokProvider,
+    GroqProvider,
     LLMExecutionService,
     OllamaProvider,
 )
@@ -203,6 +205,187 @@ class TestGrokProvider:
             with pytest.raises(HTTPException) as exc_info:
                 provider.execute(prompt="Hello")
             assert exc_info.value.status_code == 502
+
+class TestGeminiProvider:
+    """Unit tests for the Google AI Studio Gemini provider."""
+
+    def test_gemini_missing_api_key_raises_422(self):
+        settings = Settings(GEMINI_API_KEY=None)
+        provider = GeminiProvider(settings=settings)
+        with pytest.raises(HTTPException) as exc_info:
+            provider.execute(prompt="Hello Gemini")
+        assert exc_info.value.status_code == 422
+        assert "GEMINI_API_KEY não configurada" in exc_info.value.detail
+
+    def test_gemini_successful_execution(self):
+        settings = Settings(
+            GEMINI_API_KEY="test-gemini-key-secret",
+            DEFAULT_GEMINI_MODEL="gemini-1.5-flash",
+        )
+        provider = GeminiProvider(settings=settings)
+
+        mock_data = {
+            "candidates": [
+                {
+                    "content": {
+                        "parts": [
+                            {"text": "Resposta rápida do Gemini 1.5 Flash."}
+                        ]
+                    }
+                }
+            ],
+            "usageMetadata": {
+                "totalTokenCount": 85,
+            },
+        }
+        mock_bytes = json.dumps(mock_data).encode("utf-8")
+
+        mock_cm = MagicMock()
+        mock_cm.read.return_value = mock_bytes
+        mock_cm.__enter__.return_value = mock_cm
+
+        with patch("urllib.request.urlopen", return_value=mock_cm) as mock_urlopen:
+            result = provider.execute(prompt="Explique recursão", model="gemini-1.5-pro", temperature=0.2)
+
+            assert result["response_text"] == "Resposta rápida do Gemini 1.5 Flash."
+            assert result["model"] == "gemini-1.5-pro"
+            assert result["tokens_used"] == 85
+
+            req = mock_urlopen.call_args[0][0]
+            assert "gemini-1.5-pro:generateContent" in req.full_url
+            assert "key=test-gemini-key-secret" in req.full_url
+            sent_body = json.loads(req.data.decode("utf-8"))
+            assert sent_body["contents"][0]["parts"][0]["text"] == "Explique recursão"
+            assert sent_body["generationConfig"]["temperature"] == 0.2
+
+    def test_gemini_auth_error_raises_502_sanitized(self):
+        settings = Settings(GEMINI_API_KEY="invalid-key")
+        provider = GeminiProvider(settings=settings)
+
+        err = urllib.error.HTTPError(
+            url="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=invalid-key",
+            code=400,
+            msg="API key not valid",
+            hdrs={},
+            fp=io.BytesIO(b'{"error": {"message": "API key not valid"}}'),
+        )
+        with patch("urllib.request.urlopen", side_effect=err):
+            with pytest.raises(HTTPException) as exc_info:
+                provider.execute(prompt="Hello")
+            assert exc_info.value.status_code == 502
+            assert "Falha de autenticação ou acesso" in exc_info.value.detail
+            # Must NOT leak the key!
+            assert "invalid-key" not in exc_info.value.detail
+
+    def test_gemini_timeout_raises_504(self):
+        settings = Settings(GEMINI_API_KEY="valid-key")
+        provider = GeminiProvider(settings=settings)
+
+        with patch("urllib.request.urlopen", side_effect=TimeoutError("Timed out")):
+            with pytest.raises(HTTPException) as exc_info:
+                provider.execute(prompt="Hello")
+            assert exc_info.value.status_code == 504
+            assert "Timeout" in exc_info.value.detail
+
+    def test_gemini_connection_failure_raises_502(self):
+        settings = Settings(GEMINI_API_KEY="valid-key")
+        provider = GeminiProvider(settings=settings)
+
+        with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("DNS resolution failed")):
+            with pytest.raises(HTTPException) as exc_info:
+                provider.execute(prompt="Hello")
+            assert exc_info.value.status_code == 502
+            assert "Não foi possível conectar" in exc_info.value.detail
+
+
+class TestGroqProvider:
+    """Unit tests for the Groq Cloud LPU provider."""
+
+    def test_groq_missing_api_key_raises_422(self):
+        settings = Settings(GROQ_API_KEY=None)
+        provider = GroqProvider(settings=settings)
+        with pytest.raises(HTTPException) as exc_info:
+            provider.execute(prompt="Hello Groq")
+        assert exc_info.value.status_code == 422
+        assert "GROQ_API_KEY não configurada" in exc_info.value.detail
+
+    def test_groq_successful_execution(self):
+        settings = Settings(
+            GROQ_API_KEY="test-groq-key-secret",
+            DEFAULT_GROQ_MODEL="llama-3.3-70b-versatile",
+        )
+        provider = GroqProvider(settings=settings)
+
+        mock_data = {
+            "choices": [
+                {
+                    "message": {
+                        "content": "Inferência de altíssima velocidade no Groq LPU.",
+                    }
+                }
+            ],
+            "usage": {
+                "total_tokens": 110,
+            },
+        }
+        mock_bytes = json.dumps(mock_data).encode("utf-8")
+
+        mock_cm = MagicMock()
+        mock_cm.read.return_value = mock_bytes
+        mock_cm.__enter__.return_value = mock_cm
+
+        with patch("urllib.request.urlopen", return_value=mock_cm) as mock_urlopen:
+            result = provider.execute(prompt="Gere uma query SQL", model="llama-3.3-70b-versatile", temperature=0.1)
+
+            assert result["response_text"] == "Inferência de altíssima velocidade no Groq LPU."
+            assert result["model"] == "llama-3.3-70b-versatile"
+            assert result["tokens_used"] == 110
+
+            req = mock_urlopen.call_args[0][0]
+            assert req.full_url == "https://api.groq.com/openai/v1/chat/completions"
+            assert req.headers["Authorization"] == "Bearer test-groq-key-secret"
+            sent_body = json.loads(req.data.decode("utf-8"))
+            assert sent_body["model"] == "llama-3.3-70b-versatile"
+            assert sent_body["temperature"] == 0.1
+            assert sent_body["messages"][0]["content"] == "Gere uma query SQL"
+
+    def test_groq_unauthorized_401_raises_502_sanitized(self):
+        settings = Settings(GROQ_API_KEY="invalid-groq-key")
+        provider = GroqProvider(settings=settings)
+
+        err = urllib.error.HTTPError(
+            url="https://api.groq.com/openai/v1/chat/completions",
+            code=401,
+            msg="Unauthorized",
+            hdrs={},
+            fp=io.BytesIO(b'{"error": "Unauthorized"}'),
+        )
+        with patch("urllib.request.urlopen", side_effect=err):
+            with pytest.raises(HTTPException) as exc_info:
+                provider.execute(prompt="Hello")
+            assert exc_info.value.status_code == 502
+            assert "Falha de autenticação" in exc_info.value.detail
+            # Must NOT leak the key!
+            assert "invalid-groq-key" not in exc_info.value.detail
+
+    def test_groq_timeout_raises_504(self):
+        settings = Settings(GROQ_API_KEY="valid-key")
+        provider = GroqProvider(settings=settings)
+
+        with patch("urllib.request.urlopen", side_effect=TimeoutError("Timed out")):
+            with pytest.raises(HTTPException) as exc_info:
+                provider.execute(prompt="Hello")
+            assert exc_info.value.status_code == 504
+            assert "Timeout" in exc_info.value.detail
+
+    def test_groq_connection_failure_raises_502(self):
+        settings = Settings(GROQ_API_KEY="valid-key")
+        provider = GroqProvider(settings=settings)
+
+        with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("DNS resolution failed")):
+            with pytest.raises(HTTPException) as exc_info:
+                provider.execute(prompt="Hello")
+            assert exc_info.value.status_code == 502
             assert "Não foi possível conectar" in exc_info.value.detail
 
 
@@ -238,5 +421,65 @@ class TestLLMExecutionService:
         assert response.model == "custom-model"
         assert response.prompt_executed == "Compile this prompt"
         assert response.response_text == "Mocked LLM answer"
-        assert response.tokens_used == 99
         assert response.execution_time_seconds == 1.25
+
+    def test_execution_service_routes_to_gemini_provider(self):
+        mock_provider = MagicMock()
+        mock_provider.execute.return_value = {
+            "response_text": "Gemini answer",
+            "model": "gemini-1.5-flash",
+            "tokens_used": 50,
+            "execution_time_seconds": 0.8,
+        }
+
+        service = LLMExecutionService()
+        service.set_provider(LLMProvider.GEMINI, mock_provider)
+
+        request = LLMExecutionRequest(
+            provider=LLMProvider.GEMINI,
+            model="gemini-1.5-flash",
+            temperature=0.4,
+        )
+
+        response = service.execute(
+            job_id="test-job-gemini",
+            prompt="Analyze this",
+            request=request,
+        )
+
+        assert response.job_id == "test-job-gemini"
+        assert response.provider == LLMProvider.GEMINI
+        assert response.model == "gemini-1.5-flash"
+        assert response.response_text == "Gemini answer"
+        assert response.tokens_used == 50
+
+    def test_execution_service_routes_to_groq_provider(self):
+        mock_provider = MagicMock()
+        mock_provider.execute.return_value = {
+            "response_text": "Groq answer",
+            "model": "llama-3.3-70b-versatile",
+            "tokens_used": 120,
+            "execution_time_seconds": 0.3,
+        }
+
+        service = LLMExecutionService()
+        service.set_provider(LLMProvider.GROQ, mock_provider)
+
+        request = LLMExecutionRequest(
+            provider=LLMProvider.GROQ,
+            model="llama-3.3-70b-versatile",
+            temperature=0.2,
+        )
+
+        response = service.execute(
+            job_id="test-job-groq",
+            prompt="Write fast SQL",
+            request=request,
+        )
+
+        assert response.job_id == "test-job-groq"
+        assert response.provider == LLMProvider.GROQ
+        assert response.model == "llama-3.3-70b-versatile"
+        assert response.response_text == "Groq answer"
+        assert response.tokens_used == 120
+

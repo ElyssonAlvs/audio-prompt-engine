@@ -4,10 +4,12 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, Request, status
+from pathlib import Path
+
+from fastapi import FastAPI, Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.api.routes import router as api_router
@@ -56,9 +58,19 @@ def create_app() -> FastAPI:
     )
 
     # CORS configuration
+    allowed_origins = [
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://elyssonalvs.github.io",
+    ]
+    if settings.DEBUG:
+        allowed_origins = ["*"]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"] if settings.DEBUG else ["http://localhost:3000", "http://127.0.0.1:3000"],
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
@@ -119,6 +131,13 @@ def create_app() -> FastAPI:
                 "code": "INTERNAL_SERVER_ERROR",
             },
         )
+
+    @app.get("/", tags=["studio"], summary="Web Studio UI")
+    async def serve_studio() -> Response:
+        index_path = Path("docs/index.html")
+        if index_path.is_file():
+            return FileResponse(index_path, media_type="text/html")
+        return HTMLResponse("<h1>Audio Prompt Engine Studio</h1>", media_type="text/html")
 
     @app.get("/health", response_model=HealthResponse, tags=["system"], summary="Root health check")
     async def root_health_check() -> HealthResponse:

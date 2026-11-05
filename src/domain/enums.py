@@ -44,4 +44,7 @@ class LLMProvider(str, Enum):
 
     OLLAMA = "ollama"
     GROK = "grok"
+    GEMINI = "gemini"
+    GROQ = "groq"
+
 

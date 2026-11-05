@@ -1,6 +1,6 @@
 # 🏛️ Decisões Arquiteturais — Audio Prompt Engine (ADR Digest)
 
-> **Documento público consolidado de Decisões de Arquitetura de Software (ADR-001 e ADR-002).**  
+> **Documento técnico consolidado de Decisões de Arquitetura de Software (ADR-001 a ADR-004).**  
 > Este registro formal documenta as escolhas tecnológicas, motivações, alternativas descartadas, diagramas de fluxo e garantias de segurança que norteiam o projeto.
 
 ---
@@ -33,8 +33,15 @@ Toda a inferência ocorre **100% localmente em CPU**, sem custos de APIs externa
    - [Decisão: Provider Strategy Agnóstico](#32-decisão-provider-strategy-agnóstico-ollama-local-vs-grok-cloud)
    - [Zero Dependências Adicionais](#33-zero-dependências-adicionais-urllibrequest)
    - [Impacto no Pentágono de Defesa](#34-impacto-no-pentágono-de-defesa)
-4. [Matriz Comparativa de Alternativas Descartadas](#-matriz-comparativa-de-alternativas-descartadas)
-5. [Tabela de Rotas e Contratos da API](#-tabela-de-rotas-e-contratos-da-api)
+4. [ADR-004: Web Studio com Gravação Nativa (WebM/EBML), Entrega Direta em GET / e Expansão de Provedores (Gemini e Groq)](#-adr-004-web-studio-com-gravação-nativa-webmebml-entrega-direta-em-get--e-expansão-de-provedores-gemini-e-groq)
+   - [Contexto e Motivação](#41-contexto-e-motivação)
+   - [Decisão: Gravação Nativa no Browser e Magic Bytes WebM (EBML)](#42-decisão-gravação-nativa-no-browser-e-magic-bytes-webm-ebml)
+   - [Decisão: Entrega Direta do Web Studio em GET /](#43-decisão-entrega-direta-do-web-studio-em-get-)
+   - [Decisão: Expansão da Provider Strategy para Gemini e Groq](#44-decisão-expansão-da-provider-strategy-para-gemini-e-groq)
+   - [Impacto no Pentágono de Defesa](#45-impacto-no-pentágono-de-defesa)
+5. [Matriz Comparativa de Alternativas Descartadas](#-matriz-comparativa-de-alternativas-descartadas)
+6. [Tabela de Rotas e Contratos da API](#-tabela-de-rotas-e-contratos-da-api)
+7. [Homologação e Garantia de Qualidade](#-homologação-e-garantia-de-qualidade)
 
 ---
 
@@ -215,6 +222,70 @@ Em vez de instalar SDKs pesados e proprietários (`openai`, `anthropic`, `httpx`
 
 ---
 
+---
+
+## 🎙️ ADR-004: Web Studio com Gravação Nativa (WebM/EBML), Entrega Direta em `GET /` e Expansão de Provedores (Gemini e Groq)
+
+- **Status:** Aprovada e Implementada
+- **Data:** 2026-11-05
+- **Escopo:** Interface gráfica do Web Studio servida diretamente na raiz da aplicação, gravação de microfone no navegador via `MediaRecorder` API, validação binária de magic bytes EBML (`\x1a\x45\xdf\xa3`) para contêineres WebM, e expansão da Strategy de inferência LLM para suporte aos provedores Gemini (Google AI Studio) e Groq (Groq Cloud LPU).
+
+### 4.1 Contexto e Motivação
+Nas fases iniciais, a ingestão de áudio dependia de arquivos pré-gravados transmitidos via clientes de terminal ou collections de API. Para acelerar validações operacionais e demonstrações em tempo real, fez-se necessária a disponibilização de um Web Studio interativo integrado.
+
+Esse avanço introduziu três desafios arquiteturais específicos:
+1. **Formato Padrão de Gravação nos Navegadores Modernos:** A API nativa `MediaRecorder` do browser emite streams de voz compactadas prioritariamente em contêineres **WebM** com codec **Opus** (`audio/webm;codecs=opus`). O validador de cabeçalhos binários da API rejeitava esses uploads com `400 Bad Request` por não reconhecer a assinatura EBML.
+2. **Entrega de Interface sem Sobrecarga Operacional:** A entrega do Web Studio não poderia exigir servidores adicionais (Node.js/Nginx) nem violar o princípio de privilégio mínimo do container Docker não-root (`appuser:10001`).
+3. **Demanda por Provedores LLM Especializados:** Além da privacidade local (Ollama) e do raciocínio analítico (Grok 70B), operadores técnicos demandavam integração com **Google Gemini 1.5 Flash** (rápido, multimodal e ampla janela de contexto) e **Groq Cloud LPU** (altíssima taxa de tokens por segundo em chips LPU dedicados executando Llama 3.3 70B).
+
+### 4.2 Decisão: Gravação Nativa no Browser e Magic Bytes WebM (EBML)
+Para viabilizar captura de áudio direto do microfone sem a sobrecarga de carregar transcodificadores pesados em JavaScript (ex: `ffmpeg.wasm` ou encoders WAV):
+- **Captura no Browser:** O Web Studio aciona `navigator.mediaDevices.getUserMedia({ audio: true })` e instancia `MediaRecorder` gravando chunks em `audio/webm;codecs=opus`. Ao pausar, consolida os chunks em um `Blob` e envia como `multipart/form-data` diretamente ao endpoint `POST /api/v1/transcriptions`.
+- **Validação Binária EBML no Backend:** A função `detect_and_validate_audio_format` em `src/security/sanitizer.py` foi atualizada para reconhecer a assinatura mágica de 4 bytes do cabeçalho **EBML (Extensible Binary Meta Language)**: `\x1a\x45\xdf\xa3`.
+- **Transcodificação Transparente com FFmpeg:** Como a imagem Docker baseada em Debian Bookworm já possui o binário do `ffmpeg` instalado, o runtime `faster-whisper` decodifica contêineres WebM/Opus nativamente com alta eficiência de CPU, sem passos intermediários de conversão em disco.
+
+### 4.3 Decisão: Entrega Direta do Web Studio em `GET /`
+Em vez de hospedar o frontend em um servidor separado, a aplicação FastAPI entrega diretamente o arquivo `docs/index.html` na rota raiz:
+```python
+@app.get("/", tags=["studio"], summary="Web Studio UI")
+async def serve_studio() -> Response:
+    index_path = Path("docs/index.html")
+    if index_path.is_file():
+        return FileResponse(index_path, media_type="text/html")
+    return HTMLResponse("<h1>Audio Prompt Engine Studio</h1>", media_type="text/html")
+```
+- **Hermeticidade:** O container expõe na porta padrão `8000` a API REST (`/api/v1/...`), a documentação Swagger (`/docs`) e a interface do Studio (`/`), sem exigir portas adicionais ou proxies reversos locais.
+- **Zero Problemas de CORS:** A interface web consumindo a API sob a mesma origem (`http://localhost:8000`) elimina atritos de Cross-Origin Resource Sharing em homologação.
+
+### 4.4 Decisão: Expansão da Provider Strategy para Gemini e Groq
+Seguindo o padrão de projeto Strategy consolidado na ADR-003, foram adicionadas duas novas implementações de `ILLMProvider` em `src/services/llm_service.py`:
+
+```
+                       ESTRATÉGIA DE PROVEDORES LLM (ILLMProvider)
+                                          │
+            ┌──────────────────┬──────────┴─────────┬──────────────────┐
+            ▼                  ▼                    ▼                  ▼
+    [ OllamaProvider ]  [ GrokProvider ]    [ GeminiProvider ]  [ GroqProvider ]
+      (Local Offline)    (xAI Cloud 70B)    (Google AI Studio)   (Groq Cloud LPU)
+```
+
+1. **`GeminiProvider` (Google AI Studio):**
+   - Comunicação REST com o endpoint `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}`.
+   - Modelo padrão configurado: `gemini-1.5-flash`.
+   - Payload padronizado estruturando o prompt sob `contents: [{"parts": [{"text": prompt}]}]` com `generationConfig: {"temperature": ...}`.
+2. **`GroqProvider` (Groq Cloud LPU):**
+   - Comunicação REST compatível com OpenAI em `https://api.groq.com/openai/v1/chat/completions`.
+   - Modelo padrão configurado: `llama-3.3-70b-versatile` operando sobre arquitetura LPU de baixa latência.
+   - Autenticação via cabeçalho HTTP `Authorization: Bearer {GROQ_API_KEY}`.
+3. **Zero Dependências Adicionais:**
+   - Mantido o princípio de **zero bibliotecas externas adicionais**. As chamadas para Gemini e Groq utilizam exclusivamente `urllib.request` e `json` nativos da standard library do Python, dispensando SDKs proprietários (`google-generativeai`, `groq`).
+
+### 4.5 Impacto no Pentágono de Defesa
+1. **Magic Bytes & Streaming:** Arquivos WebM gravados pelo microfone passam pela mesma verificação rigorosa de cabeçalho binário (`\x1a\x45\xdf\xa3`). Falsos uploads com extensão `.webm` contendo executáveis ou scripts maliciosos são rejeitados com `400 Bad Request`.
+2. **Streaming e Limite de Upload:** O gravador no browser fragmenta o upload; o backend aplica o limite estrito de 25 MB e leitura em chunks de 64 KB, abortando transmissões excessivas com `413 Content Too Large`.
+3. **Integridade Contratual de Chaves (Fail-Fast 422):** Se `gemini` for solicitado sem `GEMINI_API_KEY` ou `groq` sem `GROQ_API_KEY`, a API rejeita a requisição imediatamente com `422 Unprocessable Content`, sem tentativas cegas de fallback.
+4. **Isolamento de Falhas (502/504):** Erros de upstream, instabilidades de rede ou timeouts nas APIs do Google AI Studio ou Groq Cloud retornam `502 Bad Gateway` ou `504 Gateway Timeout` controlados, sem vazamento de tokens de autenticação ou stack traces.
+
 ## ⚖️ Matriz Comparativa de Alternativas Descartadas
 
 | Alternativa Analisada | Veredito | Justificativa do Descarte |
@@ -225,6 +296,8 @@ Em vez de instalar SDKs pesados e proprietários (`openai`, `anthropic`, `httpx`
 | **SDKs proprietários pesados para LLMs (openai/anthropic pip)** | **Descartada** | Incharia a imagem Docker desnecessariamente. A standard library `urllib.request` atende perfeitamente ao protocolo REST dos provedores. |
 | **Imagem Docker rodando como `root` (UID 0)** | **Descartada** | Violação severa de segurança; risco de *Container Escape* em caso de falha nas dependências nativas C/C++. |
 | **Build padrão com `pip install` tradicional** | **Descartada** | Tempo de compilação 5 a 10 vezes maior comparado à velocidade determinística do instalador `uv`. |
+| **Conversão WebM -> WAV no browser via JS (ffmpeg.wasm)** | **Descartada** | Adiciona sobrecarga de megabytes e latência no browser; o backend já possui ffmpeg com suporte nativo a WebM/Opus. |
+| **Instalação de SDKs proprietários `google-generativeai` e `groq` via pip** | **Descartada** | Incharia a imagem Docker e criaria acoplamento; REST nativo com `urllib.request` atende com máxima performance e zero dependências. |
 
 ---
 
@@ -238,7 +311,8 @@ Todas as rotas de negócio exigem autenticação via cabeçalho HTTP `X-API-Key`
 | `GET` | `/api/v1/transcriptions` | `viewer` | `200 OK` | Listagem paginada do histórico pertencente exclusivamente ao tenant autenticado. |
 | `GET` | `/api/v1/transcriptions/{id}` | Dono do job | `200 OK` | Detalhes completos do job (metadados, texto bruto, texto limpo e prompt sintetizado). |
 | `GET` | `/api/v1/transcriptions/{id}/txt` | Dono do job | `200 OK` | Download direto da transcrição normalizada em `text/plain; charset=utf-8`. |
-| `POST` | `/api/v1/transcriptions/{id}/execute` | `operator` ou `admin` | `200 OK` | Executa o prompt sintetizado contra LLM (Ollama Local ou Grok Cloud). |
+| `GET` | `/` | Aberto | `200 OK` | Entrega da interface gráfica integrada Web Studio (HTML5/JS). |
+| `POST` | `/api/v1/transcriptions/{id}/execute` | `operator` ou `admin` | `200 OK` | Executa o prompt sintetizado contra LLM (Ollama, Grok, Gemini ou Groq). |
 | `GET` | `/api/v1/techniques` | Aberto / Autenticado | `200 OK` | Catálogo explicativo das 6 técnicas de engenharia de prompt com orientações de uso. |
 | `GET` | `/health` (e `/api/v1/health`) | Aberto | `200 OK` | Verificação de integridade operacional e identificação do modelo Faster-Whisper. |
 
@@ -246,6 +320,6 @@ Todas as rotas de negócio exigem autenticação via cabeçalho HTTP `X-API-Key`
 
 ## 🔬 Homologação e Garantia de Qualidade
 
-- **Suíte de Testes:** **69 testes automatizados aprovados (100% de sucesso)** cobrindo testes unitários, fluxos E2E, serviços de inferência LLM (Ollama e Grok) e testes de segurança do Pentágono de Defesa.
+- **Suíte de Testes:** **91 testes automatizados aprovados (100% de sucesso)** cobrindo testes unitários (48), fluxos de integração E2E (21), serviços de inferência LLM nos 4 provedores (Ollama, Grok, Gemini, Groq) e testes de segurança defensiva do Pentágono de Defesa (22).
 - **Chaos Testing:** **23/23 testes de caos ao vivo aprovados** contra o container Docker ativo, com validação de resiliência a rajadas concorrentes, saturação de payload (>25 MB), corrupção proposital de bytes e injeção de prompt acústico.
 

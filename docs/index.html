@@ -32,6 +32,8 @@
       --accent-blue-subtle: rgba(59, 130, 246, 0.12);
       --accent-blue-border: rgba(59, 130, 246, 0.3);
       --accent-blue-hover: #2563eb;
+      --accent-danger: #ef4444;
+      --accent-danger-subtle: rgba(239, 68, 68, 0.15);
       --border-focus: var(--accent-blue);
       --code-bg: #0c0c0e;
       --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
@@ -51,6 +53,8 @@
       --accent-blue-subtle: rgba(37, 99, 235, 0.08);
       --accent-blue-border: rgba(37, 99, 235, 0.25);
       --accent-blue-hover: #1d4ed8;
+      --accent-danger: #dc2626;
+      --accent-danger-subtle: rgba(220, 38, 38, 0.1);
       --border-focus: var(--accent-blue);
       --code-bg: #f4f4f5;
       --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
@@ -126,14 +130,13 @@
       padding: 0 2rem;
     }
 
-    /* Modular Section Delimiters */
     .modular-section {
       padding: 3.5rem 0;
       border-bottom: 1px solid var(--border-color);
     }
 
     /* ==========================================================================
-       DIVISÃO 1: TOP BAR & HERO COM MÉTRICAS DE SISTEMA
+       TOP BAR & HERO COM MÉTRICAS
        ========================================================================== */
     header.site-header {
       background-color: var(--bg-surface);
@@ -329,7 +332,7 @@
     }
 
     /* ==========================================================================
-       DIVISÃO 2: PIPELINE DE 5 PASSOS (WIDESCREEN & DESTACADO)
+       PIPELINE DE 5 PASSOS
        ========================================================================== */
     .section-header {
       margin-bottom: 1.75rem;
@@ -426,7 +429,7 @@
     }
 
     /* ==========================================================================
-       DIVISÃO 3: STUDIO INTERATIVO (WIDESCREEN DASHBOARD 42% / 58%)
+       STUDIO INTERATIVO (WIDESCREEN 42% / 58%)
        ========================================================================== */
     .studio-card {
       background-color: var(--bg-surface);
@@ -436,6 +439,102 @@
       box-shadow: var(--shadow);
     }
 
+    /* API Connection Bar */
+    .api-connection-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1.25rem;
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      margin-bottom: 1.5rem;
+    }
+
+    .api-connection-status {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .status-indicator.status-online {
+      background-color: var(--accent-blue);
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+    }
+
+    .status-indicator.status-offline {
+      background-color: var(--text-muted);
+    }
+
+    .status-indicator.status-checking {
+      background-color: #f59e0b;
+    }
+
+    .status-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .api-connection-inputs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .api-input-group {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .api-input-group label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .api-input-field {
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color 150ms ease;
+    }
+    .api-input-field:focus {
+      border-color: var(--border-focus);
+    }
+
+    .api-select-field {
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: var(--radius-sm);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Studio Grid */
     .studio-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -453,6 +552,114 @@
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
+    }
+
+    /* Input Source Selector (Mic / Upload / Presets) */
+    .input-source-selector {
+      display: flex;
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .source-tab-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      border-radius: calc(var(--radius-md) - 3px);
+      background: transparent;
+      color: var(--text-secondary);
+      transition: background-color 150ms ease, color 150ms ease;
+    }
+    .source-tab-btn.active {
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      font-weight: 600;
+      border: 1px solid var(--accent-blue-border);
+    }
+
+    /* Microphone Box */
+    .mic-control-card {
+      background-color: var(--bg-surface-sunken);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      text-align: center;
+    }
+
+    .btn-record {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.65rem 1.5rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background-color: var(--accent-blue);
+      color: #ffffff;
+      border: 1px solid var(--accent-blue-border);
+      transition: background-color 150ms ease, transform 150ms ease;
+    }
+    .btn-record:hover {
+      background-color: var(--accent-blue-hover);
+    }
+    .btn-record.recording {
+      background-color: var(--accent-danger);
+      border-color: var(--accent-danger);
+      animation: pulse-recording 1.5s infinite;
+    }
+
+    @keyframes pulse-recording {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.75; }
+    }
+
+    .mic-hint-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Drag & Drop Upload Zone */
+    .drop-zone {
+      background-color: var(--bg-surface-sunken);
+      border: 1px dashed var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 150ms ease, background-color 150ms ease;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent-blue);
+      background-color: var(--accent-blue-subtle);
+    }
+
+    .drop-zone-text {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .drop-zone-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
     }
 
     /* Presets Row */
@@ -562,6 +769,61 @@
       border-radius: var(--radius-sm);
     }
 
+    /* Primary Processing Action Button */
+    .btn-primary-action {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-md);
+      background-color: var(--accent-blue);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.825rem;
+      border: 1px solid var(--accent-blue-border);
+      transition: background-color 150ms ease, opacity 150ms ease;
+    }
+    .btn-primary-action:hover {
+      background-color: var(--accent-blue-hover);
+    }
+    .btn-primary-action:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    /* Studio Notification Alert */
+    .studio-alert {
+      padding: 0.55rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .studio-alert.info {
+      background-color: var(--accent-blue-subtle);
+      border: 1px solid var(--accent-blue-border);
+      color: var(--accent-blue);
+    }
+    .studio-alert.success {
+      background-color: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10b981;
+    }
+    .studio-alert.warning {
+      background-color: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+    }
+    .studio-alert.error {
+      background-color: var(--accent-danger-subtle);
+      border: 1px solid var(--accent-danger);
+      color: var(--accent-danger);
+    }
+
     /* Raw Speech Textarea */
     .field-label-row {
       display: flex;
@@ -594,7 +856,7 @@
       resize: vertical;
       line-height: 1.6;
       transition: border-color 150ms ease;
-      min-height: 90px;
+      min-height: 80px;
     }
     textarea.raw-speech-box:focus {
       outline: none;
@@ -714,7 +976,7 @@
       font-weight: 600;
     }
 
-    /* Output Box Wrapper (Expanded Widescreen View) */
+    /* Output Box Wrapper */
     .output-box-wrapper {
       background-color: var(--bg-surface-sunken);
       border: 1px solid var(--border-color);
@@ -722,7 +984,7 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      min-height: 480px;
+      min-height: 520px;
     }
 
     .output-header {
@@ -778,6 +1040,48 @@
       border-color: var(--accent-blue-border);
     }
 
+    /* LLM Control Bar (Inside Tab LLM) */
+    .llm-control-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.65rem 1rem;
+      background-color: var(--bg-surface-elevated);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .llm-control-field {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+    }
+
+    .btn-execute-llm {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-sm);
+      background-color: var(--accent-blue);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.75rem;
+      margin-left: auto;
+      border: 1px solid var(--accent-blue-border);
+      transition: background-color 150ms ease, opacity 150ms ease;
+    }
+    .btn-execute-llm:hover {
+      background-color: var(--accent-blue-hover);
+    }
+    .btn-execute-llm:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .clean-diff-bar {
       padding: 0.45rem 1rem;
       background-color: var(--bg-surface-elevated);
@@ -816,7 +1120,7 @@
     }
 
     /* ==========================================================================
-       DIVISÃO 4: CATÁLOGO DAS 6 TÉCNICAS COGNITIVAS (3 COLUNAS LARGAS)
+       CATÁLOGO DAS 6 TÉCNICAS (3 COLUNAS LARGAS)
        ========================================================================== */
     .techniques-grid {
       display: grid;
@@ -921,7 +1225,7 @@
     }
 
     /* ==========================================================================
-       DIVISÃO 5: DECISÕES ARQUITETURAIS (ADRS 001, 002 E 003)
+       DECISÕES ARQUITETURAIS (ADRS 001, 002 E 003)
        ========================================================================== */
     .adr-timeline-track {
       display: grid;
@@ -932,7 +1236,7 @@
 
     @media (min-width: 768px) {
       .adr-timeline-track {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 1.25rem;
       }
     }
@@ -1086,7 +1390,6 @@
       gap: 0.75rem;
       transition: border-color 150ms ease;
     }
-
     .adr-pillar-card:hover {
       border-color: var(--accent-blue-border);
     }
@@ -1155,7 +1458,7 @@
     }
 
     /* ==========================================================================
-       DIVISÃO 6: PENTÁGONO DE DEFESA (5 PILARES DE SEGURANÇA EM 5 COLUNAS)
+       PENTÁGONO DE DEFESA (5 COLUNAS)
        ========================================================================== */
     .arch-container {
       background-color: var(--bg-surface);
@@ -1253,7 +1556,7 @@
     }
 
     /* ==========================================================================
-       DIVISÃO 7: CONTAINERIZAÇÃO DOCKER & INICIALIZAÇÃO RÁPIDA
+       CONTAINERIZAÇÃO DOCKER & QUICK-START
        ========================================================================== */
     .docker-banner {
       background-color: var(--bg-surface);
@@ -1455,7 +1758,7 @@
           <div class="pipeline-step-card">
             <span class="pipe-badge" data-i18n="pipe1_step">ETAPA 01</span>
             <div class="pipe-title" data-i18n="pipe1_title">1. Áudio (WAV/MP3)</div>
-            <div class="pipe-desc" data-i18n="pipe1_desc">Streaming 64KB com validação binária de magic bytes (RIFF/ID3).</div>
+            <div class="pipe-desc" data-i18n="pipe1_desc">Streaming 64KB com validação binária de magic bytes (RIFF/ID3/WebM).</div>
           </div>
 
           <div class="pipeline-arrow" aria-hidden="true">→</div>
@@ -1504,44 +1807,117 @@
         <h2 class="section-title">
           <span data-i18n="studio_title">Studio Interativo de Prompting</span>
         </h2>
-        <span class="section-subtitle" data-i18n="studio_subtitle">Simule áudios falados, teste filtros NLP e gere prompts estruturados em tempo real.</span>
+        <span class="section-subtitle" data-i18n="studio_subtitle">Grave sua voz, envie arquivos locais ou use presets com suporte a inferência real em LLM.</span>
       </div>
 
       <div class="studio-card">
+        
+        <!-- API Connection Bar (Sóbria e Minimalista) -->
+        <div class="api-connection-bar">
+          <div class="api-connection-status">
+            <span class="status-indicator status-checking" id="api-status-dot"></span>
+            <span class="status-label" id="api-status-text" data-i18n="status_checking">Verificando API...</span>
+          </div>
+          <div class="api-connection-inputs">
+            <div class="api-input-group">
+              <label for="api-url-input">API URL</label>
+              <input type="text" id="api-url-input" class="api-input-field" value="http://localhost:8000" placeholder="http://localhost:8000" style="width: 170px;" />
+            </div>
+            <div class="api-input-group">
+              <label for="api-key-input">X-API-Key</label>
+              <input type="password" id="api-key-input" class="api-input-field" value="dev-operator-alpha" placeholder="dev-operator-alpha" style="width: 150px;" />
+            </div>
+            <button type="button" class="action-btn" id="btn-check-api" onclick="checkApiHealth(true)">
+              <span data-i18n="btn_check_connection">Checar Conexão</span>
+            </button>
+          </div>
+        </div>
+
         <div class="studio-grid">
           
           <!-- LEFT COLUMN: INPUT CONTROLS (42%) -->
           <div class="input-column">
             
-            <!-- Audio Presets Selector -->
-            <div class="presets-row">
-              <span class="presets-label" data-i18n="presets_label">Exemplos de Fala:</span>
-              <div class="preset-buttons">
-                <button onclick="loadPreset(1)" class="preset-btn active" id="preset-btn-1">
-                  <span data-i18n="preset_1_name">Bug JWT (CoT)</span>
+            <!-- Source Tabs: Mic, Upload, Presets -->
+            <div>
+              <span class="control-block-label" data-i18n="source_label">Origem do Áudio:</span>
+              <div class="input-source-selector">
+                <button type="button" class="source-tab-btn active" id="tab-src-mic" onclick="setInputSource('mic')">
+                  🎙️ <span data-i18n="src_mic">Microfone Real</span>
                 </button>
-                <button onclick="loadPreset(2)" class="preset-btn" id="preset-btn-2">
-                  <span data-i18n="preset_2_name">Webhook PIX (CO-STAR)</span>
+                <button type="button" class="source-tab-btn" id="tab-src-upload" onclick="setInputSource('upload')">
+                  📁 <span data-i18n="src_upload">Arquivo Local</span>
                 </button>
-                <button onclick="loadPreset(3)" class="preset-btn" id="preset-btn-3">
-                  <span data-i18n="preset_3_name">Arquitetura (Role)</span>
+                <button type="button" class="source-tab-btn" id="tab-src-presets" onclick="setInputSource('presets')">
+                  💡 <span data-i18n="src_presets">Exemplos de Fala</span>
                 </button>
               </div>
             </div>
 
-            <!-- Simulated Audio Player Strip -->
+            <!-- SOURCE VIEW: MICROPHONE -->
+            <div id="source-view-mic" class="mic-control-card">
+              <button type="button" class="btn-record" id="btn-record-mic" onclick="toggleMicrophoneRecording()">
+                <span id="record-icon">🎙️</span>
+                <span id="record-text" data-i18n="btn_record_start">Gravar Microfone</span>
+              </button>
+              <p class="mic-hint-text" id="mic-status-hint" data-i18n="recording_hint">
+                Gravação de voz via Web Audio API + MediaRecorder. Ondas reais no canvas abaixo.
+              </p>
+            </div>
+
+            <!-- SOURCE VIEW: FILE UPLOAD -->
+            <div id="source-view-upload" style="display:none;">
+              <div class="drop-zone" id="audio-drop-zone" onclick="document.getElementById('audio-file-input').click()">
+                <div style="font-size: 1.5rem;">📁</div>
+                <div class="drop-zone-text" data-i18n="drop_zone_text">Arraste um áudio aqui (.wav, .mp3, .m4a, .ogg, .flac, .webm) ou clique para selecionar</div>
+                <div class="drop-zone-sub" data-i18n="drop_zone_hint">Até 25MB • Validação de Magic Bytes no Backend</div>
+                <input type="file" id="audio-file-input" accept=".wav,.mp3,.m4a,.ogg,.flac,.webm,audio/*" style="display:none;" />
+              </div>
+            </div>
+
+            <!-- SOURCE VIEW: PRESETS -->
+            <div id="source-view-presets" style="display:none;">
+              <div class="presets-row">
+                <span class="presets-label" data-i18n="presets_label">Exemplos de Fala:</span>
+                <div class="preset-buttons">
+                  <button type="button" onclick="loadPreset(1)" class="preset-btn active" id="preset-btn-1">
+                    <span data-i18n="preset_1_name">Bug JWT (CoT)</span>
+                  </button>
+                  <button type="button" onclick="loadPreset(2)" class="preset-btn" id="preset-btn-2">
+                    <span data-i18n="preset_2_name">Webhook PIX (CO-STAR)</span>
+                  </button>
+                  <button type="button" onclick="loadPreset(3)" class="preset-btn" id="preset-btn-3">
+                    <span data-i18n="preset_3_name">Arquitetura (Role)</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Audio Player Strip (Canvas Waveform) -->
             <div class="audio-player-box">
-              <button onclick="toggleAudioPlayback()" class="play-btn" id="audio-play-btn" title="Simular reprodução de áudio" aria-label="Reproduzir áudio">
+              <button type="button" onclick="toggleAudioPlayback()" class="play-btn" id="audio-play-btn" title="Reproduzir áudio carregado" aria-label="Reproduzir áudio">
                 <span id="play-icon">▶</span>
               </button>
               <div class="audio-meta">
                 <div class="audio-meta-header">
                   <span id="audio-filename" class="audio-filename">audio_sample_bug_jwt.wav</span>
-                  <span class="audio-format-badge">RIFF/WAVE 16kHz</span>
+                  <span id="audio-format-badge" class="audio-format-badge">RIFF/WAVE 16kHz</span>
                 </div>
                 <canvas id="waveform-canvas" width="500" height="30"></canvas>
               </div>
+              <audio id="html5-audio" style="display:none;"></audio>
             </div>
+
+            <!-- Action Button: Process Transcription -->
+            <div>
+              <button type="button" class="btn-primary-action" id="btn-process-transcription" onclick="processTranscription()">
+                <span>⚡</span>
+                <span id="btn-process-text" data-i18n="btn_transcribe_mic">Transcrever com Whisper CPU INT8</span>
+              </button>
+            </div>
+
+            <!-- Studio Alert Notification Message -->
+            <div id="studio-notification" class="studio-alert info" style="display:none;"></div>
 
             <!-- Input Raw Speech Box -->
             <div>
@@ -1557,8 +1933,8 @@
               <div>
                 <span class="control-block-label" data-i18n="mode_label">Modo de Saída:</span>
                 <div class="toggle-group">
-                  <button onclick="setOutputMode('prompt')" id="mode-prompt-btn" class="active">Prompt</button>
-                  <button onclick="setOutputMode('txt')" id="mode-txt-btn">.txt Puro</button>
+                  <button type="button" onclick="setOutputMode('prompt')" id="mode-prompt-btn" class="active">Prompt</button>
+                  <button type="button" onclick="setOutputMode('txt')" id="mode-txt-btn">.txt Puro</button>
                 </div>
               </div>
 
@@ -1575,22 +1951,22 @@
             <div class="techniques-panel" id="tech-selector-container">
               <span class="control-block-label" data-i18n="technique_label">Técnica de Prompt Engineering:</span>
               <div class="technique-buttons">
-                <button onclick="setTechnique('chain_of_thought')" id="btn-tech-chain_of_thought" class="tech-btn active">
+                <button type="button" onclick="setTechnique('chain_of_thought')" id="btn-tech-chain_of_thought" class="tech-btn active">
                   CoT
                 </button>
-                <button onclick="setTechnique('co_star')" id="btn-tech-co_star" class="tech-btn">
+                <button type="button" onclick="setTechnique('co_star')" id="btn-tech-co_star" class="tech-btn">
                   CO-STAR
                 </button>
-                <button onclick="setTechnique('role_prompting')" id="btn-tech-role_prompting" class="tech-btn">
+                <button type="button" onclick="setTechnique('role_prompting')" id="btn-tech-role_prompting" class="tech-btn">
                   Role
                 </button>
-                <button onclick="setTechnique('zero_shot')" id="btn-tech-zero_shot" class="tech-btn">
+                <button type="button" onclick="setTechnique('zero_shot')" id="btn-tech-zero_shot" class="tech-btn">
                   Zero-Shot
                 </button>
-                <button onclick="setTechnique('few_shot')" id="btn-tech-few_shot" class="tech-btn">
+                <button type="button" onclick="setTechnique('few_shot')" id="btn-tech-few_shot" class="tech-btn">
                   Few-Shot
                 </button>
-                <button onclick="setTechnique('react')" id="btn-tech-react" class="tech-btn">
+                <button type="button" onclick="setTechnique('react')" id="btn-tech-react" class="tech-btn">
                   ReAct
                 </button>
               </div>
@@ -1608,10 +1984,10 @@
                   <span class="output-stats" id="output-stats">• Latência: ~280ms (INT8)</span>
                 </div>
                 <div class="output-actions">
-                  <button onclick="copyToClipboard()" class="action-btn" id="copy-btn">
+                  <button type="button" onclick="copyToClipboard()" class="action-btn" id="copy-btn">
                     <span data-i18n="btn_copy">Copiar</span>
                   </button>
-                  <button onclick="downloadOutput()" class="action-btn" id="download-btn">
+                  <button type="button" onclick="downloadOutput()" class="action-btn" id="download-btn">
                     <span data-i18n="btn_download">Baixar</span>
                   </button>
                 </div>
@@ -1620,16 +1996,40 @@
               <!-- View Mode Switcher: Prompt vs LLM Output -->
               <div style="display:flex; justify-content:space-between; align-items:center; padding:0.45rem 1rem; background-color:var(--bg-surface); border-bottom:1px solid var(--border-color); flex-wrap:wrap; gap:0.4rem;">
                 <div class="toggle-group" style="padding:2px; height:28px;">
-                  <button onclick="setOutputView('prompt')" id="btn-view-prompt" class="active" style="padding:0.15rem 0.75rem; font-size:0.72rem;">
+                  <button type="button" onclick="setOutputView('prompt')" id="btn-view-prompt" class="active" style="padding:0.15rem 0.75rem; font-size:0.72rem;">
                     <span data-i18n="tab_prompt">Prompt Gerado</span>
                   </button>
-                  <button onclick="setOutputView('llm')" id="btn-view-llm" style="padding:0.15rem 0.75rem; font-size:0.72rem;">
+                  <button type="button" onclick="setOutputView('llm')" id="btn-view-llm" style="padding:0.15rem 0.75rem; font-size:0.72rem;">
                     <span data-i18n="tab_llm">Execução LLM</span>
                   </button>
                 </div>
                 <span id="view-mode-hint" style="font-family:var(--font-mono); font-size:0.6875rem; color:var(--text-muted);">
                   Whisper CPU → Prompt Engine → LLM Execution
                 </span>
+              </div>
+
+              <!-- LLM Controls (Visible when LLM tab is active) -->
+              <div id="llm-control-bar" class="llm-control-bar" style="display:none;">
+                <div class="llm-control-field">
+                  <label for="llm-provider-select" data-i18n="llm_provider_label">Provedor:</label>
+                  <select id="llm-provider-select" class="api-select-field" onchange="onLlmProviderChange()">
+                    <option value="gemini" data-i18n="opt_provider_gemini">Google Gemini (Google AI Studio - gemini-1.5-flash)</option>
+                    <option value="groq" data-i18n="opt_provider_groq">Groq Cloud LPU (llama-3.3-70b-versatile)</option>
+                    <option value="ollama" data-i18n="opt_provider_ollama">Ollama Local (llama3)</option>
+                    <option value="grok" data-i18n="opt_provider_grok">xAI Grok (grok-beta)</option>
+                  </select>
+                </div>
+                <div class="llm-control-field">
+                  <label for="llm-model-input">Modelo:</label>
+                  <input type="text" id="llm-model-input" class="api-input-field" value="gemini-1.5-flash" style="width:175px;" />
+                </div>
+                <div class="llm-control-field">
+                  <label for="llm-temp-input">Temp: <span id="llm-temp-val">0.2</span></label>
+                  <input type="range" id="llm-temp-input" min="0" max="1" step="0.1" value="0.2" oninput="document.getElementById('llm-temp-val').textContent = this.value" style="width:75px; accent-color:var(--accent-blue);" />
+                </div>
+                <button type="button" class="btn-execute-llm" id="btn-execute-llm" onclick="triggerLlmInference()">
+                  <span>🤖</span> <span data-i18n="btn_run_llm">Executar no LLM</span>
+                </button>
               </div>
 
               <!-- NLP Diff Info Bar -->
@@ -1672,7 +2072,7 @@
           <div class="card-when">
             <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_zero_shot_when">Perguntas objetivas, refatorações pontuais e consultas rápidas sem ambiguidade.</span>
           </div>
-          <button onclick="applyTechniqueAndScroll('zero_shot')" class="card-action-btn" data-i18n="btn_test_studio">
+          <button type="button" onclick="applyTechniqueAndScroll('zero_shot')" class="card-action-btn" data-i18n="btn_test_studio">
             Testar no Studio →
           </button>
         </div>
@@ -1690,7 +2090,7 @@
           <div class="card-when">
             <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_few_shot_when">Extração de entidades, formatação em JSON/YAML rigoroso e padronização corporativa.</span>
           </div>
-          <button onclick="applyTechniqueAndScroll('few_shot')" class="card-action-btn" data-i18n="btn_test_studio">
+          <button type="button" onclick="applyTechniqueAndScroll('few_shot')" class="card-action-btn" data-i18n="btn_test_studio">
             Testar no Studio →
           </button>
         </div>
@@ -1708,7 +2108,7 @@
           <div class="card-when">
             <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_cot_when">Resolução de bugs complexos, cálculos de negócio, lógica de arquitetura e trade-offs.</span>
           </div>
-          <button onclick="applyTechniqueAndScroll('chain_of_thought')" class="card-action-btn" data-i18n="btn_test_studio">
+          <button type="button" onclick="applyTechniqueAndScroll('chain_of_thought')" class="card-action-btn" data-i18n="btn_test_studio">
             Testar no Studio →
           </button>
         </div>
@@ -1726,7 +2126,7 @@
           <div class="card-when">
             <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_role_when">Code reviews de alto nível, consultorias de engenharia e auditorias de segurança.</span>
           </div>
-          <button onclick="applyTechniqueAndScroll('role_prompting')" class="card-action-btn" data-i18n="btn_test_studio">
+          <button type="button" onclick="applyTechniqueAndScroll('role_prompting')" class="card-action-btn" data-i18n="btn_test_studio">
             Testar no Studio →
           </button>
         </div>
@@ -1744,7 +2144,7 @@
           <div class="card-when">
             <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_costar_when">Prompts para esteiras produtivas, especificações funcionais e relatórios técnicos formais.</span>
           </div>
-          <button onclick="applyTechniqueAndScroll('co_star')" class="card-action-btn" data-i18n="btn_test_studio">
+          <button type="button" onclick="applyTechniqueAndScroll('co_star')" class="card-action-btn" data-i18n="btn_test_studio">
             Testar no Studio →
           </button>
         </div>
@@ -1762,7 +2162,7 @@
           <div class="card-when">
             <strong data-i18n="lbl_when">Quando usar:</strong> <span data-i18n="card_react_when">Agentes autônomos, integrações com ferramentas (tool calling) e orquestração multi-etapas.</span>
           </div>
-          <button onclick="applyTechniqueAndScroll('react')" class="card-action-btn" data-i18n="btn_test_studio">
+          <button type="button" onclick="applyTechniqueAndScroll('react')" class="card-action-btn" data-i18n="btn_test_studio">
             Testar no Studio →
           </button>
         </div>
@@ -1810,6 +2210,16 @@
             <span class="tl-node-badge" data-i18n="adr3_badge">Fase 3 • LLM Orchestration</span>
           </div>
           <div class="tl-title" data-i18n="adr3_short_title">Inferência LLM Desacoplada</div>
+          <div class="tl-meta">
+            <span class="tl-select-hint" data-i18n="adr_active_hint">Selecionado</span>
+          </div>
+        </div>
+
+        <div class="timeline-step step-4" id="tl-step-4" onclick="selectAdr(4)" role="button" tabindex="0">
+          <div class="tl-header-row">
+            <span class="tl-node-badge" data-i18n="adr4_badge">Fase 4 • Web Studio</span>
+          </div>
+          <div class="tl-title" data-i18n="adr4_short_title">Web Studio & Multi-Provider</div>
           <div class="tl-meta">
             <span class="tl-select-hint" data-i18n="adr_active_hint">Selecionado</span>
           </div>
@@ -1936,7 +2346,7 @@
             <div class="pentagon-card">
               <span class="pentagon-number">05. MAGIC BYTES</span>
               <div class="pentagon-title" data-i18n="p5_title">Sanitização & Streaming</div>
-              <p class="pentagon-desc" data-i18n="p5_desc">Magic bytes binários (RIFF/ID3), stream 64KB com limite 413 e anti-prompt injection falado.</p>
+              <p class="pentagon-desc" data-i18n="p5_desc">Magic bytes binários (RIFF/ID3/WebM), stream 64KB com limite 413 e anti-prompt injection falado.</p>
             </div>
           </div>
         </div>
@@ -1955,7 +2365,7 @@
         </div>
         <div class="docker-code-box">
           <code>$ docker compose up --build</code>
-          <button id="docker-copy-btn" class="docker-copy-btn" onclick="copyDockerCommand()" title="Copiar comando" aria-label="Copiar comando">
+          <button type="button" id="docker-copy-btn" class="docker-copy-btn" onclick="copyDockerCommand()" title="Copiar comando" aria-label="Copiar comando">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -1969,7 +2379,8 @@
 
   <!-- ==========================================================================
        FOOTER
-       ========================================================================== -->
+       ========================================================================== */
+  -->
   <footer class="site-footer">
     <div class="container footer-content">
       <div>
@@ -1984,7 +2395,7 @@
   </footer>
 
   <!-- ==========================================================================
-       NATIVE JAVASCRIPT: STUDIO LOGIC, PRESETS, THEME & TRANSLATION
+       NATIVE JAVASCRIPT: STUDIO LOGIC, MEDIA RECORDER, API INTEGRATION & PRESETS
        ========================================================================== -->
   <script>
     /* --------------------------------------------------------------------------
@@ -2012,7 +2423,7 @@
         pipeline_subtitle: 'Fluxo determinístico de ponta a ponta: do áudio analógico à execução de inferência em LLM.',
         pipe1_step: 'ETAPA 01',
         pipe1_title: '1. Áudio (WAV/MP3)',
-        pipe1_desc: 'Streaming 64KB com validação binária de magic bytes (RIFF/ID3).',
+        pipe1_desc: 'Streaming 64KB com validação binária de magic bytes (RIFF/ID3/WebM).',
         pipe2_step: 'ETAPA 02',
         pipe2_title: '2. Whisper CPU (INT8)',
         pipe2_desc: 'ASR acústico + Decoder SLM autoregressivo de alta precisão.',
@@ -2026,7 +2437,21 @@
         pipe5_title: '5. Modelo LLM',
         pipe5_desc: 'Execução desacoplada via Ollama (Local) ou Grok (Cloud xAI).',
         studio_title: 'Studio Interativo de Prompting',
-        studio_subtitle: 'Simule áudios falados, teste filtros NLP e gere prompts estruturados em tempo real.',
+        studio_subtitle: 'Grave sua voz, envie arquivos locais ou use presets com suporte a inferência real em LLM.',
+        status_checking: 'Verificando API...',
+        btn_check_connection: 'Checar Conexão',
+        source_label: 'Origem do Áudio:',
+        src_mic: 'Microfone Real',
+        src_upload: 'Arquivo Local',
+        src_presets: 'Exemplos de Fala',
+        btn_record_start: 'Gravar Microfone',
+        btn_record_stop: 'Parar Gravação',
+        recording_hint: 'Gravação de voz via Web Audio API + MediaRecorder. Ondas reais no canvas abaixo.',
+        drop_zone_text: 'Arraste um áudio aqui (.wav, .mp3, .m4a, .ogg, .flac, .webm) ou clique para selecionar',
+        drop_zone_hint: 'Até 25MB • Validação de Magic Bytes no Backend',
+        btn_transcribe_mic: 'Transcrever Gravação',
+        btn_transcribe_file: 'Transcrever Arquivo',
+        btn_transcribe_preset: 'Processar Preset',
         presets_label: 'Exemplos de Fala:',
         preset_1_name: 'Bug JWT (CoT)',
         preset_2_name: 'Webhook PIX (CO-STAR)',
@@ -2039,6 +2464,12 @@
         technique_label: 'Técnica de Prompt Engineering:',
         tab_prompt: 'Prompt Gerado',
         tab_llm: 'Execução LLM',
+        llm_provider_label: 'Provedor:',
+        opt_provider_gemini: 'Google Gemini (Google AI Studio - gemini-1.5-flash)',
+        opt_provider_groq: 'Groq Cloud LPU (llama-3.3-70b-versatile)',
+        opt_provider_ollama: 'Ollama Local (llama3)',
+        opt_provider_grok: 'xAI Grok (grok-beta)',
+        btn_run_llm: 'Executar no LLM',
         btn_copy: 'Copiar',
         btn_download: 'Baixar',
         cards_section_title: 'As 6 Técnicas de Prompt Suportadas',
@@ -2066,6 +2497,8 @@
         adr2_short_title: 'Containerização Hermética com Astral UV',
         adr3_badge: 'Fase 3 • LLM Orchestration',
         adr3_short_title: 'Inferência LLM Desacoplada',
+        adr4_badge: 'Fase 4 • Web Studio',
+        adr4_short_title: 'Web Studio & Multi-Provider',
         adr_pillar_context_title: '1. Contexto & Forças Motivadoras',
         adr_pillar_decision_title: '2. Decisão Técnica Adotada',
         adr_pillar_rejected_title: '3. Alternativas Rejeitadas & Por Quê',
@@ -2087,7 +2520,7 @@
         p4_title: 'Chaves & Defaults',
         p4_desc: 'Sem segredos hardcoded; uploads efêmeros limpos no disco via finally: os.unlink().',
         p5_title: 'Sanitização & Streaming',
-        p5_desc: 'Magic bytes binários (RIFF/ID3), stream 64KB com limite 413 e anti-prompt injection falado.',
+        p5_desc: 'Magic bytes binários (RIFF/ID3/WebM), stream 64KB com limite 413 e anti-prompt injection falado.',
         docker_title: 'Containerização Pronta com Docker & UV',
         docker_desc: 'Imagem multi-stage não-root (appuser:10001) baseada em Debian Bookworm Slim com UV e ffmpeg pré-instalados. Volumes persistentes para SQLite e cache de modelos Whisper.',
         footer_rights: 'Motor de Áudio Local e Engenharia de Prompt',
@@ -2114,7 +2547,7 @@
         pipeline_subtitle: 'Deterministic end-to-end flow: from streaming audio to target LLM inference execution.',
         pipe1_step: 'STAGE 01',
         pipe1_title: '1. Audio (WAV/MP3)',
-        pipe1_desc: '64KB chunk streaming with binary magic bytes verification (RIFF/ID3).',
+        pipe1_desc: '64KB chunk streaming with binary magic bytes verification (RIFF/ID3/WebM).',
         pipe2_step: 'STAGE 02',
         pipe2_title: '2. Whisper CPU (INT8)',
         pipe2_desc: 'Acoustic ASR + autoregressive contextual SLM Decoder.',
@@ -2128,7 +2561,21 @@
         pipe5_title: '5. Target LLM',
         pipe5_desc: 'Decoupled execution via Ollama (Local) or Grok (Cloud xAI).',
         studio_title: 'Interactive Prompting Studio',
-        studio_subtitle: 'Simulate spoken audio, test NLP cleanup filters, and synthesize structured prompts in real-time.',
+        studio_subtitle: 'Record microphone, upload audio files, or test presets with real LLM inference.',
+        status_checking: 'Checking API...',
+        btn_check_connection: 'Check Connection',
+        source_label: 'Audio Input Source:',
+        src_mic: 'Live Microphone',
+        src_upload: 'Local File',
+        src_presets: 'Spoken Presets',
+        btn_record_start: 'Record Microphone',
+        btn_record_stop: 'Stop Recording',
+        recording_hint: 'Voice capture via Web Audio API + MediaRecorder. Real frequencies on the canvas below.',
+        drop_zone_text: 'Drop an audio file here (.wav, .mp3, .m4a, .ogg, .flac, .webm) or click to browse',
+        drop_zone_hint: 'Up to 25MB • Binary Magic Bytes validation on Backend',
+        btn_transcribe_mic: 'Transcribe Recording',
+        btn_transcribe_file: 'Transcribe File',
+        btn_transcribe_preset: 'Process Preset',
         presets_label: 'Spoken Presets:',
         preset_1_name: 'JWT Bug (CoT)',
         preset_2_name: 'PIX Webhook (CO-STAR)',
@@ -2141,6 +2588,12 @@
         technique_label: 'Prompt Engineering Technique:',
         tab_prompt: 'Generated Prompt',
         tab_llm: 'LLM Execution',
+        llm_provider_label: 'Provider:',
+        opt_provider_gemini: 'Google Gemini (Google AI Studio - gemini-1.5-flash)',
+        opt_provider_groq: 'Groq Cloud LPU (llama-3.3-70b-versatile)',
+        opt_provider_ollama: 'Ollama Local (llama3)',
+        opt_provider_grok: 'xAI Grok (grok-beta)',
+        btn_run_llm: 'Run on LLM',
         btn_copy: 'Copy',
         btn_download: 'Download',
         cards_section_title: 'The 6 Supported Prompt Techniques',
@@ -2168,6 +2621,8 @@
         adr2_short_title: 'Hermetic Containerization with Astral UV',
         adr3_badge: 'Phase 3 • LLM Orchestration',
         adr3_short_title: 'Decoupled LLM Inference',
+        adr4_badge: 'Phase 4 • Web Studio',
+        adr4_short_title: 'Web Studio & Multi-Provider',
         adr_pillar_context_title: '1. Context & Key Drivers',
         adr_pillar_decision_title: '2. Adopted Technical Decision',
         adr_pillar_rejected_title: '3. Rejected Alternatives & Trade-offs',
@@ -2189,7 +2644,7 @@
         p4_title: 'Secure Keys & Lifespan',
         p4_desc: 'Zero hardcoded secrets; ephemeral audio uploads unlinked from disk in finally: os.unlink().',
         p5_title: 'Magic Bytes & Streaming',
-        p5_desc: 'Binary magic bytes (RIFF/ID3), 64KB streaming upload with 413 limit, and acoustic prompt injection escaping.',
+        p5_desc: 'Binary magic bytes (RIFF/ID3/WebM), 64KB streaming upload with 413 limit, and acoustic prompt injection escaping.',
         docker_title: 'Hermetic Docker & UV Containerization',
         docker_desc: 'Multi-stage non-root container (appuser:10001) built on Debian Bookworm Slim with pre-installed UV and ffmpeg. Dedicated volumes for SQLite and Whisper model weights.',
         footer_rights: 'Local Audio Engine & Cognitive Prompting',
@@ -2210,7 +2665,7 @@
           context: `A fala humana espontânea contém hesitações vocais (<em>"ééé"</em>, <em>"tipo assim"</em>, <em>"né"</em>), descontinuidades gramaticais e repetições. Submeter esse áudio bruto diretamente a LLMs resulta em perda de assertividade e alto consumo de tokens.<br><br>Ademais, utilizar APIs de terceiros na nuvem impõe tarifação por minuto, riscos de conformidade corporativa (LGPD/GDPR) e dependência de rede externa.`,
           decision: `Adoção do <strong>Faster-Whisper (CTranslate2 INT8)</strong> executado 100% localmente em CPU:<br><ul><li><strong>Consumo Enxuto:</strong> Modelo <code>base</code> consome ~150 MB de RAM (contra &gt;800 MB do PyTorch).</li><li><strong>SLM Contextual:</strong> O Text Decoder opera como Small Language Model autoregressivo, prevendo tokens gramaticais, pontuando e desambiguando homófonos (ex: <em>"sessão"</em> vs. <em>"seção"</em>).</li><li><strong>Pipeline Dual:</strong> Padrão Strategy gerando arquivo <code>.txt</code> normalizado ou <code>prompt</code> estruturado nas 6 técnicas.</li><li><strong>Ciclo Singleton:</strong> Modelo carregado no ciclo <code>lifespan</code> da aplicação FastAPI.</li></ul>`,
           rejected: `<ul><li><strong>OpenAI Whisper (PyTorch):</strong> Descartado por consumo excessivo de RAM (&gt;800 MB), inferência 4x mais lenta em CPU e dependência pesada de CUDA.</li><li><strong>Whishper Full Stack (Docker + Mongo + LibreTranslate):</strong> Descartado por sobrecarga desnecessária (&gt;4 GB de imagens e &gt;3 GB RAM) para um serviço focado.</li><li><strong>Fallbacks silenciosos de técnica:</strong> Descartado; ausência de técnica no modo prompt resulta em erro estrito <code>422 Unprocessable Content</code>.</li></ul>`,
-          security: `<ul><li><strong>Magic Bytes Binários:</strong> Inspeção física de cabeçalhos (<code>RIFF/WAVE</code>, <code>ID3/MP3</code>, <code>OggS</code>, <code>fLaC</code>), bloqueando extensões renomeadas com <code>400 Bad Request</code>.</li><li><strong>Streaming de 64 KB com Limite:</strong> Interrupção com <code>413 Content Too Large</code> em uploads &gt; 25 MB, prevenindo esgotamento de memória.</li><li><strong>Anti-Acoustic Injection:</strong> Fala encapsulada sob tag XML <code>&lt;user_speech&gt;</code> com escape de entidades XML (<code>&amp;lt;</code>, <code>&amp;gt;</code>).</li><li><strong>Isolamento Multi-Tenant:</strong> Queries indexadas por <code>tenant_id</code> e conexões liberadas com <code>finally: conn.close()</code>.</li></ul>`
+          security: `<ul><li><strong>Magic Bytes Binários:</strong> Inspeção física de cabeçalhos (<code>RIFF/WAVE</code>, <code>ID3/MP3</code>, <code>OggS</code>, <code>fLaC</code>, <code>EBML/WebM</code>), bloqueando extensões renomeadas com <code>400 Bad Request</code>.</li><li><strong>Streaming de 64 KB com Limite:</strong> Interrupção com <code>413 Content Too Large</code> em uploads &gt; 25 MB, prevenindo esgotamento de memória.</li><li><strong>Anti-Acoustic Injection:</strong> Fala encapsulada sob tag XML <code>&lt;user_speech&gt;</code> com escape de entidades XML (<code>&amp;lt;</code>, <code>&amp;gt;</code>).</li><li><strong>Isolamento Multi-Tenant:</strong> Queries indexadas por <code>tenant_id</code> e conexões liberadas com <code>finally: conn.close()</code>.</li></ul>`
         },
         2: {
           id: 'ADR-002',
@@ -2231,6 +2686,16 @@
           decision: `Desacoplamento transacional via rota dedicada <code>POST /api/v1/transcriptions/{job_id}/execute</code>:<br><ul><li><strong>Persistência Pré-Inferência:</strong> O prompt é salvo no SQLite com seu UUID antes da chamada ao LLM, garantindo histórico permanente e retentativas a custo zero de CPU.</li><li><strong>Provider Strategy Agnóstico:</strong> Interface <code>ILLMProvider</code> implementando <strong>OllamaProvider</strong> (local, offline, privacidade LGPD com Llama 3 8B) e <strong>GrokProvider</strong> (nuvem xAI para raciocínio complexo 70B+).</li><li><strong>Zero Dependências Externas:</strong> Requisições HTTP implementadas com o módulo nativo <code>urllib.request</code> da standard library, dispensando SDKs externos.</li></ul>`,
           rejected: `<ul><li><strong>Inferência Síncrona Acoplada ao Upload:</strong> Descartada por provocar timeouts no cliente HTTP e impedir auditoria isolada do prompt gerado.</li><li><strong>SDKs proprietários de terceiros:</strong> Descartados para preservar o tamanho enxuto do container e eliminar riscos de supply chain.</li><li><strong>Fallbacks silenciosos de provedor:</strong> Descartados; solicitar Grok sem chave configurada resulta em erro contratual estrito <code>422 Unprocessable Content</code>.</li></ul>`,
           security: `<ul><li><strong>RBAC no Servidor:</strong> Apenas chaves <code>operator</code> ou <code>admin</code> podem executar prompts; papel <code>viewer</code> recebe <code>403 Forbidden</code>.</li><li><strong>Anti-IDOR:</strong> Validação sintática do UUID v4 no path e filtro estrito <code>WHERE id = ? AND tenant_id = ?</code> (acesso cruzado responde 404).</li><li><strong>Resiliência e Proteção de Segredos:</strong> Falhas de conectividade upstream retornam <code>502 Bad Gateway</code> tratado sem expor credenciais ou stack traces.</li></ul>`
+        },
+        4: {
+          id: 'ADR-004',
+          phase: 'Fase 4 • Web Studio & Multi-Provider',
+          title: 'Web Studio com Gravação Nativa (WebM/EBML) & Expansão Gemini/Groq',
+          scope: 'Interface gráfica Web Studio servida diretamente em GET /, suporte a gravação nativa via MediaRecorder API com magic bytes EBML, e expansão da Provider Strategy para Google Gemini e Groq Cloud LPU.',
+          context: `A ingestão de áudio dependia de clientes externos ou arquivos pré-gravados. Além disso, a MediaRecorder API dos navegadores modernos gera contêineres WebM com áudio Opus, exigindo validação de cabeçalhos EBML. Por fim, havia demanda por modelos em nuvem de altíssima velocidade (Groq LPU) e janelas amplas de contexto (Gemini 1.5 Flash).`,
+          decision: `Implementações integradas no backend e frontend:<br><ul><li><strong>Magic Bytes EBML:</strong> Reconhecimento de <code>\x1a\x45\xdf\xa3</code> em <code>src/security/sanitizer.py</code> com decodificação nativa via FFmpeg.</li><li><strong>Entrega Direta em GET /:</strong> FastAPI servindo <code>docs/index.html</code> sob a mesma origem, eliminando CORS e dispensando servidores Node/Nginx.</li><li><strong>Provedores Gemini &amp; Groq:</strong> Classes <code>GeminiProvider</code> (Google AI Studio) e <code>GroqProvider</code> (Groq Cloud LPU) adicionadas à Strategy <code>ILLMProvider</code>.</li><li><strong>Zero Dependências Externas:</strong> Requisições HTTP REST executadas estritamente com <code>urllib.request</code> nativo.</li></ul>`,
+          rejected: `<ul><li><strong>Transcodificação de áudio no browser com ffmpeg.wasm:</strong> Descartada por lentidão, consumo de megabytes e complexidade desnecessária no cliente.</li><li><strong>SDKs proprietários google-generativeai e groq via pip:</strong> Descartados para manter o container Docker hermético e livre de riscos de supply chain.</li><li><strong>Servidor web separado para o frontend (Nginx/Node):</strong> Descartado para manter toda a aplicação unificada na porta 8000 sob usuário não-root.</li></ul>`,
+          security: `<ul><li><strong>Validação Binária Real:</strong> Bloqueia extensões renomeadas (.webm falsos) com <code>400 Bad Request</code>.</li><li><strong>Controle de Payload:</strong> Gravação transmitida com chunks de 64 KB e limite estrito de 25 MB (<code>413 Content Too Large</code>).</li><li><strong>Fail-Fast em Chaves:</strong> Requisição sem <code>GEMINI_API_KEY</code> ou <code>GROQ_API_KEY</code> responde imediatamente com <code>422 Unprocessable Content</code>.</li><li><strong>Isolamento de Falhas:</strong> Erros de conectividade com Google ou Groq respondem com <code>502/504</code> tratados sem expor stack traces.</li></ul>`
         }
       },
       'en': {
@@ -2242,7 +2707,7 @@
           context: `Spontaneous human speech contains verbal fillers (<em>"uhm"</em>, <em>"like"</em>), grammatical breaks, and repetitions. Submitting raw transcripts directly to LLMs degrades instruction fidelity and wastes tokens.<br><br>Furthermore, relying on third-party cloud APIs incurs per-minute billing, privacy compliance concerns (LGPD/GDPR), and external network dependence.`,
           decision: `Adopted <strong>Faster-Whisper (CTranslate2 INT8)</strong> running 100% locally on CPU:<br><ul><li><strong>Lean Footprint:</strong> <code>base</code> model consumes ~150 MB RAM (vs &gt;800 MB for PyTorch).</li><li><strong>Contextual SLM:</strong> The Text Decoder acts as an autoregressive Small Language Model, evaluating token probabilities, inserting punctuation, and resolving homophones.</li><li><strong>Dual Pipeline:</strong> Strategy pattern yielding normalized <code>.txt</code> or XML-structured <code>prompt</code> across 6 techniques.</li><li><strong>Singleton Lifecycle:</strong> Model loaded in FastAPI <code>lifespan</code>, preventing memory leaks and CPU thrashing.</li></ul>`,
           rejected: `<ul><li><strong>OpenAI Whisper (PyTorch):</strong> Rejected due to &gt;800 MB RAM consumption, 4x slower CPU inference, and heavy CUDA dependencies.</li><li><strong>Whishper Full Stack (Docker + Mongo + LibreTranslate):</strong> Rejected due to excessive overhead (&gt;4 GB images, &gt;3 GB RAM) for a focused service.</li><li><strong>Silent Technique Fallbacks:</strong> Rejected; missing technique in prompt mode returns strict <code>422 Unprocessable Content</code>.</li></ul>`,
-          security: `<ul><li><strong>Binary Magic Bytes:</strong> Physical binary header validation (<code>RIFF/WAVE</code>, <code>ID3/MP3</code>, <code>OggS</code>, <code>fLaC</code>), rejecting renamed scripts with <code>400 Bad Request</code>.</li><li><strong>64 KB Chunk Streaming:</strong> Aborts uploads exceeding 25 MB with <code>413 Content Too Large</code>, preventing memory exhaustion.</li><li><strong>Acoustic Injection Defense:</strong> Transcribed speech sanitized inside XML <code>&lt;user_speech&gt;</code> tags with full entity escaping (<code>&amp;lt;</code>, <code>&amp;gt;</code>).</li><li><strong>Multi-Tenant Isolation:</strong> Queries strictly scoped by <code>tenant_id</code> and connections closed in <code>finally: conn.close()</code>.</li></ul>`
+          security: `<ul><li><strong>Binary Magic Bytes:</strong> Physical binary header validation (<code>RIFF/WAVE</code>, <code>ID3/MP3</code>, <code>OggS</code>, <code>fLaC</code>, <code>EBML/WebM</code>), rejecting renamed scripts with <code>400 Bad Request</code>.</li><li><strong>64 KB Chunk Streaming:</strong> Aborts uploads exceeding 25 MB with <code>413 Content Too Large</code>, preventing memory exhaustion.</li><li><strong>Acoustic Injection Defense:</strong> Transcribed speech sanitized inside XML <code>&lt;user_speech&gt;</code> tags with full entity escaping (<code>&amp;lt;</code>, <code>&amp;gt;</code>).</li><li><strong>Multi-Tenant Isolation:</strong> Queries strictly scoped by <code>tenant_id</code> and connections closed in <code>finally: conn.close()</code>.</li></ul>`
         },
         2: {
           id: 'ADR-002',
@@ -2263,6 +2728,16 @@
           decision: `Transactional decoupling via dedicated <code>POST /api/v1/transcriptions/{job_id}/execute</code> route:<br><ul><li><strong>Pre-Inference Persistence:</strong> The prompt is saved in SQLite with its UUID prior to upstream calls, ensuring permanent audit trails and zero-cost retries.</li><li><strong>Provider Strategy Pattern:</strong> Abstract <code>ILLMProvider</code> supporting <strong>OllamaProvider</strong> (local, offline, full privacy with Llama 3 8B) and <strong>GrokProvider</strong> (cloud xAI for complex 70B+ reasoning).</li><li><strong>Zero External Dependencies:</strong> REST client implemented via Python standard library (<code>urllib.request</code>), eliminating third-party SDK bloat.</li></ul>`,
           rejected: `<ul><li><strong>Synchronous Inference Coupled to Upload:</strong> Rejected due to client HTTP timeouts and inability to audit or retry independently.</li><li><strong>Proprietary Third-Party SDKs:</strong> Rejected to keep the Docker image hermetic, small, and free from supply chain vulnerabilities.</li><li><strong>Silent Provider Fallbacks:</strong> Rejected; calling Grok without an API key immediately returns explicit <code>422 Unprocessable Content</code>.</li></ul>`,
           security: `<ul><li><strong>Server-Side RBAC:</strong> Only <code>operator</code> or <code>admin</code> roles can trigger execution; <code>viewer</code> is blocked with <code>403 Forbidden</code>.</li><li><strong>Anti-IDOR:</strong> Path UUID v4 syntactically validated and isolated via <code>WHERE id = ? AND tenant_id = ?</code>; invalid accesses return <code>404</code>.</li><li><strong>Secrets Protection & Fault Isolation:</strong> Provider outages return controlled <code>502 Bad Gateway</code> without leaking credentials or stack traces.</li></ul>`
+        },
+        4: {
+          id: 'ADR-004',
+          phase: 'Phase 4 • Web Studio & Multi-Provider',
+          title: 'Native Web Studio (WebM/EBML) & Gemini/Groq Expansion',
+          scope: 'Interactive Web Studio served directly on GET /, browser microphone recording via MediaRecorder API with EBML magic bytes, and Provider Strategy expansion for Google Gemini and Groq Cloud LPU.',
+          context: `Audio ingestion previously relied on external tools or pre-recorded audio files. Furthermore, modern browser MediaRecorder API outputs WebM/Opus audio requiring EBML signature validation. Lastly, operators required ultra-fast LPU inference (Groq) and large context windows (Gemini 1.5 Flash).`,
+          decision: `Engineered integrated frontend and backend enhancements:<br><ul><li><strong>EBML Magic Bytes:</strong> Detection of <code>\x1a\x45\xdf\xa3</code> in <code>src/security/sanitizer.py</code> with native FFmpeg decoding.</li><li><strong>Direct Serving on GET /:</strong> FastAPI delivers <code>docs/index.html</code> under the same origin, eliminating CORS issues and avoiding Node/Nginx containers.</li><li><strong>Gemini &amp; Groq Providers:</strong> Implemented <code>GeminiProvider</code> and <code>GroqProvider</code> strategies under <code>ILLMProvider</code>.</li><li><strong>Zero External Dependencies:</strong> Standard library <code>urllib.request</code> used for all REST communications.</li></ul>`,
+          rejected: `<ul><li><strong>In-browser client-side conversion (ffmpeg.wasm):</strong> Rejected due to heavy payload and latency; backend FFmpeg decodes WebM natively.</li><li><strong>Proprietary SDKs (google-generativeai, groq pip packages):</strong> Rejected to keep the container lightweight and immune to supply chain exploits.</li><li><strong>Dedicated frontend reverse proxy/server:</strong> Rejected to maintain a single-container deployment on port 8000.</li></ul>`,
+          security: `<ul><li><strong>Physical Header Validation:</strong> Rejects renamed files with <code>400 Bad Request</code>.</li><li><strong>Streaming Quota Enforcement:</strong> Chunks of 64 KB with a strict 25 MB ceiling aborting with <code>413 Content Too Large</code>.</li><li><strong>Contractual Fail-Fast:</strong> Missing <code>GEMINI_API_KEY</code> or <code>GROQ_API_KEY</code> aborts immediately with <code>422 Unprocessable Content</code>.</li><li><strong>Fault Isolation:</strong> Upstream outages return controlled <code>502/504</code> without leaking internal credentials or stack traces.</li></ul>`
         }
       }
     };
@@ -2271,7 +2746,7 @@
 
     function selectAdr(id) {
       selectedAdrId = id;
-      [1, 2, 3].forEach(num => {
+      [1, 2, 3, 4].forEach(num => {
         const el = document.getElementById(`tl-step-${num}`);
         if (el) {
           if (num === id) {
@@ -2320,13 +2795,18 @@
         }
       });
 
-      // Update active preset text if not edited manually
-      loadPreset(activePresetId);
+      // Update active preset text if on preset source
+      if (currentInputSource === 'presets') {
+        loadPreset(activePresetId);
+      }
 
       // Update active ADR card viewer in selected language
       if (typeof selectAdr === 'function') {
         selectAdr(selectedAdrId);
       }
+
+      // Recheck status string
+      updateApiStatusUI();
     }
 
     function toggleLanguage() {
@@ -2341,7 +2821,7 @@
       localStorage.setItem('theme_preference', theme);
       const btn = document.getElementById('theme-btn');
       btn.textContent = theme === 'dark' ? '☀️' : '🌙';
-      if (!isPlayingAudio) {
+      if (!isPlayingAudio && !isRecording) {
         renderWaveform(false);
       }
     }
@@ -2382,9 +2862,29 @@
     };
 
     let activePresetId = 1;
-    let currentOutputMode = 'prompt';
-    let currentOutputView = 'prompt';
+    let currentInputSource = 'mic'; // 'mic' | 'upload' | 'presets'
+    let currentOutputMode = 'prompt'; // 'prompt' | 'txt'
+    let currentOutputView = 'prompt'; // 'prompt' | 'llm'
     let currentTechnique = 'chain_of_thought';
+
+    // API & Real Audio State
+    let isApiConnected = false;
+    let currentAudioBlob = null;
+    let currentAudioFile = null;
+    let lastTranscriptionJob = null; // Stored from POST /api/v1/transcriptions
+
+    // Web Audio & MediaRecorder
+    let isRecording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioStream = null;
+    let audioContext = null;
+    let analyserNode = null;
+    let micAnimFrame = null;
+    let recordingStartTime = null;
+    let recordingTimerInterval = null;
+
+    // Playback state
     let isPlayingAudio = false;
     let waveAnimFrame = null;
     let wavePhase = 0;
@@ -2562,6 +3062,520 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
       }
     };
 
+    /* --------------------------------------------------------------------------
+       API CONNECTION & HEALTH CHECK
+       -------------------------------------------------------------------------- */
+    function getApiConfig() {
+      const urlInput = document.getElementById('api-url-input');
+      const keyInput = document.getElementById('api-key-input');
+      let url = (urlInput.value || 'http://localhost:8000').trim().replace(/\/+$/, '');
+      let key = (keyInput.value || 'dev-operator-alpha').trim();
+      return { url, key };
+    }
+
+    function updateApiStatusUI(modelName) {
+      const dot = document.getElementById('api-status-dot');
+      const text = document.getElementById('api-status-text');
+      if (isApiConnected) {
+        dot.className = 'status-indicator status-online';
+        text.textContent = currentLang === 'pt-BR'
+          ? `Conectado (API Local: ${modelName || 'faster-whisper-base'})`
+          : `Connected (Local API: ${modelName || 'faster-whisper-base'})`;
+      } else {
+        dot.className = 'status-indicator status-offline';
+        text.textContent = currentLang === 'pt-BR'
+          ? 'Modo Demo Offline (Simulador)'
+          : 'Offline Demo Mode (Simulator)';
+      }
+    }
+
+    async function checkApiHealth(userInitiated = false) {
+      const dot = document.getElementById('api-status-dot');
+      const text = document.getElementById('api-status-text');
+      const { url, key } = getApiConfig();
+
+      localStorage.setItem('ape_api_url', url);
+      localStorage.setItem('ape_api_key', key);
+
+      dot.className = 'status-indicator status-checking';
+      text.textContent = currentLang === 'pt-BR' ? 'Verificando API...' : 'Checking API...';
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
+        const res = await fetch(`${url}/health`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          isApiConnected = true;
+          updateApiStatusUI(data.whisper_model);
+          if (userInitiated) {
+            showNotification(currentLang === 'pt-BR' ? '✓ Conexão com API estabelecida com sucesso!' : '✓ Successfully connected to API!', 'success');
+          }
+          return;
+        }
+      } catch (err) {
+        // Fallback to offline mode
+      }
+
+      isApiConnected = false;
+      updateApiStatusUI();
+      if (userInitiated) {
+        showNotification(currentLang === 'pt-BR' ? `API não localizada em ${url}. Operando em Modo Demo.` : `API not found at ${url}. Operating in Demo Mode.`, 'warning');
+      }
+    }
+
+    function showNotification(msg, type = 'info') {
+      const notif = document.getElementById('studio-notification');
+      if (!notif) return;
+      notif.className = `studio-alert ${type}`;
+      notif.textContent = msg;
+      notif.style.display = 'flex';
+      setTimeout(() => {
+        notif.style.display = 'none';
+      }, 5000);
+    }
+
+    /* --------------------------------------------------------------------------
+       SOURCE SELECTOR: MIC / UPLOAD / PRESETS
+       -------------------------------------------------------------------------- */
+    function setInputSource(source) {
+      currentInputSource = source;
+      ['mic', 'upload', 'presets'].forEach(s => {
+        const tab = document.getElementById(`tab-src-${s}`);
+        const view = document.getElementById(`source-view-${s}`);
+        if (tab) tab.classList.toggle('active', s === source);
+        if (view) view.style.display = s === source ? 'block' : 'none';
+      });
+
+      const btnText = document.getElementById('btn-process-text');
+      if (btnText) {
+        if (source === 'mic') {
+          btnText.textContent = currentLang === 'pt-BR' ? 'Transcrever Gravação' : 'Transcribe Recording';
+        } else if (source === 'upload') {
+          btnText.textContent = currentLang === 'pt-BR' ? 'Transcrever Arquivo' : 'Transcribe File';
+        } else {
+          btnText.textContent = currentLang === 'pt-BR' ? 'Processar Preset' : 'Process Preset';
+        }
+      }
+
+      if (source === 'presets') {
+        loadPreset(activePresetId);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       LIVE MICROPHONE CAPTURE (MEDIARECORDER + AUDIO ANALYSER)
+       -------------------------------------------------------------------------- */
+    async function toggleMicrophoneRecording() {
+      if (!isRecording) {
+        await startRecording();
+      } else {
+        stopRecording();
+      }
+    }
+
+    async function startRecording() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showNotification(currentLang === 'pt-BR' ? 'Navegador não suporta gravação de áudio via MediaDevices.' : 'Browser does not support MediaDevices recording.', 'error');
+          return;
+        }
+
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        // Initialize Web Audio API Analyser for real-time waveform
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioCtx();
+        const sourceNode = audioContext.createMediaStreamSource(audioStream);
+        analyserNode = audioContext.createAnalyser();
+        analyserNode.fftSize = 64;
+        sourceNode.connect(analyserNode);
+
+        // Configure MediaRecorder with WebM / Opus container
+        let options = { mimeType: 'audio/webm' };
+        if (!MediaRecorder.isTypeSupported('audio/webm')) {
+          if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+            options = { mimeType: 'audio/webm;codecs=opus' };
+          } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+            options = { mimeType: 'audio/ogg;codecs=opus' };
+          } else {
+            options = {};
+          }
+        }
+
+        mediaRecorder = new MediaRecorder(audioStream, options);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const mimeType = mediaRecorder.mimeType || 'audio/webm';
+          currentAudioBlob = new Blob(audioChunks, { type: mimeType });
+          const audioUrl = URL.createObjectURL(currentAudioBlob);
+          setupAudioPreview(audioUrl, 'gravacao_microfone.webm', currentAudioBlob.size, mimeType);
+          showNotification(currentLang === 'pt-BR'
+            ? `Gravação concluída (${formatBytes(currentAudioBlob.size)}). Pronto para transcrição!`
+            : `Recording complete (${formatBytes(currentAudioBlob.size)}). Ready to transcribe!`, 'success');
+        };
+
+        mediaRecorder.start(200);
+        isRecording = true;
+        recordingStartTime = Date.now();
+        updateRecordButtonUI(true);
+        updateRecordingTimer();
+        recordingTimerInterval = setInterval(updateRecordingTimer, 1000);
+        renderLiveMicWaveform();
+
+      } catch (err) {
+        showNotification((currentLang === 'pt-BR' ? 'Acesso ao microfone negado: ' : 'Microphone access denied: ') + err.message, 'error');
+        updateRecordButtonUI(false);
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+      }
+      if (recordingTimerInterval) {
+        clearInterval(recordingTimerInterval);
+      }
+      cancelAnimationFrame(micAnimFrame);
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close();
+      }
+      isRecording = false;
+      updateRecordButtonUI(false);
+      renderWaveform(false);
+    }
+
+    function updateRecordButtonUI(recording) {
+      const btn = document.getElementById('btn-record-mic');
+      const icon = document.getElementById('record-icon');
+      const text = document.getElementById('record-text');
+      const hint = document.getElementById('mic-status-hint');
+
+      if (recording) {
+        btn.classList.add('recording');
+        icon.textContent = '⏹️';
+        text.textContent = `${currentLang === 'pt-BR' ? 'Parar Gravação' : 'Stop Recording'} (00:00)`;
+        hint.textContent = currentLang === 'pt-BR' ? 'Gravando áudio ao vivo... Fale normalmente ao microfone.' : 'Live audio recording in progress... Speak clearly.';
+      } else {
+        btn.classList.remove('recording');
+        icon.textContent = '🎙️';
+        text.textContent = currentLang === 'pt-BR' ? 'Gravar Microfone' : 'Record Microphone';
+        hint.textContent = currentLang === 'pt-BR' ? 'Gravação finalizada. Pressione "Transcrever" abaixo.' : 'Recording complete. Press "Transcribe" below.';
+      }
+    }
+
+    function updateRecordingTimer() {
+      if (!isRecording || !recordingStartTime) return;
+      const elapsedSec = Math.floor((Date.now() - recordingStartTime) / 1000);
+      const mins = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+      const secs = String(elapsedSec % 60).padStart(2, '0');
+      const text = document.getElementById('record-text');
+      if (text) {
+        text.textContent = `${currentLang === 'pt-BR' ? 'Parar Gravação' : 'Stop Recording'} (${mins}:${secs})`;
+      }
+    }
+
+    function renderLiveMicWaveform() {
+      if (!isRecording || !analyserNode) return;
+      const bufferLength = analyserNode.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyserNode.getByteFrequencyData(dataArray);
+
+      waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+      const bars = 40;
+      const barWidth = waveCanvas.width / bars - 2;
+
+      for (let i = 0; i < bars; i++) {
+        const binIndex = Math.floor(i * (bufferLength / bars));
+        const val = dataArray[binIndex] || 0;
+        const height = Math.max(3, (val / 255) * (waveCanvas.height - 4));
+        const x = i * (barWidth + 2);
+        const y = (waveCanvas.height - height) / 2;
+
+        waveCtx.fillStyle = '#3b82f6';
+        waveCtx.beginPath();
+        if (waveCtx.roundRect) {
+          waveCtx.roundRect(x, y, barWidth, height, 2);
+        } else {
+          waveCtx.rect(x, y, barWidth, height);
+        }
+        waveCtx.fill();
+      }
+
+      micAnimFrame = requestAnimationFrame(renderLiveMicWaveform);
+    }
+
+    /* --------------------------------------------------------------------------
+       FILE UPLOAD & DRAG AND DROP
+       -------------------------------------------------------------------------- */
+    function initFileUpload() {
+      const dropZone = document.getElementById('audio-drop-zone');
+      const fileInput = document.getElementById('audio-file-input');
+
+      if (!dropZone || !fileInput) return;
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleSelectedFile(e.dataTransfer.files[0]);
+        }
+      });
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files.length > 0) {
+          handleSelectedFile(fileInput.files[0]);
+        }
+      });
+    }
+
+    function handleSelectedFile(file) {
+      currentAudioFile = file;
+      const url = URL.createObjectURL(file);
+      setupAudioPreview(url, file.name, file.size, file.type || 'audio/*');
+      showNotification(currentLang === 'pt-BR' 
+        ? `Arquivo pronto: ${file.name} (${formatBytes(file.size)})` 
+        : `File ready: ${file.name} (${formatBytes(file.size)})`, 'info');
+    }
+
+    function setupAudioPreview(url, filename, sizeBytes, formatName) {
+      const html5Audio = document.getElementById('html5-audio');
+      html5Audio.src = url;
+
+      document.getElementById('audio-filename').textContent = `${filename} (${formatBytes(sizeBytes)})`;
+      document.getElementById('audio-format-badge').textContent = formatName || 'Audio Stream';
+
+      // Reset playback icon
+      const playIcon = document.getElementById('play-icon');
+      playIcon.textContent = '▶';
+      isPlayingAudio = false;
+
+      renderWaveform(false);
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    /* --------------------------------------------------------------------------
+       PROCESS TRANSCRIPTION (REAL API CALL OR LOCAL SIMULATOR FALLBACK)
+       -------------------------------------------------------------------------- */
+    async function processTranscription() {
+      const btn = document.getElementById('btn-process-transcription');
+      const originalText = document.getElementById('btn-process-text').textContent;
+      const { url, key } = getApiConfig();
+
+      // Check if we have audio to send in Real API mode
+      let fileToSend = null;
+      let filename = 'audio.webm';
+
+      if (currentInputSource === 'mic') {
+        if (!currentAudioBlob) {
+          showNotification(currentLang === 'pt-BR' ? 'Por favor grave um áudio primeiro antes de transcrever.' : 'Please record audio first before transcribing.', 'warning');
+          return;
+        }
+        fileToSend = currentAudioBlob;
+        filename = 'recording.webm';
+      } else if (currentInputSource === 'upload') {
+        if (!currentAudioFile) {
+          showNotification(currentLang === 'pt-BR' ? 'Por favor selecione ou arraste um arquivo de áudio primeiro.' : 'Please select or drop an audio file first.', 'warning');
+          return;
+        }
+        fileToSend = currentAudioFile;
+        filename = currentAudioFile.name;
+      }
+
+      // If connected to API and we have a real file/blob, perform real POST /api/v1/transcriptions
+      if (isApiConnected && fileToSend) {
+        btn.disabled = true;
+        document.getElementById('btn-process-text').textContent = currentLang === 'pt-BR' ? 'Transcrevendo via Whisper CPU INT8...' : 'Transcribing via Whisper CPU INT8...';
+
+        try {
+          const formData = new FormData();
+          formData.append('file', fileToSend, filename);
+          formData.append('output_mode', currentOutputMode);
+          if (currentOutputMode === 'prompt') {
+            formData.append('prompt_technique', currentTechnique);
+          }
+          const isNlpEnabled = document.getElementById('nlp-toggle').checked;
+          formData.append('remove_fillers', isNlpEnabled ? 'true' : 'false');
+          formData.append('language', currentLang === 'pt-BR' ? 'pt' : 'en');
+
+          const res = await fetch(`${url}/api/v1/transcriptions`, {
+            method: 'POST',
+            headers: {
+              'X-API-Key': key
+            },
+            body: formData
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            const errMsg = errData.error || errData.detail || `HTTP ${res.status}`;
+            showNotification(currentLang === 'pt-BR' ? `Erro na API: ${errMsg}` : `API Error: ${errMsg}`, 'error');
+            return;
+          }
+
+          const data = await res.json();
+          lastTranscriptionJob = data;
+
+          // Update UI with real outputs
+          document.getElementById('raw-transcript').value = data.raw_text || '';
+          document.getElementById('nlp-diff-preview').textContent = data.processed_text || '';
+
+          const outputArea = document.getElementById('output-content-area');
+          const badge = document.getElementById('output-badge');
+          const stats = document.getElementById('output-stats');
+
+          if (currentOutputMode === 'txt') {
+            badge.textContent = currentLang === 'pt-BR' ? 'Modo: .txt Limpo' : 'Mode: Clean .txt';
+            outputArea.textContent = data.processed_text;
+          } else {
+            badge.textContent = `Prompt: ${data.prompt_technique || currentTechnique}`;
+            outputArea.textContent = data.prompt_result || '';
+          }
+
+          stats.textContent = `• Latência: ${(data.duration_seconds || 0).toFixed(2)}s (${data.detected_format || 'audio'}) • Job: ${data.id.slice(0, 8)}...`;
+          showNotification(currentLang === 'pt-BR' ? `✓ Transcrito no Whisper CPU INT8 (${data.id.slice(0, 8)}...)` : `✓ Transcribed via Whisper CPU INT8 (${data.id.slice(0, 8)}...)`, 'success');
+
+        } catch (err) {
+          showNotification(currentLang === 'pt-BR' ? `Falha de rede ao conectar à API: ${err.message}` : `Network failure connecting to API: ${err.message}`, 'error');
+        } finally {
+          btn.disabled = false;
+          document.getElementById('btn-process-text').textContent = originalText;
+        }
+
+        return;
+      }
+
+      // Offline / Preset Simulation Fallback
+      executePipeline();
+      showNotification(currentLang === 'pt-BR' 
+        ? '✓ Processado no Simulador Studio (Modo Demo Offline)' 
+        : '✓ Processed in Studio Simulator (Offline Demo Mode)', 'info');
+    }
+
+    /* --------------------------------------------------------------------------
+       LLM INFERENCE EXECUTION (REAL API POST /execute OR SIMULATION)
+       -------------------------------------------------------------------------- */
+    function onLlmProviderChange() {
+      const provider = document.getElementById('llm-provider-select').value;
+      const modelInput = document.getElementById('llm-model-input');
+      switch (provider) {
+        case 'gemini':
+          modelInput.value = 'gemini-1.5-flash';
+          break;
+        case 'groq':
+          modelInput.value = 'llama-3.3-70b-versatile';
+          break;
+        case 'ollama':
+          modelInput.value = 'llama3';
+          break;
+        case 'grok':
+          modelInput.value = 'grok-beta';
+          break;
+        default:
+          modelInput.value = 'gemini-1.5-flash';
+      }
+    }
+
+    async function triggerLlmInference() {
+      const btn = document.getElementById('btn-execute-llm');
+      const provider = document.getElementById('llm-provider-select').value;
+      const model = document.getElementById('llm-model-input').value || 'gemini-1.5-flash';
+      const temperature = parseFloat(document.getElementById('llm-temp-input').value || '0.2');
+      const { url, key } = getApiConfig();
+
+      const outputArea = document.getElementById('output-content-area');
+      const badge = document.getElementById('output-badge');
+      const stats = document.getElementById('output-stats');
+
+      // If connected and has real job ID
+      if (isApiConnected && lastTranscriptionJob && lastTranscriptionJob.id) {
+        btn.disabled = true;
+        btn.innerHTML = `<span>⏳</span> <span>${currentLang === 'pt-BR' ? 'Executando...' : 'Running...'}</span>`;
+        outputArea.textContent = currentLang === 'pt-BR'
+          ? `Disparando inferência no provedor ${provider.toUpperCase()} (${model})...\nAguarde a resposta do modelo.`
+          : `Dispatching inference to ${provider.toUpperCase()} (${model})...\nAwaiting model response.`;
+
+        try {
+          const res = await fetch(`${url}/api/v1/transcriptions/${lastTranscriptionJob.id}/execute`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': key
+            },
+            body: JSON.stringify({
+              provider: provider,
+              model: model,
+              temperature: temperature
+            })
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            const errMsg = errData.error || errData.detail || `HTTP ${res.status}`;
+            showNotification(currentLang === 'pt-BR' ? `Erro na inferência LLM: ${errMsg}` : `LLM Inference error: ${errMsg}`, 'error');
+            outputArea.textContent = currentLang === 'pt-BR'
+              ? `[ERRO NA INFERÊNCIA LLM: ${errMsg}]\n\nSe estiver utilizando ${provider.toUpperCase()}, confirme se as credenciais correspondentes (GEMINI_API_KEY, GROQ_API_KEY ou XAI_API_KEY) estão definidas nas variáveis de ambiente do backend ou se o serviço local do Ollama está ativo na porta 11434.`
+              : `[LLM INFERENCE ERROR: ${errMsg}]\n\nIf using ${provider.toUpperCase()}, verify that corresponding credentials (GEMINI_API_KEY, GROQ_API_KEY or XAI_API_KEY) are set in backend environment variables, or ensure local Ollama daemon is active on port 11434.`;
+            return;
+          }
+
+          const data = await res.json();
+          badge.textContent = `LLM: ${data.provider} (${data.model})`;
+          stats.textContent = `• Tokens: ${data.tokens_used} • Tempo: ${(data.execution_time_seconds || 0).toFixed(2)}s`;
+          outputArea.textContent = `[LLM: ${data.provider.toUpperCase()} / ${data.model}]\nLatência: ${(data.execution_time_seconds || 0).toFixed(2)}s • Tokens: ${data.tokens_used} • Job: ${data.job_id}\n\n${data.response_text}`;
+          showNotification(currentLang === 'pt-BR' ? '✓ Resposta LLM recebida com sucesso!' : '✓ LLM response received successfully!', 'success');
+
+        } catch (err) {
+          showNotification(currentLang === 'pt-BR' ? `Falha de rede na inferência: ${err.message}` : `Network failure during inference: ${err.message}`, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = `<span>🤖</span> <span>${currentLang === 'pt-BR' ? 'Executar no LLM' : 'Run on LLM'}</span>`;
+        }
+
+        return;
+      }
+
+      // Offline / Simulation Fallback
+      btn.disabled = true;
+      btn.innerHTML = `<span>⏳</span> <span>${currentLang === 'pt-BR' ? 'Executando...' : 'Running...'}</span>`;
+      setTimeout(() => {
+        const responseData = SIMULATED_LLM_RESPONSES[activePresetId] || SIMULATED_LLM_RESPONSES[1];
+        badge.textContent = `LLM: ${provider.toUpperCase()} (${model})`;
+        stats.textContent = currentLang === 'pt-BR' 
+          ? `• Provedor: ${provider.toUpperCase()} (${model} - Demo)` 
+          : `• Engine: ${provider.toUpperCase()} (${model} - Demo)`;
+        outputArea.textContent = `[LLM: ${provider.toUpperCase()} / ${model} (Modo Simulação)]\nLatência: ~0.85s • Provedor: ${provider.toUpperCase()}\n\n${responseData[currentLang]}`;
+        btn.disabled = false;
+        btn.innerHTML = `<span>🤖</span> <span>${currentLang === 'pt-BR' ? 'Executar no LLM' : 'Run on LLM'}</span>`;
+        showNotification(currentLang === 'pt-BR' ? `Exibindo simulação com ${provider.toUpperCase()} (${model}).` : `Displaying simulation with ${provider.toUpperCase()} (${model}).`, 'info');
+      }, 500);
+    }
+
     function loadPreset(id) {
       activePresetId = id;
       const p = PRESETS[id];
@@ -2570,6 +3584,7 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
       if (activeBtn) activeBtn.classList.add('active');
 
       document.getElementById('audio-filename').textContent = p.filename;
+      document.getElementById('audio-format-badge').textContent = 'RIFF/WAVE 16kHz';
       document.getElementById('raw-transcript').value = p.raw[currentLang];
       setTechnique(p.technique);
     }
@@ -2632,16 +3647,37 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
     }
 
     /* --------------------------------------------------------------------------
-       PIPELINE EXECUTION DISPATCHER
+       PIPELINE DISPATCHER & UI VIEW
        -------------------------------------------------------------------------- */
     function setOutputView(view) {
       currentOutputView = view;
       document.getElementById('btn-view-prompt').classList.toggle('active', view === 'prompt');
       document.getElementById('btn-view-llm').classList.toggle('active', view === 'llm');
-      executePipeline();
+      
+      const llmBar = document.getElementById('llm-control-bar');
+      if (llmBar) {
+        llmBar.style.display = view === 'llm' ? 'flex' : 'none';
+      }
+
+      if (view === 'llm') {
+        const responseData = SIMULATED_LLM_RESPONSES[activePresetId] || SIMULATED_LLM_RESPONSES[1];
+        const outputArea = document.getElementById('output-content-area');
+        const badge = document.getElementById('output-badge');
+        const stats = document.getElementById('output-stats');
+
+        badge.textContent = currentLang === 'pt-BR' ? 'Execução LLM: Pronta' : 'LLM Execution: Ready';
+        stats.textContent = currentLang === 'pt-BR' ? '• Provedor: Ollama/Grok' : '• Engine: Ollama/Grok';
+        if (!outputArea.textContent || outputArea.textContent.includes('<user_speech>')) {
+          outputArea.textContent = responseData[currentLang];
+        }
+      } else {
+        executePipeline();
+      }
     }
 
     function executePipeline() {
+      if (currentOutputView === 'llm') return;
+
       const rawText = document.getElementById('raw-transcript').value || '';
       const isNlpEnabled = document.getElementById('nlp-toggle').checked;
       const cleanText = isNlpEnabled ? cleanTranscriptNlp(rawText, currentLang) : rawText;
@@ -2653,17 +3689,6 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
       const outputArea = document.getElementById('output-content-area');
       const badge = document.getElementById('output-badge');
       const stats = document.getElementById('output-stats');
-
-      if (currentOutputView === 'llm') {
-        const responseData = SIMULATED_LLM_RESPONSES[activePresetId] || SIMULATED_LLM_RESPONSES[1];
-        badge.textContent = currentLang === 'pt-BR' ? 'Execução LLM: Ativa' : 'LLM Execution: Active';
-        badge.style.borderColor = 'var(--accent-blue-border)';
-        badge.style.color = 'var(--accent-blue)';
-        badge.style.backgroundColor = 'var(--accent-blue-subtle)';
-        stats.textContent = currentLang === 'pt-BR' ? '• Motor: Ollama/Grok' : '• Engine: Ollama/Grok';
-        outputArea.textContent = responseData[currentLang];
-        return;
-      }
 
       if (currentOutputMode === 'txt') {
         badge.textContent = currentLang === 'pt-BR' ? 'Modo: .txt Limpo' : 'Mode: Clean .txt';
@@ -2746,12 +3771,14 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
     }
 
     /* --------------------------------------------------------------------------
-       AUDIO WAVEFORM SIMULATION (CANVAS)
+       AUDIO WAVEFORM RENDERING (CANVAS)
        -------------------------------------------------------------------------- */
     const waveCanvas = document.getElementById('waveform-canvas');
     const waveCtx = waveCanvas.getContext('2d');
 
     function renderWaveform(isAnimated) {
+      if (isRecording) return; // Mic analyser handles its own live animation
+
       waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
       const bars = 40;
       const barWidth = waveCanvas.width / bars - 2;
@@ -2784,15 +3811,54 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
     }
 
     function toggleAudioPlayback() {
+      const html5Audio = document.getElementById('html5-audio');
+      const playIcon = document.getElementById('play-icon');
+
+      // If we have actual audio loaded in the html5 audio element (recorded or uploaded)
+      if (html5Audio && html5Audio.src && !html5Audio.src.endsWith('/index.html')) {
+        if (html5Audio.paused) {
+          html5Audio.play().then(() => {
+            playIcon.textContent = '⏸';
+            isPlayingAudio = true;
+            renderWaveform(true);
+          }).catch(() => {
+            // Fallback to simulation
+            runSimulatedPlayback();
+          });
+          html5Audio.onended = () => {
+            playIcon.textContent = '▶';
+            isPlayingAudio = false;
+            cancelAnimationFrame(waveAnimFrame);
+            renderWaveform(false);
+          };
+          return;
+        } else {
+          html5Audio.pause();
+          playIcon.textContent = '▶';
+          isPlayingAudio = false;
+          cancelAnimationFrame(waveAnimFrame);
+          renderWaveform(false);
+          return;
+        }
+      }
+
+      runSimulatedPlayback();
+    }
+
+    function runSimulatedPlayback() {
       isPlayingAudio = !isPlayingAudio;
       const playIcon = document.getElementById('play-icon');
 
       if (isPlayingAudio) {
         playIcon.textContent = '⏸';
         renderWaveform(true);
-        // Auto stop after 4.5 seconds simulation
         setTimeout(() => {
-          if (isPlayingAudio) toggleAudioPlayback();
+          if (isPlayingAudio) {
+            isPlayingAudio = false;
+            playIcon.textContent = '▶';
+            cancelAnimationFrame(waveAnimFrame);
+            renderWaveform(false);
+          }
         }, 4500);
       } else {
         playIcon.textContent = '▶';
@@ -2808,6 +3874,18 @@ Latency: 1.4s • Tokens: 320 • Provider: Ollama (Offline)
       // Restore theme preference
       const savedTheme = localStorage.getItem('theme_preference') || 'dark';
       setTheme(savedTheme);
+
+      // Restore saved API connection settings if present
+      const savedUrl = localStorage.getItem('ape_api_url');
+      const savedKey = localStorage.getItem('ape_api_key');
+      if (savedUrl) document.getElementById('api-url-input').value = savedUrl;
+      if (savedKey) document.getElementById('api-key-input').value = savedKey;
+
+      // Auto-check API connectivity
+      checkApiHealth(false);
+
+      // Initialize File Upload drag and drop
+      initFileUpload();
 
       // Load initial preset and draw waveform
       loadPreset(1);

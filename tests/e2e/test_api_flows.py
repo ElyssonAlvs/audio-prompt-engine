@@ -142,3 +142,40 @@ class TestApiFlows:
         data = resp.json()
         assert data["status"] == "healthy"
         assert data["service"] == "audio-prompt-engine"
+
+    def test_flow_studio_ui_root(self, client: TestClient):
+        """GET / must deliver the Web Studio HTML UI with text/html content type."""
+        resp = client.get("/")
+        assert resp.status_code == 200
+        assert "text/html" in resp.headers["content-type"]
+        assert "Audio Prompt Engine" in resp.text
+
+    def test_flow_transcription_webm_format(
+        self, client: TestClient, synthetic_webm_bytes: bytes, headers_operator_alpha: dict
+    ):
+        """Uploading a WebM container recorded from browser MediaRecorder must succeed end-to-end."""
+        files = {"file": ("microphone_capture.webm", synthetic_webm_bytes, "audio/webm")}
+        data = {
+            "output_mode": "prompt",
+            "prompt_technique": "chain_of_thought",
+            "custom_context": "Gravação direta do microfone do estúdio",
+        }
+        resp = client.post(
+            "/api/v1/transcriptions",
+            files=files,
+            data=data,
+            headers=headers_operator_alpha,
+        )
+        assert resp.status_code == 201, resp.text
+        body = resp.json()
+        assert body["filename"] == "microphone_capture.webm"
+        assert body["output_mode"] == "prompt"
+        assert body["prompt_technique"] == "chain_of_thought"
+        assert body["prompt_result"] is not None
+
+        # Retrieve back from repository
+        job_id = body["id"]
+        get_resp = client.get(f"/api/v1/transcriptions/{job_id}", headers=headers_operator_alpha)
+        assert get_resp.status_code == 200
+        assert get_resp.json()["id"] == job_id
+

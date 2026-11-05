@@ -75,6 +75,44 @@ Quando `output_mode="prompt"`, a API exige a seleção explícita de uma técnic
 
 ---
 
+## 🤖 Motor de Inferência LLM Desacoplado (4 Provedores Suportados)
+
+Após a síntese do prompt estruturado, o cliente pode disparar a inferência através da rota dedicada `POST /api/v1/transcriptions/{job_id}/execute`. O motor adota o padrão de projeto **Strategy** (`ILLMProvider`), operando com **zero dependências externas** (comunicação REST nativa via `urllib.request`):
+
+| Provedor (`provider`) | Modelo Padrão | Tipo de Execução | Variável de Ambiente / Configuração |
+|---|---|---|---|
+| **`ollama`** | `llama3` | Local / Offline (CPU ou GPU) | `OLLAMA_BASE_URL` (default: `http://host.docker.internal:11434`), `DEFAULT_OLLAMA_MODEL` |
+| **`grok`** | `grok-beta` | Nuvem xAI (Raciocínio Analítico) | `XAI_API_KEY`, `DEFAULT_GROK_MODEL` |
+| **`gemini`** | `gemini-1.5-flash` | Nuvem Google AI Studio (Alta Velocidade & Contexto Amplo) | `GEMINI_API_KEY`, `DEFAULT_GEMINI_MODEL` |
+| **`groq`** | `llama-3.3-70b-versatile` | Nuvem Groq Cloud (Hardware LPU de Baixa Latência) | `GROQ_API_KEY`, `DEFAULT_GROK_MODEL` |
+
+### Variáveis de Ambiente dos Provedores LLM
+
+As chaves de API e URLs são configuradas no arquivo `.env`:
+
+```env
+# Provedor Local Ollama (Privacidade total / LGPD)
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+DEFAULT_OLLAMA_MODEL=llama3
+
+# Provedor xAI Grok
+DEFAULT_GROK_MODEL=grok-beta
+# XAI_API_KEY=xai-sua-chave-aqui
+
+# Provedor Google AI Studio (Gemini)
+DEFAULT_GEMINI_MODEL=gemini-1.5-flash
+# GEMINI_API_KEY=sua-chave-gemini-aqui
+
+# Provedor Groq Cloud LPU
+DEFAULT_GROQ_MODEL=llama-3.3-70b-versatile
+# GROQ_API_KEY=gsk_sua-chave-groq-aqui
+
+# Provedor Padrão do Sistema (Fallback)
+DEFAULT_LLM_PROVIDER=ollama
+```
+
+> **Fail-Fast Contratual:** Se um provedor que exige chave de nuvem (`grok`, `gemini`, `groq`) for invocado sem a respectiva variável configurada no ambiente do servidor, o endpoint responde imediatamente com `422 Unprocessable Content` detalhando a chave faltante, sem fallbacks silenciosos.
+
 ## 🛡️ Pentágono de Defesa (Arquitetura de Segurança Consolidada)
 
 A aplicação foi submetida a rigorosas auditorias técnicas e testes caóticos, incorporando defesas em profundidade em todas as camadas:
@@ -96,7 +134,7 @@ flowchart TD
 4. **Chaves e Defaults Seguros:** Credenciais e configurações desacopladas no arquivo `.env`. Uploads são alocados com nomes anônimos gerados por UUID e removidos fisicamente do disco em blocos `finally: os.unlink()`.
 5. **Sanitização de Inputs, Magic Bytes & Anti-Injection:**
    - **Streaming Defensivo:** Leitura em chunks de 64 KB gravados direto em disco; uploads que excedem 25 MB disparam `413 Content Too Large` imediatamente, impedindo ataques de DoS por estouro de memória (OOM).
-   - **Magic Bytes Reais:** Validação da assinatura binária inicial (`RIFF/WAVE`, `ID3/MP3`, `OggS`, `fLaC`, `ftyp`). Arquivos executáveis (`MZ`) ou textos renomeados são rejeitados com `400 Bad Request`.
+   - **Magic Bytes Reais:** Validação da assinatura binária inicial (`RIFF/WAVE`, `ID3/MP3`, `OggS`, `fLaC`, `ftyp`, `EBML/WebM`). Arquivos executáveis (`MZ`) ou textos renomeados são rejeitados com `400 Bad Request`.
    - **Mitigação de Acoustic Prompt Injection:** A fala humana transcrita passa por escape de tags XML (`&lt;`, `&gt;`) antes da interpolação em `<user_speech>`, neutralizando comandos falados que tentem quebrar a instrução do prompt.
    - **Aderência Contratual:** Requisições em modo `prompt` desprovidas de `prompt_technique` são rejeitadas com `422 Unprocessable Content`.
 
@@ -184,11 +222,12 @@ Todas as requisições autenticadas exigem o cabeçalho HTTP `X-API-Key`.
 
 | Método | Rota | Autenticação & Role | Código Sucesso | Descrição |
 |---|---|---|---|---|
+| `GET` | `/` | Aberto | `200 OK` | Interface Web Studio interativa (gravador de microfone, upload e execução LLM). |
 | `POST` | `/api/v1/transcriptions` | `operator` ou `admin` | `201 Created` | Upload de áudio (`multipart/form-data`) para transcrição NLP limpa ou geração de prompt estruturado. |
 | `GET` | `/api/v1/transcriptions` | Qualquer chave válida | `200 OK` | Lista o histórico paginado de transcrições pertencentes ao tenant autenticado. |
 | `GET` | `/api/v1/transcriptions/{job_id}` | Dono do job (`tenant_id`) | `200 OK` | Retorna metadados completos, texto normalizado e prompt sintetizado. |
 | `GET` | `/api/v1/transcriptions/{job_id}/txt` | Dono do job (`tenant_id`) | `200 OK` | Download direto do texto normalizado puro (`text/plain; charset=utf-8`). |
-| `POST` | `/api/v1/transcriptions/{job_id}/execute` | `operator` ou `admin` (Dono) | `200 OK` | Executa o prompt compilado contra provedor LLM (Ollama Local ou Grok xAI). |
+| `POST` | `/api/v1/transcriptions/{job_id}/execute` | `operator` ou `admin` (Dono) | `200 OK` | Executa o prompt compilado contra provedor LLM (Gemini Google, Groq LPU, Ollama Local ou Grok xAI). |
 | `GET` | `/api/v1/techniques` | Aberto / Autenticado | `200 OK` | Catálogo das 6 técnicas de engenharia de prompt com orientações de uso. |
 | `GET` | `/health` (e `/api/v1/health`) | Aberto | `200 OK` | Verificação de integridade operacional e modelo Whisper em execução. |
 
@@ -217,6 +256,8 @@ O projeto inclui uma collection completa e pronta para uso em desenvolvimento e 
    - `Baixar TXT Puro`: Download de arquivo `.txt`.
    - `Executar Prompt no Ollama`: Envio do prompt gerado para execução local via Ollama (Llama 3).
    - `Executar Prompt no Grok`: Envio do prompt para inferência em nuvem via xAI (Grok-Beta).
+   - `Executar Prompt no Gemini`: Envio do prompt para inferência via Google AI Studio (Gemini 1.5 Flash).
+   - `Executar Prompt no Groq`: Envio do prompt para inferência em hardware LPU via Groq Cloud (Llama 3.3 70B).
 4. **`4. Testes de Segurança (Pentágono de Defesa)`**:
    - `Tentativa sem Token (401)`: Rejeição de requisição anônima.
    - `Tentativa com Role Viewer (403)`: Bloqueio de usuário de leitura tentando processar áudio.
@@ -224,6 +265,8 @@ O projeto inclui uma collection completa e pronta para uso em desenvolvimento e 
    - `Upload Arquivo Falso (400)`: Rejeição de arquivo executável renomeado para áudio.
    - `Modo Prompt sem Técnica (422)`: Rejeição contratual de requisição incompleta.
    - `Executar Prompt sem Chave Grok (422)`: Validação de erro 422 quando `XAI_API_KEY` não está configurada no servidor.
+   - `Executar Prompt sem Chave Gemini (422)`: Validação de erro 422 quando `GEMINI_API_KEY` não está configurada no servidor.
+   - `Executar Prompt sem Chave Groq (422)`: Validação de erro 422 quando `GROQ_API_KEY` não está configurada no servidor.
 
 ---
 
@@ -232,10 +275,10 @@ O projeto inclui uma collection completa e pronta para uso em desenvolvimento e 
 O projeto possui **100% de aprovação** em todas as baterias de homologação técnica:
 
 - **Suíte de Testes Automatizados:**
-  - **69 testes aprovados** (`pytest -v`).
-  - 35 testes unitários (limpeza NLP, remoção de hesitações, as 6 técnicas de prompt e serviço desacoplado de LLM).
-  - 15 testes de integração E2E (fluxos de áudio, downloads e execução Ollama/Grok).
-  - 19 testes rigorosos de segurança defensiva do Pentágono de Defesa.
+  - **91 testes aprovados** (`pytest -v`).
+  - 48 testes unitários (limpeza NLP, remoção de hesitações, as 6 técnicas de prompt e serviços de inferência LLM).
+  - 21 testes de integração E2E (fluxos de áudio, downloads e execução nos 4 provedores de LLM).
+  - 22 testes rigorosos de segurança defensiva do Pentágono de Defesa.
 - **Live Chaos Testing em Container Docker (Fase 4):**
   - **23/23 testes de estresse e caos aprovados** executados contra o container ativo em `http://localhost:8000`.
   - Cenários validados: rajadas concorrentes de upload, saturação de payload (>25MB), corrupção de cabeçalhos binários, tentativas de Acoustic Prompt Injection e persistência física comprovada do banco SQLite em `./data/audio_prompt_engine.db` após encerramento do container.
@@ -246,4 +289,4 @@ O projeto possui **100% de aprovação** em todas as baterias de homologação t
 
 As decisões de engenharia e os fundamentos arquiteturais do projeto estão consolidados e disponíveis publicamente:
 
-- 🏛️ **[Consolidação de Decisões Arquiteturais (ADR Digest)](docs/ARCHITECTURAL_DECISIONS.md):** Documentação técnica das decisões arquiteturais do projeto (ADR-001, ADR-002 e ADR-003).
+- 🏛️ **[Consolidação de Decisões Arquiteturais (ADR Digest)](docs/ARCHITECTURAL_DECISIONS.md):** Documentação técnica das decisões arquiteturais do projeto (ADR-001 a ADR-004).

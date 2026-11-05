@@ -182,6 +182,12 @@ class TestSecuritySanitizers:
         fmt = detect_and_validate_audio_format(flac_header)
         assert fmt == "flac"
 
+    def test_valid_webm_magic_bytes(self):
+        webm_header = b"\x1a\x45\xdf\xa3\x9f\x42\x86\x81\x01\x42\xf7\x81"
+        fmt = detect_and_validate_audio_format(webm_header)
+        assert fmt == "webm"
+
+
     def test_invalid_magic_bytes_rejected(self):
         fake_binary = b"MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00"  # Windows PE exe
         with pytest.raises(AudioValidationError, match="Magic bytes mismatch"):

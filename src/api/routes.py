@@ -1,5 +1,6 @@
 """REST API route handlers for audio-prompt-engine."""
 
+import logging
 import os
 import tempfile
 import uuid
@@ -59,6 +60,7 @@ from src.services.llm_service import (
 )
 
 router = APIRouter(prefix="/api/v1", tags=["transcriptions"])
+logger = logging.getLogger(__name__)
 
 STREAM_CHUNK_SIZE = 64 * 1024  # 64 KB streaming chunks to prevent memory spikes
 
@@ -70,7 +72,7 @@ STREAM_CHUNK_SIZE = 64 * 1024  # 64 KB streaming chunks to prevent memory spikes
     summary="Upload audio and generate transcription or structured prompt",
 )
 async def create_transcription(
-    file: UploadFile = File(..., description="Audio file (WAV, MP3, OGG, FLAC, M4A)"),
+    file: UploadFile = File(..., description="Audio file (WAV, MP3, OGG, FLAC, M4A, WEBM)"),
     output_mode: OutputMode = Form(OutputMode.TXT, description="txt or prompt"),
     prompt_technique: Optional[PromptTechnique] = Form(
         None, description="Prompt technique if output_mode=prompt"
@@ -163,9 +165,18 @@ async def create_transcription(
         safe_audience = sanitize_text_input(target_audience)
 
         # Step 3: Transcribe via Whisper
-        transcription_result = whisper_service.transcribe_audio(
-            temp_path, language=language
-        )
+        try:
+            transcription_result = whisper_service.transcribe_audio(
+                temp_path, language=language
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Whisper decoding failed for file {safe_filename}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Corrupted or undecodable audio file: {str(e)}",
+            )
 
         # Step 4: NLP post-processing
         processed_text = nlp_service.clean_text(
