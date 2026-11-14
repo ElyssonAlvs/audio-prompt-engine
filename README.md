@@ -1,25 +1,78 @@
-# 🎙️ Audio Prompt Engine
+# Audio Prompt Engine
 
-> **Serviço de transcrição de áudio local e síntese estruturada de prompts para LLMs.**  
-> Transforma a fala humana em texto limpo e normalizado (`.txt`) ou em prompts otimizados de alta fidelidade para modelos de linguagem através de técnicas consagradas de engenharia cognitiva.
+> **Local Speech Processing & Structured Prompt Generation**  
+> Mecanismo backend em Python (FastAPI) que transforma fala espontânea humana em texto normalizado e instruções estruturadas para utilização com modelos de linguagem, com inferência de áudio 100% em CPU local via Whisper INT8.
 
 ---
 
-## 📌 Visão Geral
+## 🖥️ Interface do Web Studio (Execução Local)
 
-O **`audio-prompt-engine`** é uma solução backend de alta performance desenvolvida em Python 3.12 (FastAPI), projetada para processar **fala humana espontânea** e convertê-la em **entradas estruturadas para LLMs** (Claude, GPT-4, Llama 3, DeepSeek, Mistral).
+O projeto disponibiliza uma interface visual completa para experimentação e validação operacional do pipeline:
+
+![Web Studio Local - Transcrição de Áudio e Engenharia de Prompt](docs/assets/local-studio-execution.png)
+
+### Desacoplamento entre Showcase e Execução Real
+
+O projeto possui dois modos complementares de operação:
+
+1. **Showcase Interativo (GitHub Pages):**  
+   Disponível publicamente em [elyssonalvs.github.io/audio-prompt-engine](https://elyssonalvs.github.io/audio-prompt-engine/). Trata-se de uma demonstração estática e simulador interativo para exploração conceitual da pipeline, das 6 técnicas de engenharia de prompt e das decisões arquiteturais sem necessidade de instalação local.
+2. **Execução Real do Studio (Local / Docker):**  
+   Executando na máquina do desenvolvedor ou servidor via `uv run uvicorn src.main:app --port 8000` ou `docker compose up --build`. Entrega a aplicação completa em `http://localhost:8000/`, com gravação real de voz via microfone do navegador (`MediaRecorder` WebM/Opus), validação de cabeçalhos binários EBML, decodificação acústica via CTranslate2 INT8 em CPU, normalização determinística NLP e execução direta nos provedores LLM configurados.
+
+---
+
+## ⚡ Inicialização Rápida
+
+### Opção 1: Com Astral UV (Recomendado para Desenvolvimento Local)
+
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/elyssonalvs/audio-prompt-engine.git
+cd audio-prompt-engine
+
+# 2. Sincronizar ambiente virtual e dependências
+uv sync
+
+# 3. Configurar variáveis de ambiente
+cp .env.example .env
+
+# 4. Iniciar o servidor (API + Web Studio em http://localhost:8000)
+uv run uvicorn src.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+### Opção 2: Com Docker Compose (Hermético e Não-Root)
+
+```bash
+# 1. Configurar variáveis de ambiente
+cp .env.example .env
+
+# 2. Construir e inicializar os containers
+docker compose up --build
+```
+
+A aplicação estará acessível em:
+- **Web Studio:** `http://localhost:8000/`
+- **Documentação OpenAPI/Swagger:** `http://localhost:8000/docs`
+- **Health Check:** `http://localhost:8000/health`
+
+---
+
+## 📌 Visão Geral & Dimensões de Engenharia
+
+O **`audio-prompt-engine`** é uma solução backend desenvolvida em Python 3.12 (FastAPI), projetada para processar **fala humana espontânea** e convertê-la em **entradas estruturadas para LLMs** (Claude, GPT-4, Llama 3, DeepSeek, Mistral).
 
 Ao invés de submeter transcrições brutas repletas de disfluências vocais (*"ééé... eu queria tipo uma rota..."*), o motor processa o áudio localmente via **`faster-whisper` (CTranslate2 com quantização INT8)** e disponibiliza dois modos operacionais:
 
-1. **Modo `.txt` (Transcrição NLP Limpa):** Pipeline determinístico de normalização que elimina hesitações vocais, ajusta pontuação/espaçamento, capitaliza sentenças e entrega texto fluido em formato `text/plain`.
+1. **Modo `.txt` (Transcrição NLP Limpa):** Pipeline determinístico de normalização que elimina hesitações vocais, desduplica repetições consecutivas de fala, ajusta pontuação/espaçamento, capitaliza sentenças e entrega texto fluido em formato `text/plain`.
 2. **Modo `prompt` (Engenharia de Prompt Estruturada):** Higieniza a fala contra injeções acústicas e a encapsula dentro de templates profissionais regidos por uma entre **6 técnicas consagradas de engenharia de prompt**, com delimitação segura em tags XML (`<user_speech>`).
 
-### 🖥️ Estrutura da Aplicação em 3 Setores Fluidos
+### As 4 Dimensões em Destaque
 
-A interface gráfica unificada (servida diretamente na raiz `GET /`) é organizada em **3 setores fluidos e integrados**:
-1. **Visão / Pitch:** Apresentação conceitual da solução, proposta de valor técnico, métricas operacionais e visualização do pipeline determinístico em 5 estágios (Áudio ➔ Whisper INT8 ➔ NLP ➔ Engenharia de Prompt ➔ LLM).
-2. **Studio Interativo:** Bancada de experimentação em tempo real com captura de voz pelo microfone (`MediaRecorder` WebM/Opus), upload de arquivos de áudio, simulação de disfluências, seleção de técnicas de prompt e execução direta nos provedores LLM (Ollama, Grok, Gemini, Groq).
-3. **Arquitetura & Engenharia:** Detalhamento do Pentágono de Defesa, mecânica de decodificação ASR/SLM e linha do tempo interativa das Decisões Arquiteturais (ADRs 001 a 004).
+1. **Engenharia de Backend:** FastAPI modular, streaming assíncrono em chunks de 64 KB, validação defensiva de inputs, Server RBAC e persistência SQLite parametrizada com isolamento multi-tenant estrito.
+2. **Processamento Acústico Local:** Faster-Whisper sobre runtime C++ CTranslate2, utilizando por padrão o modelo `small` com quantização INT8 em CPU (~480 MB RAM, latência ~1.5s), com soberania total de dados e custo zero de API.
+3. **Normalização Determinística (NLP):** Limpeza algorítmica de muletas vocais (*"ééé"*, *"tipo assim"*, *"né"*), desduplicação de repetições consecutivas de fala e ancoragem semântica via `initial_prompt`.
+4. **Integração com LLMs:** 6 estratégias consagradas de engenharia de prompt (Zero-Shot, Few-Shot, CoT, Role, CO-STAR, ReAct) e arquitetura desacoplada agnóstica de provedores (Ollama local, Gemini, Groq e Grok).
 
 ---
 
@@ -30,7 +83,7 @@ O Whisper combina processamento acústico e modelagem contextual de linguagem:
 ```
                       ARQUITETURA TRANSFORMER ENCODER-DECODER
                       
-  Áudio (WAV/MP3) ──► [ Espectrograma Log-Mel ] ──► [ AUDIO ENCODER ]
+  Áudio (WAV/MP3/WebM) ──► [ Espectrograma Log-Mel ] ──► [ AUDIO ENCODER ]
                                                            │ (Representações
                                                            │  Acústicas / Fonemas)
                                                            ▼
@@ -49,7 +102,7 @@ O Whisper combina processamento acústico e modelagem contextual de linguagem:
 
 ### 3. Otimização com CTranslate2, Calibração Semântica e NLP
 - **Runtime CTranslate2 INT8:** A biblioteca `faster-whisper` reimplementa o modelo original da OpenAI no runtime em C++ **CTranslate2**, aplicando quantização **INT8** com instruções vetoriais otimizadas para CPU (AVX2 / AVX-512).
-- **Modelo Padrão Whisper `small`:** O motor adota por padrão o modelo **`small` (244M parâmetros)**, demandando aproximadamente **~480 MB de memória RAM** em INT8 na CPU, oferecendo alto nível de fidelidade fonética para o português brasileiro sem necessidade de GPU dedicada.
+- **Modelo Padrão Whisper `small`:** O motor adota por padrão o modelo **`small` (244M parâmetros)**, demandando aproximadamente **~480 MB de memória RAM** em INT8 na CPU, oferecendo equilíbrio ideal entre fidelidade fonética para o português brasileiro e velocidade de processamento sem necessidade de GPU dedicada. (Para cenários ultraleves, o modelo `base` consome aproximadamente ~150 MB).
 - **Calibração Semântica via `initial_prompt`:** A decodificação ASR utiliza um prompt contextual pré-configurado (`WHISPER_INITIAL_PROMPT`), guiando o Text Decoder na correta interpretação de vocabulário técnico de software (APIs, tabelas, servidores, regras de negócio), pontuação natural e concordância sintática.
 - **Desduplicação e Limpeza de Hesitações no NLP:** O normalizador determinístico remove vícios de linguagem (*"ééé"*, *"tipo assim"*, *"né"*, *"ããã"*), alongamentos fonéticos e desduplica repetições consecutivas de palavras causadas por hesitações na fala (ex: *"do do"* ➔ *"do"*, *"que que"* ➔ *"que"*).
 - **Eficiência e Soberania:** Inferência até **4x mais veloz** que PyTorch puro, zero custo de chamadas externas e total privacidade (dados nunca saem da estação de trabalho).
@@ -62,8 +115,8 @@ O endpoint principal (`POST /api/v1/transcriptions`) permite alternar o comporta
 
 | Modo (`output_mode`) | Pós-processamento Aplicado | Formato de Retorno | Casos de Uso Recomendados |
 |---|---|---|---|
-| **`txt`** | **Normalização NLP Determinística:** remoção de muletas vocais (*"ééé"*, *"tipo assim"*, *"né"*, *"ããã"*), ajuste de espaçamento pós-pontuação, capitalização sentencial e consolidação de parágrafos. | JSON com metadados e `processed_text`, ou texto puro via endpoint `/txt`. | Transcrição de reuniões, atas, legendagem, diários e notas formais. |
-| **`prompt`** | **Motor de Engenharia de Prompt:** higienização da fala contra injeções acústicas seguida da estruturação em templates cognitivos delimitados por `<user_speech>`. | JSON completo com campo `prompt_result` pronto para envio a LLMs. | Comandos para assistentes, geração de código, especificação técnica e automação de agentes. |
+| **`txt`** | **Normalização NLP Determinística:** remoção de muletas vocais (*"ééé"*, *"tipo assim"*, *"né"*, *"ããã"*), desduplicação de repetições de fala, ajuste de espaçamento pós-pontuação e capitalização sentencial. | JSON com metadados e `processed_text`, ou texto puro via endpoint `/txt`. | Transcrição de reuniões, atas, legendagem, diários e notas formais. |
+| **`prompt`** | **Síntese de Prompt Estruturado:** higienização da fala contra injeções acústicas seguida da estruturação em templates delimitados por `<user_speech>`. | JSON completo com campo `prompt_result` pronto para envio a LLMs. | Comandos para assistentes, geração de código, especificação técnica e automação de agentes. |
 
 ---
 
@@ -75,7 +128,7 @@ Quando `output_mode="prompt"`, a API exige a seleção explícita de uma técnic
 |---|---|---|
 | **`zero_shot`** | Instrução direta e imperativa com seções de Contexto, Tarefa e Formato de Saída sem exemplos prévios. | Perguntas objetivas, refatorações pontuais e consultas rápidas. |
 | **`few_shot`** | Injeção de pares estruturados de `Entrada -> Saída Esperada` para condicionar o formato exato desejado. | Extração de entidades, formatação em JSON/YAML e padronizações estritas. |
-| **`chain_of_thought` (CoT)** | Exigência mandatória de raciocínio passo a passo antes da conclusão (*"Pense passo a passo..."*). | Resolução de bugs complexos, lógica de negócios, matemática e arquitetura. |
+| **`chain_of_thought` (CoT)** | Instruções estruturadas de decomposição de tarefas passo a passo antes da conclusão (*"Pense passo a passo..."*). | Resolução de bugs complexos, lógica de negócios, matemática e arquitetura. |
 | **`role_prompting`** | Atribuição de uma persona especialista sênior com diretrizes de tom, postura e restrições. | Code reviews de alto nível, consultoria técnica e auditorias de sistema. |
 | **`co_star`** | Framework corporativo estruturado em 6 pilares: **C**ontext, **O**bjective, **S**tyle, **T**one, **A**udience, **R**esponse. | Prompts corporativos para produção, especificações funcionais e relatórios. |
 | **`react`** | Estruturação de raciocínio e ação autônoma em loop: `Thought` ➔ `Action` ➔ `Observation` ➔ `Final Answer`. | Agentes autônomos, integrações com ferramentas e pipelines multi-etapas. |
@@ -91,7 +144,7 @@ Após a síntese do prompt estruturado, o cliente pode disparar a inferência at
 | **`ollama`** | `llama3` | Local / Offline (CPU ou GPU) | `OLLAMA_BASE_URL` (default: `http://host.docker.internal:11434`), `DEFAULT_OLLAMA_MODEL` |
 | **`grok`** | `grok-beta` | Nuvem xAI (Raciocínio Analítico) | `XAI_API_KEY`, `DEFAULT_GROK_MODEL` |
 | **`gemini`** | `gemini-1.5-flash` | Nuvem Google AI Studio (Alta Velocidade & Contexto Amplo) | `GEMINI_API_KEY`, `DEFAULT_GEMINI_MODEL` |
-| **`groq`** | `llama-3.3-70b-versatile` | Nuvem Groq Cloud (Hardware LPU de Baixa Latência) | `GROQ_API_KEY`, `DEFAULT_GROK_MODEL` |
+| **`groq`** | `llama-3.3-70b-versatile` | Nuvem Groq Cloud (Hardware LPU de Baixa Latência) | `GROQ_API_KEY`, `DEFAULT_GROQ_MODEL` |
 
 ### Variáveis de Ambiente dos Provedores LLM
 
@@ -120,9 +173,11 @@ DEFAULT_LLM_PROVIDER=ollama
 
 > **Fail-Fast Contratual:** Se um provedor que exige chave de nuvem (`grok`, `gemini`, `groq`) for invocado sem a respectiva variável configurada no ambiente do servidor, o endpoint responde imediatamente com `422 Unprocessable Content` detalhando a chave faltante, sem fallbacks silenciosos.
 
+---
+
 ## 🛡️ Pentágono de Defesa (Arquitetura de Segurança Consolidada)
 
-A aplicação foi submetida a rigorosas auditorias técnicas e testes caóticos, incorporando defesas em profundidade em todas as camadas:
+A aplicação foi submetida a auditorias técnicas e testes caóticos, incorporando defesas em profundidade em todas as camadas:
 
 ```mermaid
 flowchart TD
@@ -131,7 +186,7 @@ flowchart TD
         P2["2. Permissão no Servidor<br/>RoleChecker Ativo no FastAPI<br/>viewer bloqueado com 403 em escrita"]
         P3["3. Prevenção de IDOR<br/>Isolamento estrito por tenant_id<br/>Validação sintática de UUID v4 (404)"]
         P4["4. Chaves & Defaults Seguros<br/>Configurações via .env e Pydantic Settings<br/>Remoção física de arquivos temporários"]
-        P5["5. Sanitização de Inputs & Magic Bytes<br/>Streaming upload (64 KB) com limite 413<br/>Validação de cabeçalho binário real<br/>Mitigação de Acoustic Prompt Injection"]
+        P5["5. Sanitização de Inputs & Magic Bytes<br/>Streaming upload (64 KB) com limite 413<br/>Validação de cabeçalho binário real<br/>Mitigação de injeção acústica via isolamento XML"]
     end
 ```
 
@@ -139,15 +194,15 @@ flowchart TD
 2. **Permissão no Servidor (RBAC):** Autenticação via header `X-API-Key` mapeada para credenciais imutáveis. O papel `viewer` tem acesso de leitura permitido, mas recebe `403 Forbidden` imediato em tentativas de ingestão pesada (`POST /transcriptions`).
 3. **Prevenção de IDOR & Validação de UUID:** Tentativas de consultar identificadores inexistentes ou de outro inquilino retornam uniformemente `404 Not Found`. Identificadores no path fora do padrão UUID v4 são interceptados e respondem com `404` sem consultar o banco de dados.
 4. **Chaves e Defaults Seguros:** Credenciais e configurações desacopladas no arquivo `.env`. Uploads são alocados com nomes anônimos gerados por UUID e removidos fisicamente do disco em blocos `finally: os.unlink()`.
-5. **Sanitização de Inputs, Magic Bytes & Anti-Injection:**
+5. **Sanitização de Inputs, Magic Bytes & Mitigação de Injeção Acústica:**
    - **Streaming Defensivo:** Leitura em chunks de 64 KB gravados direto em disco; uploads que excedem 25 MB disparam `413 Content Too Large` imediatamente, impedindo ataques de DoS por estouro de memória (OOM).
    - **Magic Bytes Reais:** Validação da assinatura binária inicial (`RIFF/WAVE`, `ID3/MP3`, `OggS`, `fLaC`, `ftyp`, `EBML/WebM`). Arquivos executáveis (`MZ`) ou textos renomeados são rejeitados com `400 Bad Request`.
-   - **Mitigação de Acoustic Prompt Injection:** A fala humana transcrita passa por escape de tags XML (`&lt;`, `&gt;`) antes da interpolação em `<user_speech>`, neutralizando comandos falados que tentem quebrar a instrução do prompt.
+   - **Mitigação de Injeção Acústica via Isolamento XML:** A fala humana transcrita passa por escape de tags XML (`&lt;`, `&gt;`) antes da interpolação em `<user_speech>`, neutralizando comandos falados que tentem quebrar a instrução do prompt.
    - **Aderência Contratual:** Requisições em modo `prompt` desprovidas de `prompt_technique` são rejeitadas com `422 Unprocessable Content`.
 
 ---
 
-## 🐳 Execução com Docker Compose (Método Recomendado)
+## 🐳 Execução com Docker Compose (Método Hermético)
 
 A aplicação conta com suporte nativo a containers utilizando imagem base otimizada do **`uv` (Astral)** sobre Debian Bookworm Slim, garantindo builds ultrarrápidos e hermeticidade completa com dependências de áudio (`ffmpeg`, `CTranslate2`).
 
@@ -161,8 +216,8 @@ flowchart LR
 
 ### 1. Iniciar o Container
 Certifique-se de ter o arquivo `.env` configurado a partir de `.env.example`:
-```powershell
-copy .env.example .env
+```bash
+cp .env.example .env
 docker compose up --build
 ```
 
@@ -178,48 +233,9 @@ A API estará pronta e operando em `http://localhost:8000`. A documentação int
 - **Healthcheck Autônomo:** O container implementa monitoramento nativo em Python (`urllib.request`) testando `GET /health` sem depender de utilitários externos como `curl`.
 
 ### 4. Parar o Container
-```powershell
+```bash
 docker compose down
 ```
-
----
-
-## 🚀 Execução Local Alternativa (Host / uv nativo)
-
-Caso prefira rodar diretamente no Python do host sem Docker:
-
-### Pré-requisitos
-- **Python 3.10 a 3.14** (Python 3.12 recomendado)
-- **uv** (gerenciador ultrarrápido recomendado) ou **pip**
-- Binário do **ffmpeg** instalado e acessível no `PATH` do sistema
-
-### Passo a Passo
-
-1. **Clonar ou acessar o repositório:**
-   ```powershell
-   cd C:\Users\elyss\Desktop\Projects\audio-prompt-engine
-   ```
-
-2. **Criar e ativar o ambiente virtual:**
-   ```powershell
-   uv venv --python 3.12 .venv
-   .\.venv\Scripts\activate
-   ```
-
-3. **Instalar dependências (incluindo suíte de testes):**
-   ```powershell
-   uv pip install -e ".[dev]"
-   ```
-
-4. **Configurar variáveis de ambiente:**
-   ```powershell
-   copy .env.example .env
-   ```
-
-5. **Iniciar o servidor FastAPI:**
-   ```powershell
-   uvicorn src.main:app --host 127.0.0.1 --port 8000 --reload
-   ```
 
 ---
 
@@ -279,7 +295,7 @@ O projeto inclui uma collection completa e pronta para uso em desenvolvimento e 
 
 ## 🔬 Resultados de QA, Auditoria e Chaos Testing
 
-O projeto possui **100% de aprovação** em todas as baterias de homologação técnica:
+O projeto possui **100% de aprovação** em todas as baterias de homologação técnica com validação rigorosa com 98 testes:
 
 - **Suíte de Testes Automatizados:**
   - **98 testes automatizados aprovados** (`pytest -v`).
@@ -288,7 +304,7 @@ O projeto possui **100% de aprovação** em todas as baterias de homologação t
   - 22 testes rigorosos de segurança defensiva do Pentágono de Defesa.
 - **Live Chaos Testing em Container Docker (Fase 4):**
   - **23/23 testes de estresse e caos aprovados** executados contra o container ativo em `http://localhost:8000`.
-  - Cenários validados: rajadas concorrentes de upload, saturação de payload (>25MB), corrupção de cabeçalhos binários, tentativas de Acoustic Prompt Injection e persistência física comprovada do banco SQLite em `./data/audio_prompt_engine.db` após encerramento do container.
+  - Cenários validados: rajadas concorrentes de upload, saturação de payload (>25MB), corrupção de cabeçalhos binários, tentativas de injeção acústica e persistência física comprovada do banco SQLite em `./data/audio_prompt_engine.db` após encerramento do container.
 
 ---
 
