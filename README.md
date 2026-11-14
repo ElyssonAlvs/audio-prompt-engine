@@ -5,46 +5,45 @@
 
 ---
 
-## 🖥️ Interface do Web Studio (Execução Local)
+## Interface do Web Studio (Bancada Local)
 
-O projeto disponibiliza uma interface visual completa para experimentação e validação operacional do pipeline:
+A aplicação conta com uma bancada de engenharia (*Studio Workbench*, inspirada no AudioVision Studio) executável localmente para experimentação e validação operacional completa do pipeline:
 
-![Web Studio Local - Transcrição de Áudio e Engenharia de Prompt](docs/assets/local-studio-execution.png)
+![Audio Prompt Engine — Studio Workbench em Execução](docs/assets/studio-demo.gif)
 
-### Desacoplamento entre Showcase e Execução Real
+Ao inicializar o servidor localmente via `uv run uvicorn src.main:app --port 8000` e acessar `http://localhost:8000/`, a bancada disponibiliza:
 
-O projeto possui dois modos complementares de operação:
+- **Gravação de Voz em Alta Fidelidade:** Captura nativa via microfone com `MediaRecorder` (WebM/Opus) e renderização de waveform em tempo real via Web Audio API.
+- **Validação de Cabeçalhos e Streaming:** Validação de magic bytes EBML no backend com processamento assíncrono em chunks de 64 KB.
+- **Inferência Acústica Local (CPU):** Decodificação via Faster-Whisper Small INT8 sobre runtime C++ CTranslate2, sem necessidade de GPU ou envio de dados a terceiros.
+- **Normalização Determinística (NLP):** Limpeza algorítmica de muletas vocais (*"ééé"*, *"tipo assim"*, *"né"*) e desduplicação de repetições consecutivas de fala causadas por hesitações.
+- **Síntese de Prompts Estruturados:** Formatação em 6 técnicas consagradas com isolamento seguro contra injeções acústicas (`<user_speech>`).
+- **Despacho Direto para LLMs:** Execução ponta a ponta nos provedores desacoplados (Ollama local, Gemini, Groq ou Grok).
 
-1. **Showcase Interativo (GitHub Pages):**  
-   Disponível publicamente em [elyssonalvs.github.io/audio-prompt-engine](https://elyssonalvs.github.io/audio-prompt-engine/). Trata-se de uma demonstração estática e simulador interativo para exploração conceitual da pipeline, das 6 técnicas de engenharia de prompt e das decisões arquiteturais sem necessidade de instalação local.
-2. **Execução Real do Studio (Local / Docker):**  
-   Executando na máquina do desenvolvedor ou servidor via `uv run uvicorn src.main:app --port 8000` ou `docker compose up --build`. Entrega a aplicação completa em `http://localhost:8000/`, com gravação real de voz via microfone do navegador (`MediaRecorder` WebM/Opus), validação de cabeçalhos binários EBML, decodificação acústica via CTranslate2 INT8 em CPU, normalização determinística NLP e execução direta nos provedores LLM configurados.
+![Web Studio Local - Detalhamento da Bancada de Engenharia](docs/assets/studio-workbench.png)
 
 ---
 
-## ⚡ Inicialização Rápida
+## Inicialização Rápida
 
-### Opção 1: Com Astral UV (Recomendado para Desenvolvimento Local)
+### Execução com Astral UV (Recomendado)
 
 ```bash
 # 1. Clonar o repositório
-git clone https://github.com/elyssonalvs/audio-prompt-engine.git
+git clone https://github.com/ElyssonAlvs/audio-prompt-engine.git
 cd audio-prompt-engine
 
 # 2. Sincronizar ambiente virtual e dependências
 uv sync
 
-# 3. Configurar variáveis de ambiente
-cp .env.example .env
-
-# 4. Iniciar o servidor (API + Web Studio em http://localhost:8000)
-uv run uvicorn src.main:app --host 127.0.0.1 --port 8000 --reload
+# 3. Iniciar o servidor (API + Web Studio em http://localhost:8000)
+uv run uvicorn src.main:app --port 8000
 ```
 
-### Opção 2: Com Docker Compose (Hermético e Não-Root)
+### Execução com Docker Compose (Ambiente Hermético)
 
 ```bash
-# 1. Configurar variáveis de ambiente
+# 1. Configurar variáveis de ambiente (opcional para LLMs em nuvem)
 cp .env.example .env
 
 # 2. Construir e inicializar os containers
@@ -52,13 +51,13 @@ docker compose up --build
 ```
 
 A aplicação estará acessível em:
-- **Web Studio:** `http://localhost:8000/`
+- **Web Studio (Workbench):** `http://localhost:8000/`
 - **Documentação OpenAPI/Swagger:** `http://localhost:8000/docs`
 - **Health Check:** `http://localhost:8000/health`
 
 ---
 
-## 📌 Visão Geral & Dimensões de Engenharia
+## Visão Geral e Dimensões de Engenharia
 
 O **`audio-prompt-engine`** é uma solução backend desenvolvida em Python 3.12 (FastAPI), projetada para processar **fala humana espontânea** e convertê-la em **entradas estruturadas para LLMs** (Claude, GPT-4, Llama 3, DeepSeek, Mistral).
 
@@ -69,14 +68,14 @@ Ao invés de submeter transcrições brutas repletas de disfluências vocais (*"
 
 ### As 4 Dimensões em Destaque
 
-1. **Engenharia de Backend:** FastAPI modular, streaming assíncrono em chunks de 64 KB, validação defensiva de inputs, Server RBAC e persistência SQLite parametrizada com isolamento multi-tenant estrito.
+1. **Engenharia de Backend:** FastAPI modular, streaming assíncrono em chunks de 64 KB, validação defensiva de inputs, RBAC nativo no servidor e persistência SQLite parametrizada com isolamento multi-tenant estrito.
 2. **Processamento Acústico Local:** Faster-Whisper sobre runtime C++ CTranslate2, utilizando por padrão o modelo `small` com quantização INT8 em CPU (~480 MB RAM, latência ~1.5s), com soberania total de dados e custo zero de API.
-3. **Normalização Determinística (NLP):** Limpeza algorítmica de muletas vocais (*"ééé"*, *"tipo assim"*, *"né"*), desduplicação de repetições consecutivas de fala e ancoragem semântica via `initial_prompt`.
+3. **Normalização Determinística (NLP):** Limpeza algorítmica de muletas vocais (*"ééé"*, *"tipo assim"*, *"né"*), desduplicação de repetições consecutivas de fala e ancoragem semântica via `WHISPER_INITIAL_PROMPT`.
 4. **Integração com LLMs:** 6 estratégias consagradas de engenharia de prompt (Zero-Shot, Few-Shot, CoT, Role, CO-STAR, ReAct) e arquitetura desacoplada agnóstica de provedores (Ollama local, Gemini, Groq e Grok).
 
 ---
 
-## 🧠 Como o Whisper Funciona: ASR vs. SLM Contextual
+## Mecânica do Whisper: ASR Acústico vs. SLM Contextual
 
 O Whisper combina processamento acústico e modelagem contextual de linguagem:
 
@@ -109,7 +108,7 @@ O Whisper combina processamento acústico e modelagem contextual de linguagem:
 
 ---
 
-## 🎛️ Modos de Saída da API
+## Modos de Saída da API
 
 O endpoint principal (`POST /api/v1/transcriptions`) permite alternar o comportamento da aplicação através do parâmetro `output_mode`:
 
@@ -120,7 +119,7 @@ O endpoint principal (`POST /api/v1/transcriptions`) permite alternar o comporta
 
 ---
 
-## 🛠️ As 6 Técnicas de Engenharia de Prompt Suportadas
+## As 6 Técnicas de Engenharia de Prompt Suportadas
 
 Quando `output_mode="prompt"`, a API exige a seleção explícita de uma técnica via `prompt_technique`:
 
@@ -135,7 +134,7 @@ Quando `output_mode="prompt"`, a API exige a seleção explícita de uma técnic
 
 ---
 
-## 🤖 Motor de Inferência LLM Desacoplado (4 Provedores Suportados)
+## Motor de Inferência LLM Desacoplado (4 Provedores Suportados)
 
 Após a síntese do prompt estruturado, o cliente pode disparar a inferência através da rota dedicada `POST /api/v1/transcriptions/{job_id}/execute`. O motor adota o padrão de projeto **Strategy** (`ILLMProvider`), operando com **zero dependências externas** (comunicação REST nativa via `urllib.request`):
 
@@ -146,7 +145,7 @@ Após a síntese do prompt estruturado, o cliente pode disparar a inferência at
 | **`gemini`** | `gemini-1.5-flash` | Nuvem Google AI Studio (Alta Velocidade & Contexto Amplo) | `GEMINI_API_KEY`, `DEFAULT_GEMINI_MODEL` |
 | **`groq`** | `llama-3.3-70b-versatile` | Nuvem Groq Cloud (Hardware LPU de Baixa Latência) | `GROQ_API_KEY`, `DEFAULT_GROQ_MODEL` |
 
-### Variáveis de Ambiente dos Provedores LLM
+### Configuração de Provedores via Ambiente
 
 As chaves de API e URLs são configuradas no arquivo `.env`:
 
@@ -175,7 +174,7 @@ DEFAULT_LLM_PROVIDER=ollama
 
 ---
 
-## 🛡️ Pentágono de Defesa (Arquitetura de Segurança Consolidada)
+## Pentágono de Defesa (Arquitetura de Segurança Consolidada)
 
 A aplicação foi submetida a auditorias técnicas e testes caóticos, incorporando defesas em profundidade em todas as camadas:
 
@@ -202,7 +201,7 @@ flowchart TD
 
 ---
 
-## 🐳 Execução com Docker Compose (Método Hermético)
+## Execução com Docker Compose (Método Hermético)
 
 A aplicação conta com suporte nativo a containers utilizando imagem base otimizada do **`uv` (Astral)** sobre Debian Bookworm Slim, garantindo builds ultrarrápidos e hermeticidade completa com dependências de áudio (`ffmpeg`, `CTranslate2`).
 
@@ -239,7 +238,7 @@ docker compose down
 
 ---
 
-## 📚 Endpoints da API REST
+## Endpoints da API REST
 
 Todas as requisições autenticadas exigem o cabeçalho HTTP `X-API-Key`.
 
@@ -256,7 +255,7 @@ Todas as requisições autenticadas exigem o cabeçalho HTTP `X-API-Key`.
 
 ---
 
-## 🧪 Collection de API (Insomnia v4)
+## Collection de API (Insomnia v4)
 
 O projeto inclui uma collection completa e pronta para uso em desenvolvimento e homologação:
 
@@ -293,9 +292,9 @@ O projeto inclui uma collection completa e pronta para uso em desenvolvimento e 
 
 ---
 
-## 🔬 Resultados de QA, Auditoria e Chaos Testing
+## Testes Automatizados e Confiabilidade
 
-O projeto possui **100% de aprovação** em todas as baterias de homologação técnica com validação rigorosa com 98 testes:
+O projeto possui **100% de aprovação** em todas as baterias de homologação técnica com validação rigorosa de 98 testes automatizados:
 
 - **Suíte de Testes Automatizados:**
   - **98 testes automatizados aprovados** (`pytest -v`).
@@ -308,8 +307,8 @@ O projeto possui **100% de aprovação** em todas as baterias de homologação t
 
 ---
 
-## 📄 Decisões Arquiteturais (ADRs)
+## Decisões Arquiteturais (ADRs)
 
-As decisões de engenharia e os fundamentos arquiteturais do projeto estão consolidados e disponíveis publicamente:
+As decisões de engenharia e os fundamentos arquiteturais do projeto estão consolidados e disponíveis no repositório:
 
-- 🏛️ **[Consolidação de Decisões Arquiteturais (ADR Digest)](docs/ARCHITECTURAL_DECISIONS.md):** Documentação técnica das decisões arquiteturais do projeto (ADR-001 a ADR-004).
+- **[Consolidação de Decisões Arquiteturais (ADR Digest)](docs/ARCHITECTURAL_DECISIONS.md):** Documentação técnica das decisões arquiteturais do projeto (ADR-001 a ADR-004).
