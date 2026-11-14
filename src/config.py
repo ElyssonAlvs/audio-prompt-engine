@@ -26,10 +26,14 @@ class Settings(BaseSettings):
     DATABASE_PATH: str = Field(default="audio_prompt_engine.db", description="SQLite database path")
 
     WHISPER_MODEL_SIZE: WhisperModelSize = Field(
-        default=WhisperModelSize.BASE, description="Whisper model size"
+        default=WhisperModelSize.SMALL, description="Whisper model size"
     )
     WHISPER_DEVICE: str = Field(default="cpu", description="Inference device: cpu or cuda")
     WHISPER_COMPUTE_TYPE: str = Field(default="int8", description="Quantization compute type")
+    WHISPER_INITIAL_PROMPT: str = Field(
+        default="Áudio em português brasileiro sobre desenvolvimento de software, regras de negócio, banco de dados, servidor, tabela, horários da agenda, extração de dados, requisição e API.",
+        description="Prompt de calibração fonética e semântica do Whisper",
+    )
 
     MAX_UPLOAD_SIZE_BYTES: int = Field(
         default=25 * 1024 * 1024, description="Maximum audio upload size in bytes (25MB)"

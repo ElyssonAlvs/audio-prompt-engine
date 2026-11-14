@@ -14,6 +14,13 @@ Ao invés de submeter transcrições brutas repletas de disfluências vocais (*"
 1. **Modo `.txt` (Transcrição NLP Limpa):** Pipeline determinístico de normalização que elimina hesitações vocais, ajusta pontuação/espaçamento, capitaliza sentenças e entrega texto fluido em formato `text/plain`.
 2. **Modo `prompt` (Engenharia de Prompt Estruturada):** Higieniza a fala contra injeções acústicas e a encapsula dentro de templates profissionais regidos por uma entre **6 técnicas consagradas de engenharia de prompt**, com delimitação segura em tags XML (`<user_speech>`).
 
+### 🖥️ Estrutura da Aplicação em 3 Setores Fluidos
+
+A interface gráfica unificada (servida diretamente na raiz `GET /`) é organizada em **3 setores fluidos e integrados**:
+1. **Visão / Pitch:** Apresentação conceitual da solução, proposta de valor técnico, métricas operacionais e visualização do pipeline determinístico em 5 estágios (Áudio ➔ Whisper INT8 ➔ NLP ➔ Engenharia de Prompt ➔ LLM).
+2. **Studio Interativo:** Bancada de experimentação em tempo real com captura de voz pelo microfone (`MediaRecorder` WebM/Opus), upload de arquivos de áudio, simulação de disfluências, seleção de técnicas de prompt e execução direta nos provedores LLM (Ollama, Grok, Gemini, Groq).
+3. **Arquitetura & Engenharia:** Detalhamento do Pentágono de Defesa, mecânica de decodificação ASR/SLM e linha do tempo interativa das Decisões Arquiteturais (ADRs 001 a 004).
+
 ---
 
 ## 🧠 Como o Whisper Funciona: ASR vs. SLM Contextual
@@ -40,12 +47,12 @@ O Whisper combina processamento acústico e modelagem contextual de linguagem:
 - **Desambiguação Homófona:** Se o áudio em português contiver o som fonético idêntico para *"sessão"*, *"seção"* e *"cessão"*, o decodificador atua como um modelo de linguagem: ele analisa a semântica da sentença (*"fomos à sessão de cinema"* vs. *"departamento de compras na seção de ferramentas"*) para inferir e emitir a grafia correta.
 - **Pontuação e Capitalização Nativas:** O decodificador insere automaticamente pontos finais, vírgulas, interrogações e letras maiúsculas no fluxo de texto, compensando pausas naturais da voz.
 
-### 3. Otimização com CTranslate2 e Quantização INT8
-- A biblioteca `faster-whisper` reimplementa o modelo original da OpenAI no runtime em C++ **CTranslate2**, aplicando quantização **INT8** com instruções vetoriais otimizadas para CPU (AVX2 / AVX-512).
-- **Resultados práticos:**
-  - O modelo `base` consome aproximadamente **150 MB de memória RAM** (redução de ~70% em comparação ao PyTorch puro).
-  - Inferência até **4x mais veloz**, sem necessidade de GPU NVIDIA dedicada.
-  - Zero custo de API externa e total privacidade (dados nunca saem da estação de trabalho).
+### 3. Otimização com CTranslate2, Calibração Semântica e NLP
+- **Runtime CTranslate2 INT8:** A biblioteca `faster-whisper` reimplementa o modelo original da OpenAI no runtime em C++ **CTranslate2**, aplicando quantização **INT8** com instruções vetoriais otimizadas para CPU (AVX2 / AVX-512).
+- **Modelo Padrão Whisper `small`:** O motor adota por padrão o modelo **`small` (244M parâmetros)**, demandando aproximadamente **~480 MB de memória RAM** em INT8 na CPU, oferecendo alto nível de fidelidade fonética para o português brasileiro sem necessidade de GPU dedicada.
+- **Calibração Semântica via `initial_prompt`:** A decodificação ASR utiliza um prompt contextual pré-configurado (`WHISPER_INITIAL_PROMPT`), guiando o Text Decoder na correta interpretação de vocabulário técnico de software (APIs, tabelas, servidores, regras de negócio), pontuação natural e concordância sintática.
+- **Desduplicação e Limpeza de Hesitações no NLP:** O normalizador determinístico remove vícios de linguagem (*"ééé"*, *"tipo assim"*, *"né"*, *"ããã"*), alongamentos fonéticos e desduplica repetições consecutivas de palavras causadas por hesitações na fala (ex: *"do do"* ➔ *"do"*, *"que que"* ➔ *"que"*).
+- **Eficiência e Soberania:** Inferência até **4x mais veloz** que PyTorch puro, zero custo de chamadas externas e total privacidade (dados nunca saem da estação de trabalho).
 
 ---
 
@@ -149,7 +156,7 @@ flowchart LR
     HostEnv[".env (Host)"] -.-> Container["Container: audio-prompt-engine<br/>(Usuário appuser:10001)"]
     HostPort["Host Port 8000"] <===> ContainerPort["Porta 8000"]
     DataDir[("./data (Host)")] <===>|Persistência SQLite| ContainerDB["/app/data"]
-    CacheVol[("Volume: hf_cache")] <===>|Pesos Whisper (145 MB)| ContainerCache["/home/appuser/.cache/huggingface"]
+    CacheVol[("Volume: hf_cache")] <===>|Pesos Whisper (Small INT8)| ContainerCache["/home/appuser/.cache/huggingface"]
 ```
 
 ### 1. Iniciar o Container
@@ -163,7 +170,7 @@ A API estará pronta e operando em `http://localhost:8000`. A documentação int
 
 ### 2. Volumes e Persistência
 - **`./data:/app/data` (Bind Mount):** Persiste o banco de dados SQLite (`audio_prompt_engine.db`) diretamente no host. Todas as transcrições e índices permanecem preservados mesmo se o container for destruído ou atualizado.
-- **`hf_cache` (Named Volume `audio_prompt_engine_hf_cache`):** Armazena os pesos baixados do modelo Whisper (`HF_HOME=/home/appuser/.cache/huggingface`). O download de ~145 MB ocorre apenas na primeira inicialização; reinícios posteriores reutilizam o cache instantaneamente sem consumir banda de rede.
+- **`hf_cache` (Named Volume `audio_prompt_engine_hf_cache`):** Armazena os pesos baixados do modelo Whisper (`HF_HOME=/home/appuser/.cache/huggingface`). O download dos pesos do modelo `small` ocorre apenas na primeira inicialização; reinícios posteriores reutilizam o cache instantaneamente sem consumir banda de rede.
 
 ### 3. Segurança do Container (Non-Root User)
 - **Princípio do Menor Privilégio:** O container é executado estritamente sob o usuário não-root **`appuser` (UID 10001, GID 10001)**, eliminando riscos de escalação de privilégios e *Container Escape*.
@@ -275,8 +282,8 @@ O projeto inclui uma collection completa e pronta para uso em desenvolvimento e 
 O projeto possui **100% de aprovação** em todas as baterias de homologação técnica:
 
 - **Suíte de Testes Automatizados:**
-  - **91 testes aprovados** (`pytest -v`).
-  - 48 testes unitários (limpeza NLP, remoção de hesitações, as 6 técnicas de prompt e serviços de inferência LLM).
+  - **98 testes automatizados aprovados** (`pytest -v`).
+  - 55 testes unitários (limpeza NLP, desduplicação de hesitações vocais, as 6 técnicas de prompt e serviços de inferência LLM).
   - 21 testes de integração E2E (fluxos de áudio, downloads e execução nos 4 provedores de LLM).
   - 22 testes rigorosos de segurança defensiva do Pentágono de Defesa.
 - **Live Chaos Testing em Container Docker (Fase 4):**

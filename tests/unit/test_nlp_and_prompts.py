@@ -51,6 +51,27 @@ class TestNlpNormalizer:
         assert "Funcionou bem?" in capitalized
         assert "Claro que sim." in capitalized
 
+    def test_deduplicate_consecutive_words_stuttering(self):
+        text = "Eu acho que que o o teste do do sistema de de banco aí aí funcionou"
+        deduped = self.normalizer.deduplicate_consecutive_words(text)
+        assert "que que" not in deduped
+        assert "o o" not in deduped
+        assert "do do" not in deduped
+        assert "de de" not in deduped
+        assert "aí aí" not in deduped
+        assert deduped == "Eu acho que o teste do sistema de banco aí funcionou"
+
+    def test_deduplicate_multiple_and_case_insensitive(self):
+        text = "Do do do teste O o O sistema Que que"
+        deduped = self.normalizer.deduplicate_consecutive_words(text)
+        assert deduped == "Do teste O sistema Que"
+
+    def test_fix_phonetic_merges_natabella(self):
+        text = "Vamos verificar os dados natabella de produtos e Natabella de clientes"
+        fixed = self.normalizer.fix_phonetic_merges(text)
+        assert "natabella" not in fixed.lower()
+        assert "na tabela de produtos e na tabela de clientes" in fixed.lower()
+
     def test_full_pipeline_clean_text(self):
         raw = "   olá equipe, ééé... nós precisamos tipo assim criar uma rota FastAPI, né?   para proteger o sistema   "
         result = self.normalizer.clean_text(raw, remove_fillers=True)
@@ -59,6 +80,22 @@ class TestNlpNormalizer:
         assert "tipo assim" not in result
         assert "né" not in result
         assert "Para proteger o sistema." in result
+
+    def test_full_pipeline_with_stuttering_and_phonetic_merge(self):
+        raw = "olá equipe, nós precisamos tipo assim consultar natabella do do cliente aí aí, né?"
+        result = self.normalizer.clean_text(raw, remove_fillers=True)
+        assert "tipo assim" not in result
+        assert "né" not in result
+        assert "natabella" not in result.lower()
+        assert "na tabela" in result
+        assert "do do" not in result
+        assert "aí aí" not in result
+        assert result == "Olá equipe, nós precisamos consultar na tabela do cliente aí?"
+
+    def test_full_pipeline_with_period_ending(self):
+        raw = "olá equipe, nós precisamos tipo assim consultar natabella do do cliente aí aí."
+        result = self.normalizer.clean_text(raw, remove_fillers=True)
+        assert result == "Olá equipe, nós precisamos consultar na tabela do cliente aí."
 
 
 class TestPromptEngineeringStrategies:
@@ -233,4 +270,59 @@ class TestRepositoryInitialization:
         assert nested_db.parent.exists()
         assert nested_db.exists()
         assert repo.count_by_tenant("any-tenant") == 0
+
+
+class TestWhisperConfigurationAndPrompt:
+    """Unit tests validating Whisper configuration and calibration prompt."""
+
+    def test_whisper_default_settings(self):
+        from src.config import Settings
+        from src.domain.enums import WhisperModelSize
+
+        settings_isolated = Settings(_env_file=None)
+        assert settings_isolated.WHISPER_MODEL_SIZE == WhisperModelSize.SMALL
+        assert "português brasileiro" in settings_isolated.WHISPER_INITIAL_PROMPT
+
+        settings = Settings()
+        assert settings.WHISPER_MODEL_SIZE == WhisperModelSize.SMALL
+        assert "português brasileiro" in settings.WHISPER_INITIAL_PROMPT
+        assert "regras de negócio" in settings.WHISPER_INITIAL_PROMPT
+        assert "tabela" in settings.WHISPER_INITIAL_PROMPT
+        assert "API" in settings.WHISPER_INITIAL_PROMPT
+
+    def test_faster_whisper_passes_calibration_and_vad_parameters(self, tmp_path):
+        from unittest.mock import MagicMock
+        from src.config import Settings
+        from src.services.whisper_service import FasterWhisperEngine
+
+        settings = Settings(
+            WHISPER_INITIAL_PROMPT="Prompt customizado de calibração",
+        )
+        engine = FasterWhisperEngine(settings=settings)
+
+        mock_model = MagicMock()
+        mock_seg = MagicMock()
+        mock_seg.id = 0
+        mock_seg.start = 0.0
+        mock_seg.end = 1.0
+        mock_seg.text = "Teste"
+        mock_info = MagicMock()
+        mock_info.duration = 1.0
+        mock_info.language = "pt"
+        mock_info.language_probability = 0.99
+        mock_model.transcribe.return_value = ([mock_seg], mock_info)
+        engine._model = mock_model
+
+        dummy_audio = tmp_path / "test.wav"
+        dummy_audio.write_bytes(b"dummy")
+
+        result = engine.transcribe(str(dummy_audio), language="pt")
+
+        assert result.raw_text == "Teste"
+        mock_model.transcribe.assert_called_once()
+        _, kwargs = mock_model.transcribe.call_args
+        assert kwargs["initial_prompt"] == "Prompt customizado de calibração"
+        assert kwargs["condition_on_previous_text"] is False
+        assert kwargs["vad_parameters"] == {"min_silence_duration_ms": 500}
+
 

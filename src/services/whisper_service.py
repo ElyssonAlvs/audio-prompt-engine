@@ -61,6 +61,9 @@ class FasterWhisperEngine(IWhisperEngine):
             language=language,
             beam_size=5,
             vad_filter=True,
+            vad_parameters=dict(min_silence_duration_ms=500),
+            initial_prompt=self.settings.WHISPER_INITIAL_PROMPT,
+            condition_on_previous_text=False,
         )
 
         segments_list: List[TranscriptionSegment] = []

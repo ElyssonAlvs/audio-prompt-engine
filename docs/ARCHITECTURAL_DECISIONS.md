@@ -320,6 +320,6 @@ Todas as rotas de negócio exigem autenticação via cabeçalho HTTP `X-API-Key`
 
 ## 🔬 Homologação e Garantia de Qualidade
 
-- **Suíte de Testes:** **91 testes automatizados aprovados (100% de sucesso)** cobrindo testes unitários (48), fluxos de integração E2E (21), serviços de inferência LLM nos 4 provedores (Ollama, Grok, Gemini, Groq) e testes de segurança defensiva do Pentágono de Defesa (22).
+- **Suíte de Testes:** **98 testes automatizados aprovados (100% de sucesso)** cobrindo testes unitários (55), fluxos de integração E2E (21), serviços de inferência LLM nos 4 provedores (Ollama, Grok, Gemini, Groq) e testes de segurança defensiva do Pentágono de Defesa (22).
 - **Chaos Testing:** **23/23 testes de caos ao vivo aprovados** contra o container Docker ativo, com validação de resiliência a rajadas concorrentes, saturação de payload (>25 MB), corrupção proposital de bytes e injeção de prompt acústico.
 
