@@ -280,15 +280,14 @@ class TestWhisperConfigurationAndPrompt:
         from src.domain.enums import WhisperModelSize
 
         settings_isolated = Settings(_env_file=None)
-        assert settings_isolated.WHISPER_MODEL_SIZE == WhisperModelSize.SMALL
+        assert settings_isolated.WHISPER_MODEL_SIZE == WhisperModelSize.MEDIUM
         assert "português brasileiro" in settings_isolated.WHISPER_INITIAL_PROMPT
+        assert "pontuação clara" in settings_isolated.WHISPER_INITIAL_PROMPT
 
         settings = Settings()
-        assert settings.WHISPER_MODEL_SIZE == WhisperModelSize.SMALL
+        assert settings.WHISPER_MODEL_SIZE == WhisperModelSize.MEDIUM
         assert "português brasileiro" in settings.WHISPER_INITIAL_PROMPT
-        assert "regras de negócio" in settings.WHISPER_INITIAL_PROMPT
-        assert "tabela" in settings.WHISPER_INITIAL_PROMPT
-        assert "API" in settings.WHISPER_INITIAL_PROMPT
+        assert "pontuação clara" in settings.WHISPER_INITIAL_PROMPT
 
     def test_faster_whisper_passes_calibration_and_vad_parameters(self, tmp_path):
         from unittest.mock import MagicMock

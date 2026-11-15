@@ -119,6 +119,12 @@ class LLMExecutionRequest(StrictBaseModel):
     temperature: Optional[float] = Field(
         default=0.7, ge=0.0, le=2.0, description="Sampling temperature"
     )
+    api_key: Optional[str] = Field(
+        default=None, description="Chave de API opcional enviada pelo cliente (ex: Groq)"
+    )
+    prompt_override: Optional[str] = Field(
+        default=None, description="Prompt customizado ou atualizado na interface"
+    )
 
 
 class LLMExecutionResponse(StrictBaseModel):

@@ -29,6 +29,7 @@ class ILLMProvider(ABC):
         prompt: str,
         model: Optional[str] = None,
         temperature: Optional[float] = 0.7,
+        api_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Execute inference against the LLM provider.
 
@@ -55,6 +56,7 @@ class OllamaProvider(ILLMProvider):
         prompt: str,
         model: Optional[str] = None,
         temperature: Optional[float] = 0.7,
+        api_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         chosen_model = model or self.default_model
         endpoint = f"{self.base_url}/api/generate"
@@ -144,8 +146,10 @@ class GrokProvider(ILLMProvider):
         prompt: str,
         model: Optional[str] = None,
         temperature: Optional[float] = 0.7,
+        api_key: Optional[str] = None,
     ) -> Dict[str, Any]:
-        if not self.api_key:
+        active_key = api_key or self.api_key
+        if not active_key:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="XAI_API_KEY não configurada no servidor. Configure a chave para executar inferência via Grok.",
@@ -170,7 +174,7 @@ class GrokProvider(ILLMProvider):
             data=json.dumps(payload).encode("utf-8"),
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}",
+                "Authorization": f"Bearer {active_key}",
                 "User-Agent": "audio-prompt-engine/0.1.0",
             },
             method="POST",
@@ -251,15 +255,17 @@ class GeminiProvider(ILLMProvider):
         prompt: str,
         model: Optional[str] = None,
         temperature: Optional[float] = 0.7,
+        api_key: Optional[str] = None,
     ) -> Dict[str, Any]:
-        if not self.api_key:
+        active_key = api_key or self.api_key
+        if not active_key:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="GEMINI_API_KEY não configurada no servidor. Configure a chave para executar inferência via Gemini.",
             )
 
         chosen_model = model or self.default_model
-        endpoint = f"{self.base_url}/{chosen_model}:generateContent?key={self.api_key}"
+        endpoint = f"{self.base_url}/{chosen_model}:generateContent?key={active_key}"
 
         payload = {
             "contents": [
@@ -356,8 +362,10 @@ class GroqProvider(ILLMProvider):
         prompt: str,
         model: Optional[str] = None,
         temperature: Optional[float] = 0.7,
+        api_key: Optional[str] = None,
     ) -> Dict[str, Any]:
-        if not self.api_key:
+        active_key = api_key or self.api_key
+        if not active_key:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="GROQ_API_KEY não configurada no servidor. Configure a chave para executar inferência via Groq.",
@@ -382,7 +390,7 @@ class GroqProvider(ILLMProvider):
             data=json.dumps(payload).encode("utf-8"),
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}",
+                "Authorization": f"Bearer {active_key}",
                 "User-Agent": "audio-prompt-engine/0.1.0",
             },
             method="POST",
@@ -486,17 +494,20 @@ class LLMExecutionService:
                 detail=f"Provedor LLM '{request.provider}' não é suportado.",
             )
 
+        prompt_to_run = request.prompt_override if request.prompt_override else prompt
+
         result = provider.execute(
-            prompt=prompt,
+            prompt=prompt_to_run,
             model=request.model,
             temperature=request.temperature,
+            api_key=request.api_key,
         )
 
         return LLMExecutionResponse(
             job_id=job_id,
             provider=request.provider,
             model=result["model"],
-            prompt_executed=prompt,
+            prompt_executed=prompt_to_run,
             response_text=result["response_text"],
             execution_time_seconds=result["execution_time_seconds"],
             tokens_used=result.get("tokens_used"),

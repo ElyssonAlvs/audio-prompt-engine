@@ -349,7 +349,12 @@ async def execute_prompt_llm(
             detail="Transcription not found",
         )
 
-    if record.output_mode != OutputMode.PROMPT or not record.prompt_result:
+    if not record.prompt_result and not request.prompt_override:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Job does not contain a compiled prompt to execute. Only jobs created with output_mode='prompt' can be executed.",
+        )
+    if record.output_mode != OutputMode.PROMPT and not request.prompt_override:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Job does not contain a compiled prompt to execute. Only jobs created with output_mode='prompt' can be executed.",

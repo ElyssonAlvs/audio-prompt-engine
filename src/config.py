@@ -26,12 +26,12 @@ class Settings(BaseSettings):
     DATABASE_PATH: str = Field(default="audio_prompt_engine.db", description="SQLite database path")
 
     WHISPER_MODEL_SIZE: WhisperModelSize = Field(
-        default=WhisperModelSize.SMALL, description="Whisper model size"
+        default=WhisperModelSize.MEDIUM, description="Whisper model size"
     )
     WHISPER_DEVICE: str = Field(default="cpu", description="Inference device: cpu or cuda")
     WHISPER_COMPUTE_TYPE: str = Field(default="int8", description="Quantization compute type")
     WHISPER_INITIAL_PROMPT: str = Field(
-        default="Áudio em português brasileiro sobre desenvolvimento de software, regras de negócio, banco de dados, servidor, tabela, horários da agenda, extração de dados, requisição e API.",
+        default="Transcrição fiel em português brasileiro, com pontuação clara.",
         description="Prompt de calibração fonética e semântica do Whisper",
     )
 
@@ -41,7 +41,7 @@ class Settings(BaseSettings):
 
     # LLM Execution Engine Configuration (Ollama, Grok, Gemini, Groq)
     OLLAMA_BASE_URL: str = Field(
-        default="http://host.docker.internal:11434", description="Ollama API base URL"
+        default="http://127.0.0.1:11434", description="Ollama API base URL"
     )
     XAI_API_KEY: Optional[str] = Field(
         default=None, description="xAI API Key for Grok inference"

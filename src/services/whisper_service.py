@@ -1,5 +1,8 @@
 """Audio transcription service wrapping faster-whisper with dependency injection."""
 
+import os
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
+
 import logging
 from abc import ABC, abstractmethod
 from typing import List, Optional

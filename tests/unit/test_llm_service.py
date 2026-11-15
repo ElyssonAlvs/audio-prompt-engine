@@ -388,6 +388,27 @@ class TestGroqProvider:
             assert exc_info.value.status_code == 502
             assert "Não foi possível conectar" in exc_info.value.detail
 
+    def test_groq_dynamic_api_key_used_when_settings_has_none(self):
+        settings = Settings(GROQ_API_KEY=None)
+        provider = GroqProvider(settings=settings)
+
+        mock_data = {
+            "choices": [{"message": {"content": "Resposta usando chave dinâmica."}}],
+            "usage": {"total_tokens": 42},
+        }
+        mock_bytes = json.dumps(mock_data).encode("utf-8")
+        mock_cm = MagicMock()
+        mock_cm.read.return_value = mock_bytes
+        mock_cm.__enter__.return_value = mock_cm
+
+        with patch("urllib.request.urlopen", return_value=mock_cm) as mock_urlopen:
+            result = provider.execute(prompt="Teste", api_key="dynamic-gsk-key")
+
+            assert result["response_text"] == "Resposta usando chave dinâmica."
+            req = mock_urlopen.call_args[0][0]
+            assert req.headers["Authorization"] == "Bearer dynamic-gsk-key"
+
+
 
 class TestLLMExecutionService:
     """Unit tests for the orchestration service."""
@@ -482,4 +503,41 @@ class TestLLMExecutionService:
         assert response.model == "llama-3.3-70b-versatile"
         assert response.response_text == "Groq answer"
         assert response.tokens_used == 120
+
+    def test_execution_service_passes_dynamic_api_key_and_prompt_override(self):
+        mock_provider = MagicMock()
+        mock_provider.execute.return_value = {
+            "response_text": "Answer from dynamic prompt",
+            "model": "llama-3.3-70b-versatile",
+            "tokens_used": 75,
+            "execution_time_seconds": 0.45,
+        }
+
+        service = LLMExecutionService()
+        service.set_provider(LLMProvider.GROQ, mock_provider)
+
+        request = LLMExecutionRequest(
+            provider=LLMProvider.GROQ,
+            model="llama-3.3-70b-versatile",
+            api_key="client-supplied-key",
+            prompt_override="This is the overridden prompt from the UI",
+        )
+
+        response = service.execute(
+            job_id="test-job-dynamic",
+            prompt="Original compiled prompt",
+            request=request,
+        )
+
+        assert response.job_id == "test-job-dynamic"
+        assert response.prompt_executed == "This is the overridden prompt from the UI"
+        assert response.response_text == "Answer from dynamic prompt"
+
+        mock_provider.execute.assert_called_once_with(
+            prompt="This is the overridden prompt from the UI",
+            model="llama-3.3-70b-versatile",
+            temperature=0.7,
+            api_key="client-supplied-key",
+        )
+
 

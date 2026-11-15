@@ -42,7 +42,7 @@ Endpoints locais:
 ## Fluxo de Processamento
 
 1. **Entrada:** Gravação direta via microfone do navegador ou envio de arquivo de áudio (WAV, MP3, OGG, WebM, FLAC, M4A) com limite de até 25 MB.
-2. **Transcrição Local:** Inferência local via `faster-whisper` com o modelo `small` (244M parâmetros, ~480 MB de RAM em INT8 na CPU), sem envio de áudio para APIs externas.
+2. **Transcrição Local:** Inferência local via `faster-whisper` com o modelo `medium` (769M parâmetros em INT8 na CPU), garantindo maior fidelidade fonética para o português do Brasil sem envio de dados para APIs externas.
 3. **Limpeza NLP:** Remoção algorítmica de hesitações (*"ééé"*, *"tipo assim"*, *"né"*) e desduplicação de repetições consecutivas (*"do do"* -> *"do"*).
 4. **Estruturação:** Higienização contra injeções acústicas e encapsulamento em prompt delimitado por tags `<user_speech>`.
 
@@ -63,12 +63,16 @@ Endpoints locais:
 
 ## Provedores de LLM Suportados
 
-Após sintetizar o prompt estruturado, é possível despachá-lo diretamente para um dos seguintes provedores:
+Após sintetizar o prompt estruturado, é possível despachá-lo diretamente para um dos provedores suportados:
 
-- **Ollama:** Execução local e offline (ex: `llama3`, configurável via `OLLAMA_BASE_URL`).
-- **Groq:** Inferência em nuvem de baixa latência (ex: `llama-3.3-70b-versatile`, via `GROQ_API_KEY`).
-- **Google Gemini:** Alta velocidade e janela de contexto ampla (ex: `gemini-1.5-flash`, via `GEMINI_API_KEY`).
-- **xAI Grok:** Raciocínio analítico avançado (ex: `grok-beta`, via `XAI_API_KEY`).
+- **Ollama Local:** Execução 100% offline e custo zero (`http://127.0.0.1:11434`, modelos `llama3` e `mistral`, configurável via `OLLAMA_BASE_URL`).
+- **Groq Cloud:** Inferência de alta velocidade via nuvem LPU (modelo `llama-3.3-70b-versatile`, com chave configurada no `.env` como `GROQ_API_KEY` ou informada diretamente na interface).
+
+---
+
+## Persistência em Banco SQLite
+
+Os jobs, transcrições e prompts compilados são persistidos localmente no banco SQLite em `data/audio_prompt_engine.db`, garantindo histórico de execuções com isolamento multi-tenant estrito.
 
 ---
 
@@ -92,7 +96,7 @@ A collection pronta para o Insomnia está disponível em [`docs/audio-prompt-eng
 
 ## Testes Automatizados
 
-Suíte completa com 98 testes automatizados (unitários, e2e e segurança):
+Suíte completa com 100 testes automatizados aprovados (100% verde), cobrindo testes unitários, fluxos de ponta a ponta (e2e) e segurança defensiva:
 
 ```bash
 uv run pytest -v
