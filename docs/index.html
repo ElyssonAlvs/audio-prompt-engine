@@ -499,8 +499,8 @@
 
     .result-body {
       padding: 1rem;
-      min-height: 280px;
-      max-height: 400px;
+      min-height: 360px;
+      max-height: 520px;
       overflow-y: auto;
       background-color: var(--bg-input);
       display: flex;
@@ -546,44 +546,7 @@
       color: var(--text-muted);
     }
 
-    /* 5. TESTE COM LLM (DISCRETO E OPCIONAL) */
-    .llm-test-card {
-      background-color: var(--bg-card);
-      border: 1px solid var(--border-default);
-      border-radius: var(--radius-lg);
-      padding: 1rem 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.85rem;
-    }
 
-    .llm-test-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-
-    .llm-select-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .llm-response-container {
-      display: none;
-      background-color: var(--bg-page);
-      border: 1px solid var(--border-default);
-      border-radius: var(--radius-md);
-      padding: 1rem;
-      font-family: var(--font-sans);
-      font-size: 0.92rem;
-      line-height: 1.6;
-      color: var(--text-primary);
-      white-space: pre-wrap;
-    }
 
     /* Toast Discreto */
     .app-toast {
@@ -768,26 +731,7 @@
       </div>
     </section>
 
-    <!-- 5. TESTE COM LLM (OPCIONAL E DISCRETO) -->
-    <section class="llm-test-card">
-      <div class="llm-test-row">
-        <div class="llm-select-group">
-          <span class="control-label">Testar com LLM (Opcional):</span>
-          <select class="control-select" id="llm-provider-select" onchange="handleLlmProviderSelect()">
-            <option value="ollama" selected>Ollama Local (llama3)</option>
-            <option value="groq">Groq Cloud (llama-3.3-70b-versatile)</option>
-          </select>
-          <input type="password" id="groq-api-key-input" class="control-input" placeholder="Chave API Groq (gsk_...)" style="display: none; width: 240px;" oninput="localStorage.setItem('groq_api_key', this.value.trim())" />
-        </div>
 
-        <button type="button" class="btn-audio" id="btn-send-llm" onclick="sendToLlm()">
-          <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-          <span>Enviar para LLM</span>
-        </button>
-      </div>
-
-      <div class="llm-response-container" id="llm-response-box"></div>
-    </section>
 
   </div>
 
@@ -849,13 +793,6 @@
           togglePlay();
         }
       });
-
-      // Restaurar chave salva da Groq do localStorage
-      const savedGroqKey = localStorage.getItem('groq_api_key');
-      const groqInput = document.getElementById('groq-api-key-input');
-      if (savedGroqKey && groqInput) {
-        groqInput.value = savedGroqKey;
-      }
 
       // Suporte a URL params (automação para GIF e testes)
       const params = new URLSearchParams(window.location.search);
@@ -1386,129 +1323,7 @@ ${speechBlock}`;
       document.getElementById('prompt-tokens-count').textContent = `Tokens Estimados: ~${tokens}`;
     }
 
-    /* --------------------------------------------------------------------------
-       EXECUÇÃO NO MODELO LLM (CONEXÃO REAL COM BACKEND)
-       -------------------------------------------------------------------------- */
-    function handleLlmProviderSelect() {
-      const provider = document.getElementById('llm-provider-select').value;
-      const groqKeyInput = document.getElementById('groq-api-key-input');
-      if (provider === 'groq') {
-        groqKeyInput.style.display = 'inline-block';
-        groqKeyInput.focus();
-      } else {
-        groqKeyInput.style.display = 'none';
-      }
-    }
 
-    async function sendToLlm() {
-      const btn = document.getElementById('btn-send-llm');
-      const box = document.getElementById('llm-response-box');
-      const providerValue = document.getElementById('llm-provider-select').value;
-      const currentPrompt = document.getElementById('prompt-output').textContent.trim();
-
-      if (!currentJobId) {
-        toast("Processe o áudio primeiro para gerar o job e o prompt.");
-        return;
-      }
-
-      if (!currentPrompt || currentPrompt.startsWith('Clique em')) {
-        toast("Processe o áudio primeiro para gerar o job e o prompt.");
-        return;
-      }
-
-      const groqKey = document.getElementById('groq-api-key-input').value.trim();
-      if (providerValue === 'groq' && groqKey) {
-        localStorage.setItem('groq_api_key', groqKey);
-      }
-
-      btn.disabled = true;
-      btn.innerHTML = `<span>Enviando...</span>`;
-      box.style.display = 'block';
-      box.textContent = `Aguardando inferência via ${providerValue === 'ollama' ? 'Ollama Local (llama3)' : 'Groq Cloud (llama-3.3-70b-versatile)'}...`;
-
-      const payload = {
-        provider: providerValue,
-        model: providerValue === 'ollama' ? 'llama3' : 'llama-3.3-70b-versatile',
-        prompt_override: currentPrompt
-      };
-      if (providerValue === 'groq' && groqKey) {
-        payload.api_key = groqKey;
-      }
-
-      try {
-        let res = await fetch(`${backendUrl}/api/v1/transcriptions/${currentJobId}/execute`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': 'dev-operator-alpha'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        // Caso o backend responda 422 por validação estrita (extra_forbidden), reenviar apenas com provider e model
-        if (res.status === 422) {
-          const testErr = await res.clone().json().catch(() => ({}));
-          if (JSON.stringify(testErr).includes('extra_forbidden')) {
-            res = await fetch(`${backendUrl}/api/v1/transcriptions/${currentJobId}/execute`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-API-Key': 'dev-operator-alpha'
-              },
-              body: JSON.stringify({
-                provider: providerValue,
-                model: providerValue === 'ollama' ? 'llama3' : 'llama-3.3-70b-versatile'
-              })
-            });
-          }
-        }
-
-        if (res.ok) {
-          const data = await res.json();
-          const respText = data.response_text || data.content || JSON.stringify(data, null, 2);
-          const execTime = data.execution_time_seconds ? `${data.execution_time_seconds.toFixed(2)}s` : '0.00s';
-          const tokens = data.tokens_used != null ? data.tokens_used : 'N/A';
-
-          box.innerHTML = `
-            <div style="white-space: pre-wrap; margin-bottom: 0.75rem;">${escapeHtml(respText)}</div>
-            <div style="font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 0.5rem;">
-              Modelo: ${escapeHtml(data.model || payload.model)} | Tempo: ${execTime} | Tokens: ${tokens}
-            </div>
-          `;
-          toast("Resposta da LLM recebida!");
-        } else {
-          const errData = await res.json().catch(() => ({}));
-          const errMsg = errData.detail || errData.error || errData.message || `Erro HTTP ${res.status}`;
-          box.innerHTML = `
-            <div style="color: #ef4444; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.5;">
-              Erro retornado pelo backend (${res.status}):<br>
-              ${escapeHtml(typeof errMsg === 'object' ? JSON.stringify(errMsg, null, 2) : String(errMsg))}
-            </div>
-          `;
-          toast(`Falha na execução LLM: ${typeof errMsg === 'string' ? errMsg : 'Erro HTTP ' + res.status}`);
-        }
-      } catch (networkErr) {
-        box.innerHTML = `
-          <div style="color: #ef4444; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.5;">
-            Falha de conexão com a API local em ${backendUrl}. Verifique se o servidor backend está rodando.
-          </div>
-        `;
-        toast("Não foi possível conectar ao backend local.");
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg><span>Enviar para LLM</span>`;
-      }
-    }
-
-    function escapeHtml(str) {
-      if (typeof str !== 'string') return String(str);
-      return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
 
     /* --------------------------------------------------------------------------
        UTILITÁRIOS: COPIAR E TOAST
