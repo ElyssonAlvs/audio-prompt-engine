@@ -58,6 +58,7 @@ class TestOllamaProvider:
             assert sent_body["model"] == "llama3"
             assert sent_body["prompt"] == "Refatore esta função"
             assert sent_body["options"]["temperature"] == 0.5
+            assert sent_body["options"]["num_predict"] == 512
 
     def test_ollama_timeout_raises_504(self):
         provider = OllamaProvider()

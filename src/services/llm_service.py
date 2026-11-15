@@ -18,6 +18,7 @@ from src.domain.schemas import LLMExecutionRequest, LLMExecutionResponse
 logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SECONDS = 60.0
+OLLAMA_TIMEOUT_SECONDS = 180.0
 
 
 class ILLMProvider(ABC):
@@ -67,6 +68,7 @@ class OllamaProvider(ILLMProvider):
             "stream": False,
             "options": {
                 "temperature": temperature if temperature is not None else 0.7,
+                "num_predict": 512,
             },
         }
 
@@ -79,13 +81,13 @@ class OllamaProvider(ILLMProvider):
 
         start_time = time.perf_counter()
         try:
-            with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT_SECONDS) as response:
+            with urllib.request.urlopen(req, timeout=OLLAMA_TIMEOUT_SECONDS) as response:
                 body = response.read().decode("utf-8")
                 data = json.loads(body)
         except (TimeoutError, socket.timeout):
             raise HTTPException(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-                detail=f"Timeout comunicando com Ollama em {self.base_url} (limite de {int(DEFAULT_TIMEOUT_SECONDS)}s excedido).",
+                detail=f"Timeout comunicando com Ollama em {self.base_url} (limite de {int(OLLAMA_TIMEOUT_SECONDS)}s excedido).",
             )
         except urllib.error.HTTPError as e:
             error_body = ""
